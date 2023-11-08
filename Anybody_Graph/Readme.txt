@@ -1,0 +1,1 @@
+Modules nécessaires : PyCharm, matplotlib, numpy

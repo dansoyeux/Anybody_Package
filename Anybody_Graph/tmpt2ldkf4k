@@ -1,0 +1,1789 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jul 20 09:53:59 2023
+Functions to make graph from EpauleFDK .h5 and AnyFileOut
+Makes Variable graps, muscle graphs and COPGraph
+@author: Dan
+"""
+
+import math
+import numpy as np
+
+import matplotlib.pyplot as plt
+from Anybody_Graph.Tools import find_peak_indexes
+from Anybody_Graph.Tools import ReadPickedPoints
+from Anybody_Graph.Tools import unsuperpose_plot_annotations
+
+
+# %% Plot Variables setup
+
+
+def DefineSimulationsLineStyle(SimulationsLineStyleDictionary):
+    """
+    Fonction qui crée la variable globale SimulationsLineStyle qui sera utilisée par la fonction DefineGraphLineStyle
+    Fonction à appeler avant d'utiliser la fonction plot
+
+    SimulationsLineStyleDictionary = {"Case 1": {"color": "COLORNAME", "marker": "MARKERNAME", "markersize": NUMBER, "linestyle": "LINESTYLE", "linewidth": NUMBER},
+                            "Case 2": {"color": "COLORNAME", "marker": "MARKERNAME", "markersize": NUMBER, "linestyle": "LINESTYLE", "linewidth": NUMBER}
+                            }
+    If one of the settings isn't declared, it will be set to the default value (None)
+    """
+    global SimulationsLineStyle
+    SimulationsLineStyle = SimulationsLineStyleDictionary.copy()
+
+
+def DefineSimulationDescription(SimulationDescriptionDictionary):
+    """
+    Function that sets the SimulationDescriptions to be used by the DefineSumulationLabel and GetSimulationDescription functions
+    """
+
+    global SimulationDescription
+    SimulationDescription = SimulationDescriptionDictionary.copy()
+
+
+# %% Plot Setup Functions
+
+
+def PlotGraph(data, x, y, GraphType, draw_peak_angle_on=True, label=None, customlabel=None, color=None, DrawGHReactionsNodes=False, DrawCOPPointsOn=True, **kwargs):
+    """
+    Function ploting the datas
+
+    DrawGHReactionsNodes= ARGUMENT PERSONNEL POUR TRACER EN PLUS DES POINT SUR LE CONTOUR, PEUT ÊTRE SUPPRIMÉ
+
+
+    draw_peak_angle_on : Contrôle l'affichage ou non des angles de pic de COP (Vrai par défaut)
+                       : Si True appelle la fonction draw_peak_annotation
+
+
+    DrawCOPPointsOn : bool : active ou non le traçage des points sur le COP
+                    : Si True appelle la fonction DrawCOPPoints
+
+    The style depends on the GraphType : "Graph", "MuscleGraph" "COPGraph"
+
+    À ADAPTER DANS SECTION COPGRAPH SELON LE DÉPLACEMENT ANGULAIRE ÉTUDIÉ
+    AngleList = data["NOM_VARIABLE_DÉPLACEMENT_ANGULAIRE"]["COMPOSANTE"]
+
+    """
+
+    # if a custom label has been declared, it will overwrite the label given by the graph function
+    if customlabel is not None:
+        graphlabel = customlabel
+    else:
+        graphlabel = label
+
+    # defines the color and the style of the line depending on the label name
+    color, marker, markersize, linestyle, linewidth = DefineGraphLineStyle(graphlabel)
+
+    # Fonction Graph
+    if GraphType == "Graph":
+        plt.plot(x, y, label=graphlabel, color=color, marker=marker, linestyle=linestyle, markersize=markersize, linewidth=linewidth)
+
+    # Fonction MuscleGraph
+    if GraphType == "MuscleGraph":
+        plt.plot(x, y, label=graphlabel, color=color, marker=marker, linestyle=linestyle, markersize=markersize, linewidth=linewidth)
+
+    # Draws the glenoid contour, the COP, the max angle, a cross at the first COP
+    # Can draw the GHReactions nodes on the glenoid if activated
+    if GraphType == "COPGraph":
+        """
+        À ADAPTER SELON LE DÉPLACEMENT ANGULAIRE ÉTUDIÉ
+        AngleList = data["NOM_VARIABLE_DÉPLACEMENT_ANGULAIRE"]["COMPOSANTE"]
+        """
+        # Liste des angles de déplacement
+        AngleDeplacement = data["Abduction"]["Total"]
+
+        # Step de déplacement angulaire où les points seront tracés par la fonction DrawCOPPoints
+        AngleStep = 15
+
+        # Dessine les coordonnées du COP
+        plt.plot(x, y, label=graphlabel, color=color, marker=marker, linestyle=linestyle, markersize=markersize, linewidth=linewidth)
+
+        # Dessine le COP de début et d'autres points intermédiaires tous les x° d'angles de déplacement (AngleStep)
+        # Seulement si activé
+        if DrawCOPPointsOn:
+            DrawCOPPoints(AngleDeplacement, x, y, AngleStep)
+
+        # Draws the max and min COPy values
+        if draw_peak_angle_on:
+
+            draw_peak_annotation(AngleDeplacement, x, y, **kwargs)
+
+        """
+        CODE PERSONNEL POUR TRACER LES POINTS ORIGINE GHREACTIONS
+        """
+        # If reactions nodes drawing is activated and if this in this case, there are GHReactions nodes in the current data
+        if DrawGHReactionsNodes and ("GHReactions" in list(data.keys())):
+            CavityEdgeNodes = list(
+                data["GHReactions"]["Cavity Nodes Position"].keys())
+            NodePosx = np.array([])
+            NodePosy = np.array([])
+
+            # Gets the position of the CavityEdgenodes
+            for Node in CavityEdgeNodes:
+                NodePosx = np.append(
+                    NodePosx, data["GHReactions"]["Cavity Nodes Position"][Node][0])
+                NodePosy = np.append(
+                    NodePosy, data["GHReactions"]["Cavity Nodes Position"][Node][1])
+
+            # Draws the Cavity nodes on the COP graph
+            plt.scatter(NodePosx, NodePosy, color=plt.gca(
+            ).lines[-1].get_color(), marker='o', s=40)
+
+
+def SubplotSetup(Subplot, AddGraph=False):
+    """
+
+    Setup a subplot of dimension :
+    Subplot = {"Dimension: [nrows, ncolumns]", :"Number": Number_of_the_Subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "LastSubplot": True}
+
+
+        Subplot["Dimension"] = [nrows, ncolumns]
+    And defines the active axis as the Subplot["Number"]=number of the plot
+
+
+    Subplot["figsize"] : Optional argument to set the size of the figure
+                         Subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    Subplot["Dimension"] and figsize : are only to be set for Subplot["Number"] = 1
+    They are not taken in account otherwise
+
+    Subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                        : It's automatically set to True if we reach the maximum subplot Number
+                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+
+    Example : Dimension = [2,2]
+              the grah numbers are 1 2
+                                   3 4
+
+              Number = 3 corresponds to subplot [1,0]
+
+            : To plot on a graph with 2 line and 3 columns on the graph in the center
+            Subplot = {"Dimension":[3,3],"Number":5}
+    """
+
+    global ax
+    global fig
+
+    # Default figure size for 2 dimensional subplot
+    figsize_2D_Default = [14, 10]
+
+    # Sets the dimensions and default values depending on if the subplot is 1D or 2D
+    if Subplot is None and not AddGraph:
+
+        fig, ax = plt.subplots()
+
+    # Si l'argument subplot a été déclaré le subplot est en 2D
+    elif Subplot is not None:
+        # Number of the subplot to graph
+        Subplot_Number = Subplot["Number"]
+
+        # Dimensions du subplot et tailles de figures
+        if "Dimension" in Subplot:
+            Dimension_x = Subplot["Dimension"][0]
+            Dimension_y = Subplot["Dimension"][1]
+            figsize = Subplot.get("figsize", figsize_2D_Default)
+
+        # If it's the first subplot then it initializes the figure
+        if Subplot_Number == 1 and not AddGraph:
+
+            # Creates the subplot with the selected dimensions
+            # Sets the figure size
+            fig, ax = plt.subplots(Dimension_x, Dimension_y, figsize=figsize)
+
+        # Selects the current subplot
+        plt.subplot(Dimension_x, Dimension_y, Subplot_Number)
+
+    # Clears the current subplot if AddGraph is False
+    if AddGraph is False:
+        plt.cla()
+
+
+def DefineSimulationLabel(labels):
+    """
+    Defines the labels in a legend
+    Put the name of the Simulation case or the simulation is in SimulationDescription list if you want a more detailed legend than only their name
+
+    SimulationDescription must be a global variable declared at the begining of a script.
+
+    SimulationDescription = ["Case or Simulation Name","Legend text","Case or Simulation Name","Legend text"]
+
+
+    depending on the case name from the SimulationDescription list ["Case_name","color","Case_name","color"]
+    Uses the function : "GetSimulationDescription" to change the case name to it's description'
+    """
+
+    Caselabels = []
+    # Parcours les label du graphique
+    for label in labels:
+        # Si ce label est dans la liste Simulation description, remplace ce label par sa description
+        if label in SimulationDescription:
+            Caselabels.append(GetSimulationDescription(label))
+        # Si ce label n'a pas de description, garde ce label
+        else:
+            Caselabels.append(label)
+
+    return Caselabels
+
+
+def ClearLegendDuplicates(lines, labels):
+    """
+    Searches the list of all labels in a figure and deletes duplicates in the label list and in the lines list
+    """
+
+    labels_no_duplicates = []
+    lines_no_duplicates = []
+
+    # Goes through the labels list from the end to the beginning
+    for label_index, label in enumerate(labels):
+
+        # if the label is not already added in the list without duplicates adds it
+        if label not in labels_no_duplicates:
+            labels_no_duplicates.append(label)
+            lines_no_duplicates.append(lines[label_index])
+
+    return lines_no_duplicates, labels_no_duplicates
+
+
+def LegendSetup(Subplot, LegendLocation='lower center'):
+    """
+    Setups the legend of a figure, depending on if a subplot is activated or not
+    If a subplot is activated, puts only one legend with every labels on it
+    Sets the color of the lines depending on the name of the case
+
+    Sets the legend with multiple columns depending on the number of labels
+
+    LegendLocation = dictionary, controls where the legend is drawn outside the figure
+
+                   location string of matplotlib 'upper right', 'center left'...
+                   default = 'lower center'
+
+                   Default value : lower center (below the figure)
+                   WARNING : LOCATIONS IMPLEMENTED : lower center and center left, add more locations by adding an elif statement
+    """
+    # list des localisation implémentées
+    location_list = ["lower center", "center left"]
+
+    # locations implemented
+    if LegendLocation == 'lower center':
+        # Location of the origin point of the legend box
+        Anchor_loc = 'upper center'
+
+        # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
+        Loc_x = 0.5
+
+        # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
+        Loc_y = 0
+
+        # Maximum number of labels per column in the legend
+        LabelsPerColumn = 5
+
+    elif LegendLocation == 'center left':
+        # Location of the origin point of the legend box
+        Anchor_loc = 'center right'
+
+        # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
+        Loc_x = 0
+
+        # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
+        Loc_y = 0.5
+
+        # Maximum number of labels per column in the legend
+        LabelsPerColumn = 100
+    else:
+        raise ValueError(
+            f"La localisation {LegendLocation} n'est pas implémentée dans la fonction Graph.LegendSetup. \nLes localisations implémentées sont :\n{location_list}")
+        return
+
+    # if a legend already exists in the figure, deletes it to update it
+    if fig.legends:
+        fig.legends.clear()
+
+    # maximumNumber of labels per columns in the legend
+
+    if Subplot is None:
+        # Gets all labels of the figure
+        lines, labels = ax.get_legend_handles_labels()
+
+        # Only draws the legend if there are multiple labels in the figure
+        if len(labels) > 1:
+
+            # Number of columns in the legend to not exceed the max number of labels per column
+            ncol = int(np.ceil((len(labels)) / LabelsPerColumn))
+
+            # Changes the names of the case to their description
+            Simulationlabels = DefineSimulationLabel(labels)
+
+            # Draws the legend under the graph and with multiple columns
+            fig.legend(lines, Simulationlabels, bbox_to_anchor=(
+                Loc_x, Loc_y), loc=Anchor_loc, ncol=ncol)
+
+    else:
+
+        # Collects all the labels and lines of the figure
+        lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
+        # reshaping so that the lists are two 1D lists
+        lines, labels = [sum(i, []) for i in zip(*lines_labels)]
+
+        # removes duplicates labels
+        lines, labels = ClearLegendDuplicates(lines, labels)
+        # Only draws the legend if there are multiple labels in the figure
+        if len(labels) > 1:
+
+            # Number of columns in the legend to not exceed the max number of labels per column
+            ncol = int(np.ceil((len(labels)) / LabelsPerColumn))
+
+            # Changes the names of the case to their description
+            Simulationlabels = DefineSimulationLabel(labels)
+
+            # Places one legend for the whole subplot
+            fig.legend(lines, Simulationlabels, bbox_to_anchor=(
+                Loc_x, Loc_y), loc=Anchor_loc, ncol=ncol)
+
+
+def GraphGridSetup(Variable_x, Variable_y, COPContour=None):
+    """
+    Setups the axis ticks and grid depending on the VarName
+    If the VarName doesn't have a custom grid, the default grid is ploted
+    
+    """
+    axe = plt.gca()
+    lines = axe.lines
+
+    x = np.array([])
+    y = np.array([])
+
+    # Collects all x data in the current subplot
+    for nline in range(len(lines)):
+        x = np.append(x, lines[nline].get_xdata())
+        y = np.append(y, lines[nline].get_ydata())
+
+    # épaisseur des lignes majeures et mineures
+
+    # Sets the grid lines boldness
+    axe.grid(which='major', alpha=1)
+    axe.grid(which='minor', alpha=0.5)
+
+    # Test des variables en y
+    # Met des pas de 15° si la variable en x est Angle de 0 au max de l'angle
+    if Variable_x == "Abduction":
+        axe.set_xticks(np.arange(0, math.ceil(max(x)) + 1, 15), minor=False)
+    
+    # Limites pour GHLin
+    elif "GHLin" in Variable_x:
+        axe.set_xticks(np.arange(math.floor(min(x)) - 1, 10 + 1, 1), minor=False)
+
+
+
+    # Test des variables en y
+    # Pour contact force, sauts en y de 50N si maximum plus grand que 200 N
+    if Variable_y == "ForceContact":
+        if max(y) > 200:
+            # Major Ticks every 100 N and minor ticks every 50N
+            axe.set_yticks(np.arange(0, int(math.ceil(max(y) / 100)) * 100 + 100, 100), minor=False)
+            axe.set_yticks(np.arange(0, int(math.ceil(max(y) / 100)) * 100, 50), minor=True)
+
+        # en dessous de 200N graphique de 0 à 200
+        else:
+            axe.set_yticks(np.arange(0, 210, 50), minor=False)
+            axe.set_yticks(np.arange(0, 210, 25), minor=True)
+
+    elif Variable_y == "Activity":
+        # Maximum à 100%, sauts de 20% pour une activité supérieure à 40%
+        axe.set_yticks(np.arange(0, 110, 20), minor=False)
+        axe.set_yticks(np.arange(0, 120, 10), minor=True)
+
+    # Pour force des muscles, sauts en y de 50N et en x de 15° si un assez grand écart entre le min et le max de la force
+    elif Variable_y == "Fm" or Variable_y == "Ft":
+        if max(y) > 200:
+            # Major Ticks every 100 N and minor ticks every 50N
+            axe.set_yticks(np.arange(0, int(math.ceil(max(y) / 100)) * 100 + 100, 100), minor=False)
+            axe.set_yticks(np.arange(0, int(math.ceil(max(y) / 100)) * 100, 50), minor=True)
+
+            # Sets the grid lines boldness
+            axe.grid(which='major', alpha=1)
+            axe.grid(which='minor', alpha=0.5)
+
+        # en dessous de 200N graphique de 0 à 200
+        else:
+            axe.set_yticks(np.arange(0, 210, 50), minor=False)
+            axe.set_yticks(np.arange(0, 210, 25), minor=True)
+
+    # Limites pour GHLin
+    elif "GHLin" in Variable_y:
+        axe.set_yticks(np.arange(math.floor(min(x)) - 1, 10 + 1, 1), minor=False)
+
+    else:
+        plt.grid(visible=True)
+
+
+def GetSimulationDescription(Case):
+    """
+    Transforms the case name into it's description (From the SimulationDescription global list)
+    SimulationLegend must be a global list declared at the beginning of the code :
+        global SimulationLegend
+        SimulationLegend = ["Simulation1 Name","Simulation1 description",
+                            "Simulation2 Name","Simulation2 description"...]
+    """
+    CaseDescription = SimulationDescription[SimulationDescription.index(Case) + 1]
+    return CaseDescription
+
+
+def DefineGraphLineStyle(label):
+    """
+    Defines the style of the line data in a graph depending on it's name
+    SimulationsLineStyle must have be set with the DefineSimulationsLineStyle function
+
+
+    These line style are defined in a global dictionnary :
+        global SimulationsLineStyle
+        SimulationsLineStyle = {"Case 1": {"color": "COLORNAME", "marker": "MARKERNAME", "markersize": NUMBER, "linestyle": "LINESTYLE", "linewidth": NUMBER},
+                                "Case 2": {"color": "COLORNAME", "marker": "MARKERNAME", "markersize": NUMBER, "linestyle": "LINESTYLE", "linewidth": NUMBER}
+                                }
+        If one of the settings isn't declared, it will be set to the default value (None)
+
+    """
+
+    # Default values
+    marker = None
+    markersize = None
+    linestyle = None
+    linewidth = None
+    color = None
+
+    # Only select a custom color if there is a label
+    if label is not None:
+        # Selects the color from the colormap if the graphlabel is in SimulationColors
+        if label in SimulationsLineStyle:
+
+            color = SimulationsLineStyle[label].get("color", None)
+            marker = SimulationsLineStyle[label].get("marker", None)
+            markersize = SimulationsLineStyle[label].get("markersize", None)
+            linestyle = SimulationsLineStyle[label].get("linestyle", None)
+            linewidth = SimulationsLineStyle[label].get("linewidth", None)
+
+    return color, marker, markersize, linestyle, linewidth
+
+
+# %% COPGraph function setup
+
+
+def DefineCOPContour(COPContourInputFileName, InputFileType):
+    """
+    Function that can be used to read a file containing the coordinates of the contour that is plot by the function COPGraph (COPContour argument)
+    It creates a numpy array
+    Only the x and y coordinates are used to draw the contour
+
+    Reads the file that contains the coordinates of the contour
+    COPContourInputFileName : string containing the name of the file that contains the coordinates (without the extension)
+
+    InputFileType : string containing the file type (pp...)
+                    FOR NOW CAN ONLY READ PICKED POINTS FILES ARE SUPPORTED (.pp)
+
+    ---------------------------------
+    return
+    COPContour : Array containing the coordinates of the points of the contour
+                Dimension (npoints,3 or 2)
+                Column 1 : x
+                Column 2 : y
+                Column 3 : z (not used by the COPGraph function)
+
+    """
+    # import numpy as np
+    # Liste des formats supportés (ajouter des formats si cette fonction est modifiée)
+    SupporterFormats = ["pp"]
+
+    # Message d'erreur si le format utilisé n'est pas supporté
+    if InputFileType not in SupporterFormats:
+        raise ValueError(
+            f"Les fichiers .{InputFileType} ne sont pas supportés par la fonction DefineCOPContour \n Les formats supportés sont : {SupporterFormats}")
+        return
+
+    COPContour = ReadPickedPoints(COPContourInputFileName + "." + InputFileType)
+
+    return COPContour
+
+
+def draw_peak_annotation(annotation_values, x, y, **kwargs):
+    """
+    Draws the peak value of a dataset in an annotation
+
+    x = Liste des coordonnées en x
+    y = Liste des coordonnées en y
+
+    annotation_values : Liste contenant les coordonnées à afficher dans le pic
+
+
+    n_interpolation_points : int, Default = None
+    to be used only if the x values are striclty increasing
+    None : no interpolation done, keeps the original data
+
+    controls the precision of the value displayed in the annotation by setting the number of interpolation points
+    the interpolation function will be calculated with n_interpolation_points and the x, y and annotation_values will have this amount of point
+    finds an interpolate function f : y = f(x) and then use it to display the peak value
+
+    ex : if y = annotation_values = [0, 100, 25, 50, 75]
+        x = [0, 25, 50, 75, 100]
+    only 5 points so the value calculated won't be very precise (the x coordinate will have a 25 precision)
+    with n_interpolation_points = 100, the values calculated on x will have a precision of 1
+
+
+
+    """
+
+
+    """
+    SCRIPT TO INTERPOLATE NOT TESTED
+    """
+
+
+    # Sets the number of interpolation points to use to calculate the peak
+    n_interpolation_points = kwargs.get("n_interpolation_points", None)
+
+    find_max_index = kwargs.get("find_max_index", True)
+    find_min_index = kwargs.get("find_min_index", False)
+    find_max_peak_index = kwargs.get("find_max_peak_index", False)
+    find_min_peak_index = kwargs.get("find_min_peak_index", False)
+
+    # No interpolation is done
+    if n_interpolation_points is None:
+        interpolated_values = annotation_values
+        interpolated_x = x
+        interpolated_y = y
+
+    else:
+        from scipy import interpolate
+
+        # Creates a list of numbers from the first to the last value of x with a number of points of n_interpolation_points
+        interpolated_x = np.linspace(x[0], x[-1], n_interpolation_points)
+
+        try:
+            # interpolation function to find the annotation values
+            values_interpolation_function = interpolate.CubicSpline(x, annotation_values)
+        # Error message in case x isn't strictly increasing
+        except ValueError:
+            raise ValueError("La variable en x doit augmenter strictement pour augmenter la précision du calcul du pic par interpolation")
+
+        interpolated_values = values_interpolation_function(interpolated_x)
+
+        # interpolation function to find the annotation values
+        y_interpolation_function = interpolate.CubicSpline(x, y)
+        interpolated_y = y_interpolation_function(interpolated_x)
+
+    # Trouve les indices où y a atteint un pic (maximums et minimums)
+    peak_indexes = find_peak_indexes(interpolated_y, find_max_index, find_min_index, find_max_peak_index, find_min_peak_index)
+
+    # Gets the x and y position of the peaks and the peak angle
+    Peak_x = interpolated_x[peak_indexes]
+    Peak_y = interpolated_y[peak_indexes]
+    Peak_Angle = interpolated_values[peak_indexes]
+
+    # Gets the color of the last ploted graph
+    color = plt.gca().lines[-1].get_color()
+
+    for index in range(len(peak_indexes)):
+
+        plt.annotate(f"{round(Peak_Angle[index])}°",
+                     xy=(Peak_x[index], Peak_y[index]),
+                     bbox=dict(boxstyle="round", fc=color, alpha=0.6),
+                     arrowprops=dict(arrowstyle="-", connectionstyle="arc3", color="black"),
+                     color="black")
+
+
+def DrawCOPPoints(AngleDeplacement, x, y, AngleStep):
+    """
+    Shows where is the COP at t=0s
+    And draws a point where the COP is during the movement
+
+    AngleDeplacement : Liste ou array contenant l'angle de déplacement angulaire étudié
+
+    AngleStep spécifie tous les combien de degré d'abduction un point doit être tracé
+        Type = int
+
+
+    Exemple : AngleStep = 15 : Le COP sera tracé tous les 15° [15, 30, 45, 60....] environ en trouvant les données correspondant aux angles les plus proches
+    Le script détect l'angle de début et de fin
+
+    """
+
+    CaseColor = plt.gca().lines[-1].get_color()
+
+    def FindClosestNumber(Array, Number):
+        """
+        Fonction pour trouver la position et la valeur de l'élément ayant la valeur la plus proche d'un nombre spécifié dans une liste de nombres
+
+        Exemple : Array = [1, 2, 3, 4]
+        Number = 3.2
+
+        ClosestNumber = 3
+        NumberIndex = 2
+
+        """
+        ClosestNumber = Array[min(range(len(Array)), key=lambda i: abs(Array[i] - Number))]
+        NumberIndex = np.where(Array == ClosestNumber)[0][0]
+
+        return ClosestNumber, NumberIndex
+
+    # Initialisation des angles
+    ClosestAngles = []
+    Indexes = []
+
+    # Parcours les valeurs d'angles de la valeur minimale à maximale, avec un pas spécifié
+    # Ne sélectionne pas la valeur minimale ni la valeur maximale
+    for Angle in range(int(min(AngleDeplacement)) + AngleStep, int(max(AngleDeplacement)), AngleStep):
+
+        # Trouve la valeur dans la liste d'angle qui est la plus proche de l'angle voulu et sa position dans la liste
+        ClosestNumber, NumberIndex = FindClosestNumber(AngleDeplacement, Angle)
+
+        ClosestAngles = [*ClosestAngles, ClosestNumber]
+        Indexes = [*Indexes, NumberIndex]
+
+    # Sélectionne les valeurs x et y du COP à tracer
+    xSelection = x[Indexes]
+    ySelection = y[Indexes]
+
+    plt.plot(x[0], y[0], '+', color=CaseColor, markersize=10, mew=2.5)
+    plt.plot(xSelection, ySelection, ".", color=CaseColor, markersize=8)
+
+# %% Graph functions
+
+
+def Graph(data, Variable_x, Variable_y, FigureTitle, CasesOn=False, Compare=False, Composante_x="Total", Composante_y=["Total"], Subplot=None, SubplotTitle=False, **kwargs):
+    """
+    Fonction générale qui gère les graphiques
+
+
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (Compare = True)
+
+    Variable_x : Le nom de la variable placée en x sur le graphique
+    Variable_u : le nom de la variable placée en y sur le graphique
+
+    Composante_y :
+                  : type : liste de chaines de charactère
+                  : Liste contenant les nom des composantes de la variable à tracer
+                  : Par défaut : On trace la composante "Total" donc Composante_y = ["Total"]
+
+                : Activer plusieurs composantes :
+                Exemple : Composante_y = ["composante 1","composante 2","composante 3","Total"....]
+                          Si on veut activer x et y entrer : Composante_y = ["x","y"]
+
+                : Activer une seule composante :
+                Exemple : Si on veut activer y entrer : Composante_y = ["y"]
+
+
+                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
+                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
+
+    Composantes_x : Le nom de la composante de la variable en abscisse
+                  : Composante_x est une chaîne de charactère contenant le nom de la composante de la variable
+                  : Par défaut : "Total"
+                  : Si on veut activer y entrer : Composantes_x = "y"
+
+    Compare : = True si on veut comparer plusieurs données
+              Ne rien mettre (Compare = False par défaut) : on veut tracer qu'une seule donnée
+
+    Subplot = {"Dimension: [nrows, ncolumns]", :"Number": Number_of_the_Subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "LastSubplot": True}
+
+
+        Subplot["Dimension"] = [nrows, ncolumns]
+    And defines the active axis as the Subplot["Number"]=number of the plot
+
+
+    Subplot["figsize"] : Optional argument to set the size of the figure
+                         Subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    Subplot["Dimension"] and figsize : are only to be set for Subplot["Number"] = 1
+    They are not taken in account otherwise
+
+    Subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                        : It's automatically set to True if we reach the maximum subplot Number
+                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+
+    Example : Dimension = [2,2]
+              the grah numbers are 1 2
+                                   3 4
+
+              Number = 3 corresponds to subplot [1,0]
+
+            : To plot on a graph with 2 line and 3 columns on the graph in the center
+            Subplot = {"Dimension":[3,3],"Number":5}
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             AddGraph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             LegendOn : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+             LegendLocation = dictionary, controls where the legend is drawn outside the figure
+
+                           location string of matplotlib 'upper right', 'center left'...
+
+                           Default value : lower center (below the figure)
+    """
+
+    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
+    customlabel = kwargs.get("label", None)
+
+    # Get the AddGraph variable. Puts it to false by default if it's not declared in the kwargs
+    AddGraph = kwargs.get("AddGraph", False)
+
+    # get the LegendOn argument that controls if the legend is drawn or not (Default True)
+    LegendOn = kwargs.get("LegendOn", True)
+
+    # Verifications for when simulationCases are used
+    if CasesOn:
+        # If "all", all cases are selected to be drawn
+        if CasesOn == "all":
+            CasesOn = list(data.keys())
+
+        elif type(CasesOn) is str:
+            raise ValueError(
+                "CasesOn doit être une liste si 'all' n'est pas utilisé")
+            return
+
+        # Vérifie qu'on n'active pas plusieurs cas tout en comparant
+        if len(CasesOn) > 1 and Compare:
+            raise ValueError(
+                "On ne peut pas comparer plusieurs simulations et plusieurs cas en même temps")
+            return
+
+        # Vérifie qu'on ne dessine pas plusieurs variables tout en dessinant plusieurs cas
+        if len(CasesOn) > 1 and len(Composante_y) > 1:
+            raise ValueError(
+                "On ne peut pas dessiner plusieurs cas et plusieurs variables en même temps")
+            return
+
+        # Vérification que les variables x et y existent
+        # ListeVariables =
+
+    # Vérification qu'on ne dessine pas plusieurs variables tout en comparant
+    if Compare and len(Composante_y) > 1:
+        raise ValueError(
+            "On ne peut pas comparer plusieurs simulations et dessiner plusieurs variables")
+        return
+
+    GraphType = "Graph"
+
+    SubplotSetup(Subplot, AddGraph)
+
+    # S'il n'y a qu'une composante à tracer
+    if len(Composante_y) == 1:
+
+        # Prend la valeur de la composante comme elle est seule
+        Composante_y = Composante_y[0]
+
+        if Compare is False:
+
+            if CasesOn is False:
+                label = None
+                PlotGraph(data, data[Variable_x][Composante_x],
+                          data[Variable_y][Composante_y], GraphType, label=label, customlabel=customlabel)
+
+            # If the graph used is CasesGraph
+            else:
+                for Case in CasesOn:
+                    label = Case
+
+                    PlotGraph(data[Case], data[Case][Variable_x][Composante_x], data[Case]
+                              [Variable_y][Composante_y], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+        elif Compare:
+
+            ListSimulations = list(data.keys())
+
+            for Simulation in ListSimulations:
+                # Definds the color of this simulation depending on its name
+                label = Simulation
+
+                if CasesOn is False:
+                    PlotGraph(data[Simulation], data[Simulation][Variable_x][Composante_x], data[Simulation]
+                              [Variable_y][Composante_y], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+                # When we compare, we compare only one case between several simulations
+                elif len(CasesOn) == 1:
+                    PlotGraph(data[Simulation][CasesOn[0]], data[Simulation][CasesOn[0]][Variable_x][Composante_x],
+                              data[Simulation][CasesOn[0]][Variable_y][Composante_y], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+    # Si plusieurs composantes sont activées
+    else:
+
+        # On ne peut comparer que si on active la même donnée, donc seulement une seule composante
+        if Compare is False:
+            for Composante in Composante_y:
+                label = Composante
+
+                if CasesOn is False:
+                    PlotGraph(data, data[Variable_x][Composante_x], data[Variable_y]
+                              [Composante], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+                # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
+                elif len(CasesOn) == 1:
+                    PlotGraph(data, data[CasesOn[0]][Variable_x][Composante_x], data[CasesOn[0]]
+                              [Variable_y][Composante], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+    # Setups the grid and the axes ticks of the graph
+    GraphGridSetup(Variable_x, Variable_y)
+
+    # Axis Labels from the variable description
+    if Compare:
+        if CasesOn is False:
+            plt.xlabel(data[ListSimulations[0]][Variable_x]["Description"])
+            plt.ylabel(data[ListSimulations[0]][Variable_y]["Description"])
+        else:
+            plt.xlabel(data[ListSimulations[0]][CasesOn[0]]
+                       [Variable_x]["Description"])
+            plt.ylabel(data[ListSimulations[0]][CasesOn[0]]
+                       [Variable_y]["Description"])
+    elif Compare is False:
+        if CasesOn is False:
+            plt.xlabel(data[Variable_x]["Description"])
+            plt.ylabel(data[Variable_y]["Description"])
+        else:
+            plt.xlabel(data[CasesOn[0]][Variable_x]["Description"])
+            plt.ylabel(data[CasesOn[0]][Variable_y]["Description"])
+
+    if Subplot is None:
+        plt.title(FigureTitle)
+
+        # shows the legend if activated
+        if LegendOn:
+            # get the LegendLocation argument that the position of the legend (Default 'lower center')
+            LegendPosition = kwargs.get("LegendPosition", 'lower center')
+
+            LegendSetup(Subplot, LegendPosition)
+
+    # Dans le cas d'un subplot
+    else:
+
+        # If a subplot title is entered, draws it (SubplotTitle isn't a bool)
+        if not type(SubplotTitle) is bool:
+            plt.title(SubplotTitle)
+
+        # LastSubplot can be entered in the Subplot dictionary to oblige the legend to draw even if a subplot is empty
+        # This statement has the priority over the test on the number of dimension
+        if "LastSubplot" in Subplot:
+            LastSubplot = Subplot["LastSubplot"]
+        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+        elif Subplot["Number"] == Subplot["Dimension"][0] * Subplot["Dimension"][1]:
+            LastSubplot = True
+        # Case where no legend and figure title will be drawn
+        else:
+            LastSubplot = False
+
+        # Displays the legend and figure title only if it's the last subplot drawn
+        if LastSubplot:
+            # shows the legend if activated
+            if LegendOn:
+                # get the LegendLocation argument that the position of the legend (Default 'lower center')
+                LegendPosition = kwargs.get("LegendPosition", 'lower center')
+
+                LegendSetup(Subplot, LegendPosition)
+
+            # Trace le titre de la figure
+            plt.suptitle(FigureTitle)
+
+            # Ajuste les distances entre les subplots quand ils sont tous tracés
+            # plt.tight_layout()
+
+
+def MusclePartGraph(data, MuscleName, MusclePart, Variable_x, Variable_y, FigureTitle, Composante_x="Total", Composante_y=["Total"], Compare=False, Subplot=None, SubplotTitle=False, CasesOn=False, MusclePartInformation=False, **kwargs):
+    """
+    Fonction qui gère trace la variable d'une seule fibre musculaire
+
+    lastPart = statement pour dire qu'on dessine la dernière musclepart pour ne tracer la légende qu'à ce moment là
+
+
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (Compare = True)
+
+    Variable_x : Le nom de la variable placée en x sur le graphique
+    Variable_u : le nom de la variable placée en y sur le graphique
+
+    Composante_y :
+                  : type : liste de chaines de charactère
+                  : Liste contenant les nom des composantes de la variable à tracer
+                  : Par défaut : On trace la composante "Total" donc Composante_y = ["Total"]
+
+                : Activer plusieurs composantes :
+                Exemple : Composante_y = ["composante 1","composante 2","composante 3","Total"....]
+                          Si on veut activer x et y entrer : Composante_y = ["x","y"]
+
+                : Activer une seule composante :
+                Exemple : Si on veut activer y entrer : Composante_y = ["y"]
+
+                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
+                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
+
+    Composantes_x : Le nom de la composante de la variable en abscisse
+                  : Composante_x est une chaîne de charactère contenant le nom de la composante de la variable
+                  : Par défaut : "Total"
+                  : Si on veut activer y entrer : Composantes_x = "y"
+
+    MusclePartOn  : Liste contenant les numéros des parties à tracer
+                  : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
+                  : "allparts" toutes les parties on sans le total
+                  : "all" toutes les parties avec le total
+
+                  : Défault = False : trace la variable totale du muscle entier
+                  : MusclePartOn = liste des numéros de la partie du muscle à tracer
+
+
+    Compare : = True si on veut comparer plusieurs données
+              Ne rien mettre (Compare = False par défaut) : on veut tracer qu'une seule donnée
+
+    Subplot = {"Dimension: [nrows, ncolumns]", :"Number": Number_of_the_Subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "LastSubplot": True}
+
+
+        Subplot["Dimension"] = [nrows, ncolumns]
+    And defines the active axis as the Subplot["Number"]=number of the plot
+
+
+    Subplot["figsize"] : Optional argument to set the size of the figure
+                         Subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    Subplot["Dimension"] and figsize : are only to be set for Subplot["Number"] = 1
+    They are not taken in account otherwise
+
+    Subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                        : It's automatically set to True if we reach the maximum subplot Number
+                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+
+    Example : Dimension = [2,2]
+              the grah numbers are 1 2
+                                   3 4
+
+              Number = 3 corresponds to subplot [1,0]
+
+            : To plot on a graph with 2 line and 3 columns on the graph in the center
+            Subplot = {"Dimension":[3,3],"Number":5}
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             AddGraph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             LegendOn : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+            LegendLocation = dictionary, controls where the legend is drawn outside the figure
+
+                          location string of matplotlib 'upper right', 'center left'...
+
+                          Default value : lower center (below the figure
+    """
+
+    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
+    customlabel = kwargs.get("label", None)
+
+    # get the LegendOn argument that controls if the legend is drawn or not (Default True)
+    LegendOn = kwargs.get("LegendOn", True)
+
+    GraphType = "MuscleGraph"
+
+    # Name of the dictionnary key where the muscles are stored
+    # By default it's muscles but in case of an edge muscle it is stored in GHReactions
+    if "Edge muscle" in MuscleName:
+        MuscleFolder = "GHReactions"
+    else:
+        MuscleFolder = "Muscles"
+
+    # Initialise les informations sur les muscles parts si elle n'a pas été spécifiée (c'est à dire qu'il n'y a qu'une seule musclePart à dessiner)
+    if MusclePartInformation is False:
+        MusclePartInformation = {"LastPart": True,
+                                 "Total Number Muscle Parts": 1}
+
+    # Parcours toutes les parties de muscles à tracer
+
+    # S'il n'y a qu'une composante à tracer
+    if len(Composante_y) == 1:
+
+        # Prend la valeur de la composante comme elle est seule
+        Composante_y = Composante_y[0]
+
+        if Compare is False:
+
+            if CasesOn is False:
+
+                # Si plus d'une muscle part est tracée, on met une legende avec le nom de la musclepart
+                if MusclePartInformation["Total Number Muscle Parts"] > 1:
+                    label = MusclePart
+
+                # Si seulement une muscle part est activée et qu'on ne compare pas, on ne met pas de légende
+                else:
+                    label = None
+
+                PlotGraph(data, data[Variable_x][Composante_x], data[MuscleFolder][MuscleName]
+                          [MusclePart][Variable_y][Composante_y], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+            else:
+                # On ne peut tracer qu'une seule donnée, donc on doit avoir soit un seul Case de sélectionné et n>=1 muscle parts
+                # Ou on peut avoir plusieurs Case de sélectionnés mais une seule muscle part à tracer
+                if len(CasesOn) == 1 or MusclePartInformation["Total Number Muscle Parts"] == 1:
+
+                    for Case in CasesOn:
+
+                        # La légende est le nom du case si il n'y a qu'une seule muscle part à tracer et plus d'un Case sélectionné
+                        if len(CasesOn) > 1 and MusclePartInformation["Total Number Muscle Parts"] == 1:
+                            label = Case
+
+                        # La légende est le nom de la muscle part s'il n'y a qu'un seul case et plusieurs Muscle part à tracer
+                        elif len(CasesOn) == 1 and MusclePartInformation["Total Number Muscle Parts"] > 1:
+                            label = MusclePart
+
+                        # Si les deux sont 1, on ne met pas de légende
+                        else:
+                            label = None
+
+                        PlotGraph(data[Case], data[Case][Variable_x][Composante_x], data[Case][MuscleFolder][MuscleName]
+                                  [MusclePart][Variable_y][Composante_y], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+        elif Compare:
+
+            # Si on a plusieurs simulations, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
+            if MusclePartInformation["Total Number Muscle Parts"] == 1:
+                ListSimulations = list(data.keys())
+
+                for Simulation in ListSimulations:
+                    label = Simulation
+
+                    if CasesOn is False:
+                        PlotGraph(data[Simulation], data[Simulation][Variable_x][Composante_x], data[Simulation][MuscleFolder]
+                                  [MuscleName][MusclePart][Variable_y][Composante_y], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+                    # When we compare, we compare only one case between several simulations
+                    elif len(CasesOn) == 1:
+                        PlotGraph(data[Simulation][CasesOn[0]], data[Simulation][CasesOn[0]][Variable_x][Composante_x], data[Simulation][CasesOn[0]]
+                                  [MuscleFolder][MuscleName][MusclePart][Variable_y][Composante_y], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+    # Si plusieurs composantes sont activées
+    else:
+
+        # Si on a plusieurs composantes, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
+        if MusclePartInformation["Total Number Muscle Parts"] == 1:
+
+            # On ne peut comparer plusieurs simulations que si on active la même donnée, on ne peut pas afficher plusieurs composantes avec plusieurs simulations
+            if Compare is False:
+
+                for Composante in Composante_y:
+                    label = Composante
+
+                    if CasesOn is False:
+                        PlotGraph(data, data[Variable_x][Composante_x], data[MuscleFolder][MuscleName]
+                                  [MusclePart][Variable_y][Composante], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+                    # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
+                    elif len(CasesOn) == 1:
+                        PlotGraph(data, data[CasesOn[0]][Variable_x][Composante_x], data[CasesOn[0]][MuscleFolder]
+                                  [MuscleName][MusclePart][Variable_y][Composante], GraphType, label=label, customlabel=customlabel, **kwargs)
+
+    # Si on trace la dernière muscle part, trace les axes, la légende, les titres etc...
+    if MusclePartInformation["LastPart"]:
+
+        # Setups the grid and the axes ticks of the graph
+        GraphGridSetup(Variable_x, Variable_y)
+
+        # Axis Labels from the variable description
+        if Compare:
+            if CasesOn is False:
+                plt.xlabel(data[ListSimulations[0]][Variable_x]["Description"])
+                plt.ylabel(data[ListSimulations[0]][MuscleFolder]
+                           [MuscleName][MusclePart][Variable_y]["Description"])
+            else:
+                plt.xlabel(data[ListSimulations[0]][CasesOn[0]]
+                           [Variable_x]["Description"])
+                plt.ylabel(data[ListSimulations[0]][CasesOn[0]][MuscleFolder]
+                           [MuscleName][MusclePart][Variable_y]["Description"])
+        elif Compare is False:
+            if CasesOn is False:
+                plt.xlabel(data[Variable_x]["Description"])
+                plt.ylabel(data[MuscleFolder][MuscleName]
+                           [MusclePart][Variable_y]["Description"])
+            else:
+                plt.xlabel(data[CasesOn[0]][Variable_x]["Description"])
+                plt.ylabel(data[CasesOn[0]][MuscleFolder][MuscleName]
+                           [MusclePart][Variable_y]["Description"])
+
+        if Subplot is None:
+            plt.title(FigureTitle)
+            # shows the legend if activated
+            if LegendOn:
+                # get the LegendLocation argument that the position of the legend (Default 'lower center')
+                LegendPosition = kwargs.get("LegendPosition", 'lower center')
+
+                LegendSetup(Subplot, LegendPosition)
+
+        # Dans le cas d'un subplot
+        else:
+
+            # If a subplot title is entered, draws it (SubplotTitle isn't a bool)
+            if not type(SubplotTitle) is bool:
+                plt.title(SubplotTitle)
+
+            # If a subplot title is entered, draws it (SubplotTitle isn't a bool)
+            if not type(SubplotTitle) is bool:
+                plt.title(SubplotTitle)
+
+            # LastSubplot can be entered in the Subplot dictionary to oblige the legend to draw even if a subplot is empty
+            # This statement has the priority over the test on the number of dimension
+            if "LastSubplot" in Subplot:
+                LastSubplot = Subplot["LastSubplot"]
+            # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+            elif Subplot["Number"] == Subplot["Dimension"][0] * Subplot["Dimension"][1]:
+                LastSubplot = True
+            # Case where no legend and figure title will be drawn
+            else:
+                LastSubplot = False
+
+            # Displays the legend and figure title only if it's the last subplot drawn
+            if LastSubplot:
+
+                # shows the legend if activated
+                if LegendOn:
+                    # get the LegendLocation argument that the position of the legend (Default 'lower center')
+                    LegendPosition = kwargs.get("LegendPosition", 'lower center')
+
+                    LegendSetup(Subplot, LegendPosition)
+
+                # Trace le titre de la figure
+                plt.suptitle(FigureTitle)
+
+                # Ajuste les distances entre les subplots quand ils sont tous tracés
+                # plt.tight_layout()
+
+
+def MuscleGraph(data, MuscleName, Variable_x, Variable_y, FigureTitle, CasesOn=False, Compare=False, Composante_x="Total", Composante_y=["Total"], MusclePartOn=False, Subplot=None, SubplotTitle=False, **kwargs):
+    """
+    Draws all the parts of a Muscle that were selected
+
+
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (Compare = True)
+
+    Variable_x : Le nom de la variable placée en x sur le graphique
+    Variable_u : le nom de la variable placée en y sur le graphique
+
+    Composante_y :
+                  : type : liste de chaines de charactère
+                  : Liste contenant les nom des composantes de la variable à tracer
+                  : Par défaut : On trace la composante "Total" donc Composante_y = ["Total"]
+
+                : Activer plusieurs composantes :
+                Exemple : Composante_y = ["composante 1","composante 2","composante 3","Total"....]
+                          Si on veut activer x et y entrer : Composante_y = ["x","y"]
+
+                : Activer une seule composante :
+                Exemple : Si on veut activer y entrer : Composante_y = ["y"]
+
+
+                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
+                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
+
+    Composantes_x : Le nom de la composante de la variable en abscisse
+                  : Composante_x est une chaîne de charactère contenant le nom de la composante de la variable
+                  : Par défaut : "Total"
+                  : Si on veut activer y entrer : Composantes_x = "y"
+
+    MusclePartOn  : Liste contenant les numéros des parties à tracer
+                  : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
+                  : "allparts" toutes les parties on sans le total
+                  : "all" toutes les parties avec le total
+
+                  : Défault = False : trace la variable totale du muscle entier
+                  : MusclePartOn = numéro de la partie du muscle à tracer
+
+
+    Compare : = True si on veut comparer plusieurs données
+              Ne rien mettre (Compare = False par défaut) : on veut tracer qu'une seule donnée
+
+    Subplot = {"Dimension: [nrows, ncolumns]", :"Number": Number_of_the_Subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "LastSubplot": True}
+
+
+        Subplot["Dimension"] = [nrows, ncolumns]
+    And defines the active axis as the Subplot["Number"]=number of the plot
+
+
+    Subplot["figsize"] : Optional argument to set the size of the figure
+                         Subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    Subplot["Dimension"] and figsize : are only to be set for Subplot["Number"] = 1
+    They are not taken in account otherwise
+
+    Subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                        : It's automatically set to True if we reach the maximum subplot Number
+                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+
+    Example : Dimension = [2,2]
+              the grah numbers are 1 2
+                                   3 4
+
+              Number = 3 corresponds to subplot [1,0]
+
+            : To plot on a graph with 2 line and 3 columns on the graph in the center
+            Subplot = {"Dimension":[3,3],"Number":5}
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             AddGraph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             LegendOn : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+             LegendLocation = dictionary, controls where the legend is drawn outside the figure
+
+                           location string of matplotlib 'upper right', 'center left'...
+
+                           Default value : lower center (below the figure)
+
+    """
+
+    # Get AddGraph function. Puts it to false by default if it's not declared in the kwargs
+    AddGraph = kwargs.get("AddGraph", False)
+
+    # Verifications for when simulationCases are used
+    if CasesOn:
+        # Active tous les cas présents dans data
+        if CasesOn == "all":
+            CasesOn = list(data.keys())
+
+        # Vérifie que Cases est toujours une liste si 'all' n'est pas utilisé
+        elif not type(CasesOn) is list:
+            raise ValueError(
+                "CasesOn doit être une liste si 'all' n'est pas utilisé")
+            return
+
+        # Vérifie qu'on n'active pas plusieurs cas tout en comparant
+        if len(CasesOn) > 1 and Compare:
+            raise ValueError(
+                "On ne peut pas comparer plusieurs simulations et plusieurs cas en même temps")
+            return
+
+        # Vérifie qu'on ne dessine pas plusieurs variables tout en dessinant plusieurs cas
+        if len(CasesOn) > 1 and len(Composante_y) > 1:
+            raise ValueError(
+                "On ne peut pas dessiner plusieurs cas et plusieurs variables en même temps")
+            return
+
+    # Name of the dictionnary key where the muscles are stored
+    # By default it's muscles but in case of an edge muscle it is stored in GHReactions
+    if "Edge Muscle" in MuscleName:
+        MuscleFolder = "GHReactions"
+    else:
+        MuscleFolder = "Muscles"
+
+    # Construit la liste des parties de muscle à tracer
+
+    # Sans cas de simulation selon le cas (avec/sans des cas, avec/sans comparaison)
+    if CasesOn is False:
+        if Compare is False:
+            MuscleParts = list(data[MuscleFolder][MuscleName].keys())
+        else:
+            ListSimulations = list(data.keys())
+            MuscleParts = list(data[ListSimulations[0]][MuscleFolder][MuscleName].keys())
+
+    # Dans les cas où on a des cas de simulation
+    else:
+        if Compare is False:
+            MuscleParts = list(data[CasesOn[0]][MuscleFolder][MuscleName].keys())
+        else:
+            ListSimulations = list(data.keys())
+            MuscleParts = list(data[ListSimulations[0]][CasesOn[0]][MuscleFolder][MuscleName].keys())
+
+    # Si toutes les parties sont activées, fais une liste avec le nom de toutes les parties sauf le muscle total
+    # n'enlève pas la partie totale si le muscle n'a pas de partie
+    if MusclePartOn == "allparts" and (not len(MuscleParts) == 1):
+
+        # Enlève le muscle total de la liste
+        MuscleParts.remove(MuscleName)
+
+    # Dans le cas où on a entré une liste des numéros des parties
+    elif isinstance(MusclePartOn, list):
+
+        # Recrée les noms des parties à tracer en parcourant les numéros entrés
+        ListMuscleParts = [f"{MuscleName} {MusclePartNumber}" for MusclePartNumber in MusclePartOn]
+
+        # Stores the new value of muscleparts to draw
+        MuscleParts = ListMuscleParts
+
+    # Si on ne veut tracer qu'un seul muscle
+    elif MusclePartOn is False:
+        MuscleParts = [MuscleName]
+
+    # Vérification qu'on ne dessine pas plusieurs parties de muscles tout en comparant
+    if Compare and len(MuscleParts) > 1:
+        raise ValueError(
+            "On ne peut pas comparer plusieurs simulations et dessiner plusieurs parties de muscles en même temps")
+        return
+
+    # Vérification qu'on ne dessine pas plusieurs parties de muscles tout en dessinant plusieurs composantes
+    if Compare and len(Composante_y) > 1:
+        raise ValueError(
+            "On ne peut pas dessiner plusieurs composantes et dessiner plusieurs parties de muscles en même temps")
+        return
+    # Vérifie qu'on ne dessine pas plusieurs parties de muscles tout comparant plusieurs cas de simulation
+    if type(CasesOn) is list:
+        if len(CasesOn) > 1 and len(MuscleParts) > 1:
+            raise ValueError(
+                "On ne peut pas dessiner plusieurs cas de simulation et dessiner plusieurs parties de muscles en même temps")
+            return
+
+    # Subplot is setup here to be able to draw every part of a muscle on the same figure
+    SubplotSetup(Subplot, AddGraph)
+
+    # Initialisation du dictionnaire contenant les informations sur le nombre de muscles parts qui seront tracées
+    MusclePartInformation = {}
+
+    # Nombre de muscle parts qui seront tracées sur le même graphique
+    MusclePartInformation["Total Number Muscle Parts"] = len(MuscleParts)
+
+    # Parcours les parties de muscles à tracer
+    for MusclePart in MuscleParts:
+
+        # Si on trace la dernière partie de muscle pour ne tracer la légende et les axes qu'à ce moment là
+        if MusclePart == MuscleParts[-1]:
+            MusclePartInformation["LastPart"] = True
+        else:
+            MusclePartInformation["LastPart"] = False
+
+        MusclePartGraph(data, MuscleName, MusclePart, Variable_x, Variable_y, FigureTitle, Composante_x,
+                        Composante_y, Compare, Subplot, SubplotTitle, CasesOn, MusclePartInformation, **kwargs)
+
+
+def COPGraph(data, FigureTitle, COPContour=None, Variable="COP", Composantes=["x", "y"], CasesOn=False, Subplot=None, Compare=False, SubplotTitle=False, draw_peak_angle_on=True, DrawCOPPointsOn=True, DrawGHReactionsNodes=False, **kwargs):
+    """
+
+    Fait le graphique de la position d'un centre de pression et trace un contour (contour d'un implant ou de la surface de contact par exemple)
+    data doit avoir une variable appelée "COP"
+    COP doit avoir la séquence : "SequenceComposantes": ["AP", "IS", "ML"]
+    Trace la composante antéropostérieure (AP) en abscisse (Antérieur = positif) et inférosupérieure (IS) en ordonnée (Supérieur = Positif)
+
+    DrawGHReactionsNodes= ARGUMENT PERSONNEL POUR TRACER EN PLUS DES POINT SUR LE CONTOUR, PEUT ÊTRE SUPPRIMÉ
+
+    COPContour : numpy.array contenant les coordonnées x, y du contour à tracer (Peut être créé par la fonction DefineCOPContour si on veut lire un fichier contenant ces coordonnées)
+               : Dimension (npoints,3 or 2)
+                 Column 1 : x
+                 Column 2 : y
+                 Column 3 : z (not used by the COPGraph function)
+
+    Variable : string : The name of the variable to draw
+    (Default "COP")
+
+    Composantes : list : ["Composante_x", "Composante_y"]
+                : Composantes de la variable à tracer
+                (Default ["x", "y"])
+
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (Compare = True)
+
+    draw_peak_angle_on : bool : Contrôle l'affichage ou non des angles de pic de COP (Vrai par défaut)
+
+    DrawCOPPointsOn : bool : active ou non le traçage des points sur le COP
+
+    Compare : = True si on veut comparer plusieurs données
+              Ne rien mettre (Compare = False par défaut) : on veut tracer qu'une seule donnée
+
+    Subplot = {"Dimension: [nrows, ncolumns]", :"Number": Number_of_the_Subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "LastSubplot": True}
+
+
+        Subplot["Dimension"] = [nrows, ncolumns]
+    And defines the active axis as the Subplot["Number"]=number of the plot
+
+
+    Subplot["figsize"] : Optional argument to set the size of the figure
+                         Subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    Subplot["Dimension"] and figsize : are only to be set for Subplot["Number"] = 1
+    They are not taken in account otherwise
+
+    Subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                        : It's automatically set to True if we reach the maximum subplot Number
+                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+
+    Example : Dimension = [2,2]
+              the grah numbers are 1 2
+                                   3 4
+
+              Number = 3 corresponds to subplot [1,0]
+
+            : To plot on a graph with 2 line and 3 columns on the graph in the center
+            Subplot = {"Dimension":[3,3],"Number":5}
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             AddGraph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             LegendOn : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+                       : Argument utile seulement si on trace dans la dernière case d'un subplot ou dans un subplot 1x1 (il n'a pas d'effet autrement)
+             LegendLocation = dictionary, controls where the legend is drawn outside the figure
+
+                           location string of matplotlib 'upper right', 'center left'...
+
+                           Default value : lower center (below the figure)
+
+    """
+
+    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
+    customlabel = kwargs.get("label", None)
+
+    # Get AddGraph function. Puts it to false by default if it's not declared in the kwargs
+    AddGraph = kwargs.get("AddGraph", False)
+
+    # get the LegendOn argument that controls if the legend is drawn or not (Default True)
+    LegendOn = kwargs.get("LegendOn", True)
+
+    GraphType = "COPGraph"
+
+    # Takes the components of the variable and the name of the variable
+    Composante_x = Composantes[0]
+    Composante_y = Composantes[1]
+    Variable_x = Variable
+    Variable_y = Variable
+
+    # Arguments of the function that will move the annotations to avoid superposition depending on the variable
+    multiplier_offset_between_annotations = kwargs.get("multiplier_offset_between_annotations", [0.8, -2.1])
+    multiplier_reference_annotation_offset = kwargs.get("multiplier_reference_annotation_offset", [0, 3])
+
+    # Generally, annotation don't need to be reajusted if there is already a contour
+    # deactivate by default to gain performances
+    update_axis_limits = kwargs.get("update_axis_limits", False)
+
+    # Mode of moving annotation
+    unsuperpose_annotation_mode = kwargs.get("unsuperpose_annotation_mode", "max_y")
+
+    # Verifications for when simulationCases are used
+    if CasesOn:
+        # Active tous les cas présents dans data
+        if CasesOn == "all":
+            CasesOn = list(data.keys())
+
+        # Vérifie que Cases est toujours une liste si 'all' n'est pas utilisé
+        elif not type(CasesOn) is list:
+            raise ValueError(
+                "CasesOn doit être une liste si 'all' n'est pas utilisé")
+            return
+
+        # Vérifie qu'on n'active pas plusieurs cas tout en comparant
+        if len(CasesOn) > 1 and Compare:
+            raise ValueError(
+                "On ne peut pas comparer plusieurs simulations et plusieurs cas en même temps")
+            return
+
+    SubplotSetup(Subplot, AddGraph)
+
+    # Draws a contour only if there is one and sets the axis to be of equal ratio to keep the shape of the contour
+    if COPContour is not None:
+        plt.plot(COPContour[:, 0], COPContour[:, 1], color='tab:blue')
+
+        # Sets the aspect ratio between x and y axis to be equal
+        # And makes the axis sizes adjustable
+        plt.gca().set_aspect('equal', adjustable="datalim")
+
+    if Compare is False:
+
+        if CasesOn is False:
+            label = None
+            PlotGraph(data, data[Variable_x][Composante_x], data[Variable_y][Composante_y],
+                      GraphType, draw_peak_angle_on=draw_peak_angle_on, DrawCOPPointsOn=DrawCOPPointsOn, DrawGHReactionsNodes=DrawGHReactionsNodes, label=label, customlabel=customlabel, **kwargs)
+
+        # If the graph used is CasesGraph
+        else:
+            for Case in CasesOn:
+                label = Case
+                PlotGraph(data[Case], data[Case][Variable_x][Composante_x], data[Case][Variable_y][Composante_y], GraphType,
+                          label=label, customlabel=customlabel, draw_peak_angle_on=draw_peak_angle_on, DrawCOPPointsOn=DrawCOPPointsOn, DrawGHReactionsNodes=DrawGHReactionsNodes, **kwargs)
+
+    elif Compare:
+
+        ListSimulations = list(data.keys())
+
+        for Simulation in ListSimulations:
+            label = Simulation
+
+            if CasesOn is False:
+                PlotGraph(data[Simulation], data[Simulation][Variable_x][Composante_x], data[Simulation][Variable_y][Composante_y],
+                          GraphType, label=label, customlabel=customlabel, draw_peak_angle_on=draw_peak_angle_on, DrawCOPPointsOn=DrawCOPPointsOn, DrawGHReactionsNodes=DrawGHReactionsNodes)
+
+            # When we compare, we compare only one case between several simulations
+            elif len(CasesOn) == 1:
+                PlotGraph(data[Simulation][CasesOn[0]], data[Simulation][CasesOn[0]][Variable_x][Composante_x], data[Simulation][CasesOn[0]][Variable_y]
+                          [Composante_y], GraphType, label=label, customlabel=customlabel, draw_peak_angle_on=draw_peak_angle_on, DrawCOPPointsOn=DrawCOPPointsOn, DrawGHReactionsNodes=DrawGHReactionsNodes, **kwargs)
+
+    # Setups the grid and the axes ticks of the graph
+    GraphGridSetup(Variable_x, Variable_y)
+
+    plt.xlabel("<-----Postérieur              Antérieur----->")
+    plt.ylabel("<----- Inférieur            Supérieur ----->")
+
+    if Subplot is None:
+        plt.title(FigureTitle)
+
+        # shows the legend if activated
+        if LegendOn:
+            # get the LegendLocation argument that the position of the legend (Default 'lower center')
+            LegendPosition = kwargs.get("LegendPosition", 'lower center')
+
+            LegendSetup(Subplot, LegendPosition)
+
+        # enlève la superposition des PeakAngle s'ils sont activés
+        if draw_peak_angle_on:
+
+            # Calls the function that will move the annotations to avoid superposition
+            unsuperpose_plot_annotations(multiplier_offset_between_annotations, multiplier_reference_annotation_offset, update_axis_limits, unsuperpose_annotation_mode)
+
+    # Dans le cas d'un subplot
+    else:
+
+        # If a subplot title is entered, draws it (SubplotTitle isn't a bool)
+        if not type(SubplotTitle) is bool:
+            plt.title(SubplotTitle)
+
+        # If a subplot title is entered, draws it (SubplotTitle isn't a bool)
+        if not type(SubplotTitle) is bool:
+            plt.title(SubplotTitle)
+
+        # LastSubplot can be entered in the Subplot dictionary to oblige the legend to draw even if a subplot is empty
+        # This statement has the priority over the test on the number of dimension
+        if "LastSubplot" in Subplot:
+            LastSubplot = Subplot["LastSubplot"]
+        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+        elif Subplot["Number"] == Subplot["Dimension"][0] * Subplot["Dimension"][1]:
+            LastSubplot = True
+        # Case where no legend and figure title will be drawn
+        else:
+            LastSubplot = False
+
+        # enlève la superposition des PeakAngle s'ils sont activés
+        if draw_peak_angle_on:
+
+            # Calls the function that will move the annotations to avoid superposition
+            unsuperpose_plot_annotations(multiplier_offset_between_annotations, multiplier_reference_annotation_offset, update_axis_limits, unsuperpose_annotation_mode)
+
+        # Displays the legend and figure title only if it's the last subplot drawn
+        if LastSubplot:
+
+            # shows the legend if activated
+            if LegendOn:
+                # get the LegendLocation argument that the position of the legend (Default 'lower center')
+                LegendPosition = kwargs.get("LegendPosition", 'lower center')
+
+                LegendSetup(Subplot, LegendPosition)
+
+            # Trace le titre de la figure
+            plt.suptitle(FigureTitle)
+
+            # Ajuste les distances entre les subplots quand ils sont tous tracés
+            plt.tight_layout()
+
+
+# %% CODE POUR TESTER TOUTES LES COMBINAISONS ET LES MESSAGES D'ERREUR
+
+# import Anybody_LoadOutput as LoadOutput
+
+# COPContour = DefineCOPContour("COPContour")
+
+# # Imports the module to import .h5 and AnyFileOut
+
+# SaveDatadir = 'SaveData/Variation_CSA/'
+
+# SimulationCases = ["Case 1", "Case 2", "Case 3", "Case 4", "Case 5"]
+
+# CasesFilesList1 = ['Results-31-07-case1-droit-GlenoidAxisTilt-EnFace-CustomForce',
+#                     'Results-31-07-case2-droit-GlenoidAxisTilt-EnFace-CustomForce',
+#                     'Results-31-07-case3-droit-GlenoidAxisTilt-EnFace-CustomForce',
+#                     'Results-31-07-case4-droit-GlenoidAxisTilt-EnFace-CustomForce',
+#                     'Results-31-07-case5-droit-GlenoidAxisTilt-EnFace-CustomForce']
+
+
+# CasesFilesList2 = [
+#     'Results-17-07-case1-antero-Droit-EnFace21',
+#     'Results-17-07-case2-antero-Droit-EnFace21',
+#     'Results-17-07-case3-antero-Droit-EnFace21',
+#     '',
+#     'Results-17-07-case5-antero-EnFace21'
+# ]
+
+
+# CasesOffCompareOff = LoadOutput.LoadResultsh5(SaveDatadir, 'Results-31-07-case5-droit-GlenoidAxisTilt-EnFace-CustomForce', AddConstants=True)
+
+# CasesOnCompareOff = LoadOutput.LoadSimulationCases(SaveDatadir, CasesFilesList1, SimulationCases, AddConstants=True)
+
+# CasesOnCompareOn = LoadOutput.LoadSimulations(SaveDatadir, [CasesFilesList1, CasesFilesList2], ["simulation 1", "simulation 2"], AddConstants=True, SimulationCases=SimulationCases)
+
+# CasesOffCompareOn = LoadOutput.LoadSimulations(SaveDatadir, CasesFilesList1, ["simulation 1", "simulation 2", "simulation 3", "simulation 4", "simulation 5"], AddConstants=True)
+
+
+# %%                                 TEST GRAPH
+# %% PAS DE CAS DE SIMULATION
+
+# # Compare = False
+# Graph(CasesOffCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = False Compare = False")
+# Graph(CasesOffCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = False Compare = False en x", Composante_y=["x"])
+# Graph(CasesOffCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = False Compare = False plusieurs composantes", Composante_y=["x", "y", "z", "Total"])
+
+
+# # Compare = True
+
+# Graph(CasesOffCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = False Compare = True", Compare=True)
+# Graph(CasesOffCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = False Compare = True en x", Composante_y=["x"], Compare=True)
+
+# # Message d'erreur fait
+# Graph(CasesOffCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = False Compare = True plusieurs composantes", Composante_y=["x", "y", "z", "Total"], Compare=True)
+
+# %% CAS DE SIMULATION
+
+# # Compare = False
+
+# # 1 Case
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False Un case", CasesOn=["Case 1"])
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False en x Un case", Composante_y=["x"], CasesOn=["Case 1"])
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False plusieurs composantes Un case", Composante_y=["x", "y", "z", "Total"], CasesOn=["Case 1"])
+
+# # Plusieurs cases mais une seule variable_y
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False plusieurs cases", CasesOn=["Case 1", "Case 2"])
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False en x plusieurs cases", Composante_y=["x"], CasesOn=["Case 1", "Case 2"])
+
+# # Message d'erreur fait
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False plusieurs composantes plusieurs cases", Composante_y=["x", "y", "z", "Total"], CasesOn=["Case 1", "Case 2"])
+
+
+# # All cases mais une seule variable_y
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False cases all", CasesOn='all')
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False en x cases all", Composante_y=["x"], CasesOn='all')
+
+# # Message d'erreur fait
+# Graph(CasesOnCompareOff, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = False plusieurs composantes cases all", Composante_y=["x", "y", "z", "Total"], CasesOn='all')
+
+
+# # Compare = True
+
+# # 1 Case
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True Un case", CasesOn=["Case 1"], Compare=True)
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True en x Un case", Composante_y=["x"], CasesOn=["Case 1"], Compare=True)
+
+# # Message d'erreur fait
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True plusieurs composantes Un case", Composante_y=["x", "y", "z", "Total"], CasesOn=["Case 1"], Compare=True)
+
+
+# # Plusieurs cases mais une seule variable_y
+# # Message d'erreut fait
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True plusieurs cases", CasesOn=["Case 1", "Case 2"], Compare=True)
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True en x plusieurs cases", Composante_y=["x"], CasesOn=["Case 1", "Case 2"], Compare=True)
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True plusieurs composantes plusieurs cases", Composante_y=["x", "y", "z", "Total"], CasesOn=["Case 1", "Case 2"], Compare=True)
+
+
+# # All cases mais une seule variable_y
+# # Message d'erreut fait
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True cases all", CasesOn='all', Compare=True)
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True en x cases all", Composante_y=["x"], CasesOn='all', Compare=True)
+# Graph(CasesOnCompareOn, "Abduction", "ForceContact", "Force contact CasesOn = True Compare = True plusieurs composantes cases all", Composante_y=["x", "y", "z", "Total"], CasesOn='all', Compare=True)
+
+
+# %%                                 TEST MUSCLEGRAPH
+# %% PAS DE CAS DE SIMULATION
+
+# # Juste une partie ou le total
+# MuscleGraph(CasesOffCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = False")
+# MuscleGraph(CasesOffCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = False", MusclePartOn=[2])
+
+# # Plusieurs part
+# MuscleGraph(CasesOffCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = False", MusclePartOn=[1, 2])
+# MuscleGraph(CasesOffCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = False", MusclePartOn="all")
+# MuscleGraph(CasesOffCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = False", MusclePartOn="allparts")
+
+
+# # Compare True
+# # Juste une partie ou le total
+# MuscleGraph(CasesOffCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = True", Compare=True)
+# MuscleGraph(CasesOffCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = False", MusclePartOn=[2], Compare=True)
+
+# # Plusieurs part
+# # Message d'erreur fait
+# MuscleGraph(CasesOffCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = True", MusclePartOn=[1, 2], Compare=True)
+# MuscleGraph(CasesOffCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = True", MusclePartOn="all", Compare=True)
+# MuscleGraph(CasesOffCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = False Compare = True", MusclePartOn="allparts", Compare=True)
+
+
+# %% CAS DE SIMULATION
+
+
+# # Compare = False
+
+# # 1 Case
+# # Juste une partie ou le total
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", CasesOn=["Case 1"])
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn=[2], CasesOn=["Case 1"])
+
+# # Plusieurs part 1 case
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn=[1, 2], CasesOn=["Case 1"])
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn="all", CasesOn=["Case 1"])
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn="allparts", CasesOn=["Case 1"])
+
+
+# # plusieurs Cases
+# # Juste une partie ou le total
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", CasesOn=["Case 1", "Case 2"])
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn=[2], CasesOn=["Case 1", "Case 2"])
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", CasesOn="all")
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn=[2], CasesOn="all")
+
+
+# # Plusieurs part, plusieurs case
+# # Message d'erreur fait
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn=[1, 2], CasesOn="all")
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn="all", CasesOn="all")
+# MuscleGraph(CasesOnCompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = False", MusclePartOn="allparts", CasesOn="all")
+
+
+# # Compare True
+# # 1 Case
+# # Juste une partie ou le total
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", Compare=True, CasesOn=["Case 1"])
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", MusclePartOn=[2], Compare=True, CasesOn=["Case 1"])
+
+# # Plusieurs part
+# # Message d'erreur fait
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", MusclePartOn=[1, 2], Compare=True, CasesOn=["Case 1"])
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", MusclePartOn="all", Compare=True, CasesOn=["Case 1"])
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", MusclePartOn="allparts", Compare=True, CasesOn=["Case 1"])
+
+
+# # Plusieurs Case
+# # Juste une partie ou le total
+# # Message d'erreut fait
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", Compare=True, CasesOn=["Case 1", "Case 2"])
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", MusclePartOn=[2], Compare=True, CasesOn=["Case 1", "Case 2"])
+
+# # Plusieurs part un cas
+# # Message d'erreur fait
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", MusclePartOn=[1, 2], Compare=True, CasesOn=["Case 1", "Case 2"])
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", MusclePartOn="all", Compare=True, CasesOn=["Case 1", "Case 2"])
+# MuscleGraph(CasesOnCompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle CasesOn = True Compare = True", MusclePartOn="allparts", Compare=True, CasesOn=["Case 1", "Case 2"])
+
+# %%                                 TEST COPGRAPH
+# # Pas de cas de simulation
+
+# # Compare = False
+# COPGraph(CasesOffCompareOff, "COPGraph Cases False Compare False", COPContour)
+# COPGraph(CasesOffCompareOn, "COPGraph Cases False Compare True", COPContour, Compare=True)
+
+# # Cas de simulation
+# COPGraph(CasesOnCompareOff, "COPGraph Cases False Compare False", COPContour, CasesOn="all")
+
+# # Message d'erreur fait
+# COPGraph(CasesOnCompareOn, "COPGraph Cases False Compare True", COPContour, Compare=True, CasesOn="all")
+# COPGraph(CasesOnCompareOn, "COPGraph Cases False Compare True", COPContour, Compare=True, CasesOn="Case 1")
