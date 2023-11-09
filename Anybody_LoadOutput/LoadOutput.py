@@ -6,12 +6,11 @@ from Anybody_Package.Anybody_LoadOutput.Tools import transform_vector
 import Anybody_Package.Anybody_LoadOutput.LoadAnybodyData as LoadAnybodyData
 
 
-def load_results(FileDirectory, FileName, VariablesToLoad, Failed=False, GHReactionsShape=False):
+def load_simulation(FileDirectory, FileName, VariablesToLoad, Failed=False, GHReactionsShape=False):
     """
     GHREACTIONSSHAPE : ARGUMENT ONLY FOR MY USE, CAN BE DELETED
 
-
-    Reads variables from an anydata.h5 file
+    Reads variables from an anydata.h5 file and put it in a result dictionary
 
     Charge plusieurs h5 et les mets dans le même dictionnaire sous forme de cas de simulation
 
@@ -230,7 +229,7 @@ def load_simulation_cases(FileDirectory, CasesFileNamesList, SimulationCasesName
 
         # Crée un cas de simulation seulement si un fichier existe pour ce cas
         if not CasesFileNamesList[index] == '':
-            Results[SimulationCasesNames[index]] = load_results(FileDirectory, CasesFileNamesList[index], VariablesToLoad, Failed[index])
+            Results[SimulationCasesNames[index]] = load_simulation(FileDirectory, CasesFileNamesList[index], VariablesToLoad, Failed[index])
 
     return Results
 
@@ -261,7 +260,7 @@ def load_simulation_cases(FileDirectory, CasesFileNamesList, SimulationCasesName
 #                     : liste des cas de simulation s'il y en a
 
 
-#     AddConstants : Mettre à True si un fichier texte existe au même nom et au même endroit pour charger les constantes de simulations définies dans load_results
+#     AddConstants : Mettre à True si un fichier texte existe au même nom et au même endroit pour charger les constantes de simulations définies dans load_simulation
 
 #     Exemple :
 #                 SimulationCasesNames = Liste des noms de cas de simulation ['Cas 1','Cas 2','Cas 3']
@@ -291,7 +290,7 @@ def load_simulation_cases(FileDirectory, CasesFileNamesList, SimulationCasesName
 
 #     else:
 #         for index, Simulation in enumerate(SimulationNamesList):
-#             Results[Simulation] = load_results(FileDirectory, FileNamesList[index], VariablesToLoad)
+#             Results[Simulation] = load_simulation(FileDirectory, FileNamesList[index], VariablesToLoad)
 #     return Results
 
 

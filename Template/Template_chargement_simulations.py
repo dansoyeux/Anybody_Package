@@ -1,14 +1,13 @@
 # import Anybody_LoadOutput.LoadOutput as LoadOutput
 # import Anybody_Tools as LoadOutputTools
 
-from Anybody_Package.Anybody_LoadOutput.LoadOutput import DefineVariablesToLoad
-from Anybody_Package.Anybody_LoadOutput.LoadOutput import DefineVariablesToLoad
-from Anybody_Package.Anybody_LoadOutput.LoadOutput import LoadSimulationCases
-from Anybody_Package.Anybody_LoadOutput.LoadOutput import LoadResultsh5
+from Anybody_Package.Anybody_LoadOutput.LoadOutput import define_variables_to_load
+from Anybody_Package.Anybody_LoadOutput.LoadOutput import load_simulation_cases
+from Anybody_Package.Anybody_LoadOutput.LoadOutput import load_simulation
 from Anybody_Package.Anybody_LoadOutput.LoadOutput import create_compared_simulations
 
-from Anybody_Package.Anybody_LoadOutput.Tools import SaveVariableToFile
-from Anybody_Package.Anybody_LoadOutput.Tools import ArrayToDictionary
+from Anybody_Package.Anybody_LoadOutput.Tools import save_results_to_file
+from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 
 import numpy as np
 
@@ -85,7 +84,7 @@ BallAndSocket_ConstantsDictionary = {"AnybodyFileOutPath": "Main.Study.FileOut",
                                      }
 
 
-Variables = DefineVariablesToLoad(VariableDictionary, MuscleDictionary, MuscleVariableDictionary, ConstantsDictionary)
+Variables = define_variables_to_load(VariableDictionary, MuscleDictionary, MuscleVariableDictionary, ConstantsDictionary)
 
 
 # %% Chargement des fichiers .h5
@@ -106,17 +105,17 @@ CaseNames = ["NOM_DU_CAS_1",
              "NOM_DU_CAS_2"
              ]
 
-Results = LoadSimulationCases(SaveDataDir, Files, CaseNames, Variables)
+Results = load_simulation_cases(SaveDataDir, Files, CaseNames, Variables)
 
 # Sauvegarde des résultats dans des fichiers .pkl
-SaveVariableToFile(Results, SaveSimulationsDirectory, "Results")
+save_results_to_file(Results, SaveSimulationsDirectory, "Results")
 
 # %% Sauvegarde des dictionnaires de variables
 
 # # Chemin d'accès au dossier dans lequel les fichiers doivent être sauvegardés
 SaveVariablesDirectory = "Saved VariablesDictionary"
 
-SaveVariableToFile(Variables, SaveVariablesDirectory, "Variables")
+save_results_to_file(Variables, SaveVariablesDirectory, "Variables")
 
 # %% Sauvegarde data bergmann
 
@@ -137,13 +136,13 @@ def LoadBergmannData():
 
     dataBergmann = {}
 
-    dataBergmann["Abduction"] = ArrayToDictionary(abduction, VariableDescription="Angle d'abduction [°]")
-    dataBergmann["ForceContact"] = ArrayToDictionary(ForceContact, VariableDescription="Force de contact [Newton]", SequenceComposantes=["AP", "IS", "ML"])
+    dataBergmann["Abduction"] = array_to_dictionary(abduction, VariableDescription="Angle d'abduction [°]")
+    dataBergmann["ForceContact"] = array_to_dictionary(ForceContact, VariableDescription="Force de contact [Newton]", SequenceComposantes=["AP", "IS", "ML"])
 
     return dataBergmann
 
 # dataBergmann_2007 = LoadBergmannData()
-# SaveVariableToFile(dataBergmann_2007, SaveSimulationsDirectory, "dataBergmann_2007")
+# save_results_to_file(dataBergmann_2007, SaveSimulationsDirectory, "dataBergmann_2007")
 
 # %% Data muscles Wickham
 
@@ -170,7 +169,7 @@ def load_data_wickham(SheetName, MinAngle, MaxAngle):
     Interpolated_Angle = np.linspace(MinAngle, MaxAngle, 100)
 
     # Convert these datas to dictionnary
-    AngleDictionary = ArrayToDictionary(Interpolated_Angle, VariableDescription="Angle d'abduction [°]")
+    AngleDictionary = array_to_dictionary(Interpolated_Angle, VariableDescription="Angle d'abduction [°]")
 
     for index in range(0, len(Variables)):
 
@@ -192,7 +191,7 @@ def load_data_wickham(SheetName, MinAngle, MaxAngle):
 
             Interpolated_Activity = Interpolation_Function(Interpolated_Angle)
 
-            ActivityDictionary = ArrayToDictionary(Interpolated_Activity, VariableDescription="Activité Musculaire [%]", MaximumOn=True)
+            ActivityDictionary = array_to_dictionary(Interpolated_Activity, VariableDescription="Activité Musculaire [%]", MaximumOn=True)
 
             dataWickham[MuscleName] = {MuscleName: {"Activity": ActivityDictionary}}
 
@@ -206,15 +205,15 @@ def load_data_wickham(SheetName, MinAngle, MaxAngle):
 
 # # Abduction
 # dataWickham_abduction = load_data_wickham("Abduction", 15, 120)
-# SaveVariableToFile(dataWickham_abduction, SaveSimulationsDirectory, "dataWickham_abduction")
+# save_results_to_file(dataWickham_abduction, SaveSimulationsDirectory, "dataWickham_abduction")
 
 # # Abduction Long Range
 # dataWickham_abduction = load_data_wickham("Abduction", 1, 165.5)
-# SaveVariableToFile(dataWickham_abduction, SaveSimulationsDirectory, "dataWickham_abduction_FullRange")
+# save_results_to_file(dataWickham_abduction, SaveSimulationsDirectory, "dataWickham_abduction_FullRange")
 
 # # ADduction
 # dataWickham_adduction = load_data_wickham("Adduction", 15, 120)
-# SaveVariableToFile(dataWickham_adduction, SaveSimulationsDirectory, "dataWickham_adduction")
+# save_results_to_file(dataWickham_adduction, SaveSimulationsDirectory, "dataWickham_adduction")
 
 # %% data translation Dal Maso
 
@@ -287,10 +286,10 @@ def load_variable_from_excel(file_name, current_sheet_name, variables_descriptio
             variable_y_index += 1
 
     # Stocke le résultat de la variable x
-    Results[var_interpolate] = ArrayToDictionary(interpolated_x, variables_description[0], MultiplyFactor=multiply_factors[0])
+    Results[var_interpolate] = array_to_dictionary(interpolated_x, variables_description[0], MultiplyFactor=multiply_factors[0])
 
     # Stocke la variable en y interpollée
-    Results[Variables[1]] = ArrayToDictionary(array_interpolated_variable_y, variables_description[1], MultiplyFactor=multiply_factors[1], SequenceComposantes=SequenceComposantes_y)
+    Results[Variables[1]] = array_to_dictionary(array_interpolated_variable_y, variables_description[1], MultiplyFactor=multiply_factors[1], SequenceComposantes=SequenceComposantes_y)
 
     return Results
 
@@ -304,5 +303,5 @@ file_name = "Translations Dal Maso.xlsx"
 # data_Dal_Maso_inf = load_variable_from_excel(file_name, "Dal Maso Inférieur", variables_description, SequenceComposantes_y, multiply_factors, 0, 90, n_points=100)
 
 
-# SaveVariableToFile(data_Dal_Maso_sup, SaveSimulationsDirectory, "data_Dal_Maso_sup")
-# SaveVariableToFile(data_Dal_Maso_inf, SaveSimulationsDirectory, "data_Dal_Maso_inf")
+# save_results_to_file(data_Dal_Maso_sup, SaveSimulationsDirectory, "data_Dal_Maso_sup")
+# save_results_to_file(data_Dal_Maso_inf, SaveSimulationsDirectory, "data_Dal_Maso_inf")

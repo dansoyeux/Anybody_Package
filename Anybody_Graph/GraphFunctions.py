@@ -35,10 +35,14 @@ def define_simulations_line_style(SimulationsLineStyleDictionary):
 def define_simulation_description(SimulationDescriptionDictionary):
     """
     Function that sets the SimulationDescriptions to be used by the DefineSumulationLabel and get_simulation_description functions
+    
+    SimulationDescriptionDictionary = {"Simulation1 Name": "Simulation1 description",
+                                       "Simulation2 Name": "Simulation2 description"...}
+    
     """
 
-    global SimulationDescription
-    SimulationDescription = SimulationDescriptionDictionary.copy()
+    global simulation_description
+    simulation_description = SimulationDescriptionDictionary.copy()
 
 
 # %% Plot Setup Functions
@@ -74,9 +78,9 @@ def plot_graph(data, x, y, graph_type, label=None, custom_label=None, **kwargs):
         graph_label = label
 
     # defines the color and the style of the line depending on the label name, from the global dictionary SimulationsLineStyleDictionary
-    color, marker, markersize, linestyle, linewidth = get_simulation_line_style(graph_label)
+    simulation_style_dictionary = get_simulation_line_style(graph_label)
 
-    plt.plot(x, y, label=graph_label, color=color, marker=marker, linestyle=linestyle, markersize=markersize, linewidth=linewidth)
+    plt.plot(x, y, label=graph_label, **simulation_style_dictionary)
 
     # Draws peak angles
     if graph_annotation_on:
@@ -221,14 +225,12 @@ def subplot_setup(subplot, figsize=None, add_graph=False):
 def define_simulation_label(labels):
     """
     Defines the labels in a legend
-    Put the name of the Simulation case or the simulation is in SimulationDescription list if you want a more detailed legend than only their name
+    Put the name of the Simulation case or the simulation is in simulation_description list if you want a more detailed legend than only their name
 
-    SimulationDescription must be a global variable declared at the begining of a script.
+    simulation_description must be a global variable declared at the begining of a script.
 
     SimulationDescription = ["Case or Simulation Name","Legend text","Case or Simulation Name","Legend text"]
 
-
-    depending on the case name from the SimulationDescription list ["Case_name","color","Case_name","color"]
     Uses the function : "get_simulation_description" to change the case name to it's description'
     """
 
@@ -236,7 +238,7 @@ def define_simulation_label(labels):
     # Parcours les label du graphique
     for label in labels:
         # Si ce label est dans la liste Simulation description, remplace ce label par sa description
-        if label in SimulationDescription:
+        if label in simulation_description:
             case_labels.append(get_simulation_description(label))
         # Si ce label n'a pas de description, garde ce label
         else:
@@ -540,16 +542,21 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
             axe.set_yticks(np.arange(graph_ylim[0], graph_ylim[1] + grid_y_step, grid_y_step))
 
 
-def get_simulation_description(Case):
+def get_simulation_description(label):
     """
-    Transforms the case name into it's description (From the SimulationDescription global list)
-    SimulationLegend must be a global list declared at the beginning of the code :
-        global SimulationLegend
-        SimulationLegend = ["Simulation1 Name","Simulation1 description",
-                            "Simulation2 Name","Simulation2 description"...]
+    Transforms the case name into it's description (From the simulation_description global list)
+    SimulationDescriptionDictionary must be a global list declared at the beginning of the code :
+        global SimulationDescriptionDictionary
+        SimulationDescriptionDictionary = {"Simulation1 Name": "Simulation1 description",
+                                           "Simulation2 Name": "Simulation2 description"...}
     """
-    CaseDescription = SimulationDescription[SimulationDescription.index(Case) + 1]
-    return CaseDescription
+
+    case_description = simulation_description[label]
+    
+    
+    # CaseDescription = SimulationDescription[SimulationDescription.index(Case) + 1]
+    
+    return case_description
 
 
 def get_simulation_line_style(label):
@@ -567,25 +574,16 @@ def get_simulation_line_style(label):
 
     """
 
-    # Default values
-    marker = None
-    markersize = None
-    linestyle = None
-    linewidth = None
-    color = None
-
     # Only select a custom color if there is a label
     if label is not None:
         # Selects the color from the colormap if the graph_label is in SimulationColors
         if label in SimulationsLineStyle:
-
-            color = SimulationsLineStyle[label].get("color", None)
-            marker = SimulationsLineStyle[label].get("marker", None)
-            markersize = SimulationsLineStyle[label].get("markersize", None)
-            linestyle = SimulationsLineStyle[label].get("linestyle", None)
-            linewidth = SimulationsLineStyle[label].get("linewidth", None)
-
-    return color, marker, markersize, linestyle, linewidth
+            
+            simulation_style_dictionary = SimulationsLineStyle[label]
+        else:
+            simulation_style_dictionary={}
+            
+    return simulation_style_dictionary
 
 
 # %% Graph visual functions setup

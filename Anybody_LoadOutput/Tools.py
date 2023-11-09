@@ -240,43 +240,43 @@ def CleanFailedSimulationSteps(Output, Failed):
     return CleanOutput
 
 
-def save_results_to_file(Variable, SaveDirectory, SaveFileName):
+def save_results_to_file(result_dictionary, save_directory_path, save_file_name):
     """
     Function to save a result dictionary to a .pkl file
 
     This file can later be loaded with the function load_results_from_file
 
-    Variable : Any variable containing information
-    SaveDirectory : string : contains the path of the directory in which the file must be saved in
+    result_dictionary : Any variable containing information
+    save_directory_path : string : contains the path of the directory in which the file must be saved in
                   : the directory must already exist
-                  : To save the file in the current directory : SaveDirectory = ""
+                  : To save the file in the current directory : save_directory_path = ""
 
-    SaveFileName : string : The name of the .pkl file
+    save_file_name : string : The name of the .pkl file
     """
 
     import pickle
 
     # Creates the Full File path
-    FilePath = f"{SaveDirectory}/{SaveFileName}"
+    file_path = f"{save_directory_path}/{save_file_name}"
 
     # Saves the variable
-    with open(FilePath, 'wb') as file:
+    with open(file_path, 'wb') as file:
 
         # A new file will be created
-        pickle.dump(Variable, file)
+        pickle.dump(result_dictionary, file)
 
         file.close()
 
 
-def load_results_from_file(SaveDirectory, SaveFileName):
+def load_results_from_file(save_directory_path, save_file_name):
     """
     Loads a result dictionary from a .pkl file (that can be created by the save_results_to_file)
 
-    SaveDirectory : string : contains the path of the directory in which the file must be saved in
+    save_directory_path : string : contains the path of the directory in which the file must be saved in
                   : the directory must already exist
-                  : To save the file in the current directory : SaveDirectory = ""
+                  : To save the file in the current directory : save_directory_path = ""
 
-    SaveFileName : string : The name of the .pkl file
+    save_file_name : string : The name of the .pkl file
 
     ---------------------------------
     return
@@ -287,14 +287,14 @@ def load_results_from_file(SaveDirectory, SaveFileName):
     import pickle
 
     # Creates the Full File path
-    FilePath = f"{SaveDirectory}/{SaveFileName}"
+    file_path = f"{save_directory_path}/{save_file_name}"
 
     # Open the file
-    with open(FilePath, 'rb') as file:
+    with open(file_path, 'rb') as file:
 
         # Call load method to deserialze
-        Variable = pickle.load(file)
+        result_dictionary = pickle.load(file)
 
         file.close()
 
-    return Variable
+    return result_dictionary

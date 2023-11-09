@@ -1,6 +1,6 @@
 # import Anybody_LoadOutput.Tools as LoadOutputTools
 
-from Anybody_Package.Anybody_LoadOutput.Tools import LoadVariableFromFile
+from Anybody_Package.Anybody_LoadOutput.Tools import load_results_from_file
 
 from Anybody_Package.Anybody_Graph.GraphFunctions import graph
 from Anybody_Package.Anybody_Graph.GraphFunctions import COP_graph
@@ -19,16 +19,16 @@ import matplotlib
 # matplotlib.rcParams.update({'font.size': 10})
 
 # Contrôle des tailles de chaque partie partie du graphique
-# Titre des subplots
+# Titre des cases des subplots
 # matplotlib.rcParams.update({'axes.titlesize': 10})
 
-# Titres
+# Titre du graphique
 # matplotlib.rcParams.update({'figure.titlesize': 10})
 
-# nom des axes
+# Nom des axes
 # matplotlib.rcParams.update({'axes.labelsize': 10})
 
-# graduations des axes
+# Graduations des axes
 # matplotlib.rcParams.update({'xtick.labelsize': 10})
 # matplotlib.rcParams.update({'ytick.labelsize': 10})
 
@@ -41,17 +41,17 @@ import matplotlib
 # Noms des couleurs : https://matplotlib.org/stable/gallery/color/named_colors.html
 # Types de marqueurs : https://matplotlib.org/stable/api/markers_api.html
 # Type de lignes : https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html
-SimulationsLineStyleDictionary = {"NOM_DE_LA_SIMULATION_1": {"color": "NOM_DE_LA_COULEUR", "marker": "", "markersize": 1, "linestyle": "-", "linewidth": None},
-                                  "NOM_DE_LA_SIMULATION_2": {"color": "NOM_DE_LA_COULEUR", "marker": "", "markersize": 1, "linestyle": "-", "linewidth": None},
+SimulationsLineStyleDictionary = {"NOM_DE_LA_SIMULATION_1": {"color": "NOM_DE_LA_COULEUR", "marker": "", "markersize": 1, "linestyle": "-", "linewidth": 1},
+                                  "NOM_DE_LA_SIMULATION_2": {"color": "NOM_DE_LA_COULEUR", "marker": "", "markersize": 1, "linestyle": "-", "linewidth": 1},
                                   "Wickham": {"color": "black", "marker": "", "markersize": 1, "linestyle": "--", "linewidth": 2}
                                   }
 
 # Texte de description des simulations dans les légendes
-SimulationDescriptionDictionary = ["NOM_DE_LA_SIMULATION_1", "TEXTE_DE_DESCRIPTION_1",
-                                   "NOM_DE_LA_SIMULATION_2", "TEXTE_DE_DESCRIPTION_2",
-                                   "Wickham", "Wickham et al. 2010, n=24",
-                                   "Bergmann", "Bergmann et al. 2007"
-                                   ]
+SimulationDescriptionDictionary = {"NOM_DE_LA_SIMULATION_1": "TEXTE_DE_DESCRIPTION_1",
+                                   "NOM_DE_LA_SIMULATION_2": "TEXTE_DE_DESCRIPTION_2",
+                                   "Wickham": "Wickham et al. 2010, n=24",
+                                   "Bergmann": "Bergmann et al. 2007"
+                                  }
 
 # Fonctions pour définir les légendes et styles des graphiques en fonction des noms des simulations dans les dictionnaires
 define_simulations_line_style(SimulationsLineStyleDictionary)
@@ -62,18 +62,18 @@ define_simulation_description(SimulationDescriptionDictionary)
 # Chemin d'accès au dossier dans lequel les fichiers ont été sauvegardés
 SaveSimulationsDirectory = "Saved Simulations"
 
-# NOM_DE_SIMULATION = LoadOutputTools.LoadVariableFromFile(SaveSimulationsDirectory, "NOM_DU_FICHIER_DE_SAUVEGARDE_DE_SIMULATION")
-Results = LoadVariableFromFile(SaveSimulationsDirectory, "Results")
+# NOM_DE_SIMULATION = LoadOutputTools.load_results_from_file(SaveSimulationsDirectory, "NOM_DU_FICHIER_DE_SAUVEGARDE_DE_SIMULATION")
+Results = load_results_from_file(SaveSimulationsDirectory, "Results")
 
 # dataBergmann
-dataBergmann = LoadVariableFromFile(SaveSimulationsDirectory, "dataBergmann")
+dataBergmann = load_results_from_file(SaveSimulationsDirectory, "dataBergmann")
 
 # dataWickham abduction (EMG des muscles lors abduction)
-dataWickham = LoadVariableFromFile(SaveSimulationsDirectory, "dataWickham_abduction")
+dataWickham = load_results_from_file(SaveSimulationsDirectory, "dataWickham_abduction")
 
 # Données pour comparer les simulations faites avec les données de Wickham et al. (2010)
 Comp_Wickham = Results.copy()
-Comp_Wickham["Wickham"] = dataWickhams_BallAndSocket_FullRange = LoadVariableFromFile(SaveSimulationsDirectory, "Results_BallAndSocket_FullRange")
+Comp_Wickham["Wickham"] = dataWickhams_BallAndSocket_FullRange = load_results_from_file(SaveSimulationsDirectory, "Results_BallAndSocket_FullRange")
 
 # %%                                                Chargement autres résultats et variables
 
@@ -82,23 +82,23 @@ Comp_Wickham["Wickham"] = dataWickhams_BallAndSocket_FullRange = LoadVariableFro
 SaveVariablesDirectory = "Saved VariablesDictionary"
 
 # Chargement des variables de simulation sauvegardées
-Variables = LoadVariableFromFile(SaveVariablesDirectory, "Variables")
+Variables = load_results_from_file(SaveVariablesDirectory, "Variables")
 
 # %%                                                Chargement autres résultats pour validation
 
 # dataBergmann_2007
-dataBergmann_2007 = LoadVariableFromFile(SaveSimulationsDirectory, "dataBergmann_2007")
+dataBergmann_2007 = load_results_from_file(SaveSimulationsDirectory, "dataBergmann_2007")
 
 # dataWickham abduction
-dataWickham = LoadVariableFromFile(SaveSimulationsDirectory, "dataWickham_abduction")
+dataWickham = load_results_from_file(SaveSimulationsDirectory, "dataWickham_abduction")
 # FDK avec data de validation de Wickham
-dataWickham_abduction = LoadVariableFromFile(SaveSimulationsDirectory, "dataWickham_abduction")
-dataWickham_adduction = LoadVariableFromFile(SaveSimulationsDirectory, "dataWickham_adduction")
-dataWickham_abduction_FullRange = LoadVariableFromFile(SaveSimulationsDirectory, "dataWickham_abduction_FullRange")
+dataWickham_abduction = load_results_from_file(SaveSimulationsDirectory, "dataWickham_abduction")
+dataWickham_adduction = load_results_from_file(SaveSimulationsDirectory, "dataWickham_adduction")
+dataWickham_abduction_FullRange = load_results_from_file(SaveSimulationsDirectory, "dataWickham_abduction_FullRange")
 
 # data Dal Maso
-data_Dal_Maso_sup = LoadVariableFromFile(SaveSimulationsDirectory, "data_Dal_Maso_sup")
-data_Dal_Maso_inf = LoadVariableFromFile(SaveSimulationsDirectory, "data_Dal_Maso_inf")
+data_Dal_Maso_sup = load_results_from_file(SaveSimulationsDirectory, "data_Dal_Maso_sup")
+data_Dal_Maso_inf = load_results_from_file(SaveSimulationsDirectory, "data_Dal_Maso_inf")
 
 data_Dal_Maso = {"Dal Maso supérieur": data_Dal_Maso_sup, "Dal Maso inférieur": data_Dal_Maso_inf}
 
