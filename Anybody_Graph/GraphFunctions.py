@@ -45,6 +45,30 @@ def define_simulation_description(SimulationDescriptionDictionary):
     simulation_description = SimulationDescriptionDictionary.copy()
 
 
+def flatten_compared_simulations(compared_simulations_data, case_on):
+    """
+    Function for graph that flattens the compared simulation result dictionary into a simulation cases dictionary to then be grap
+    
+    case_on = name of the case to select
+    
+    returns the dictionary flatten and the new list of cases
+    """
+
+    flatten_data = {}
+
+    for simulation_name, simulation_data in compared_simulations_data.items():
+        
+        try:
+            simulation_case = simulation_data[case_on]
+            flatten_data[simulation_name] = simulation_case
+        except:
+            print(f"The simulation case : {case_on} doesn't exist in the simulation : {simulation_name}")
+        
+    cases_on = list(compared_simulations_data.keys())
+        
+    return flatten_data,cases_on
+
+
 # %% Plot Setup Functions
 
 
@@ -459,7 +483,9 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                     min_ylim = []
                     max_ylim = []
 
+
                     for axe in ax:
+                        
                         graph_xlim = axe.get_xlim()
                         graph_ylim = axe.get_ylim()
 
