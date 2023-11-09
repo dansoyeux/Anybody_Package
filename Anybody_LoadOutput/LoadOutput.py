@@ -1,12 +1,12 @@
 import numpy as np
 
-from Anybody_Package.Anybody_LoadOutput.Tools import ArrayToDictionary
+from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 from Anybody_Package.Anybody_LoadOutput.Tools import transform_vector
 
 import Anybody_Package.Anybody_LoadOutput.LoadAnybodyData as LoadAnybodyData
 
 
-def LoadResultsh5(FileDirectory, FileName, VariablesToLoad, Failed=False, GHReactionsShape=False):
+def load_results(FileDirectory, FileName, VariablesToLoad, Failed=False, GHReactionsShape=False):
     """
     GHREACTIONSSHAPE : ARGUMENT ONLY FOR MY USE, CAN BE DELETED
 
@@ -22,14 +22,13 @@ def LoadResultsh5(FileDirectory, FileName, VariablesToLoad, Failed=False, GHReac
              : Noms des fichier (sans extension)
              : pour un fichier Resultats.anydata.h5 FileName = "Resultats"
 
-    VariablesToLoad : à Définir avec la fonction DefineVariablesToLoad (Contient les variables à charger, les muscles et leur variables à charger et les constantes à charger)
+    VariablesToLoad : à Définir avec la fonction define_variables_to_load (Contient les variables à charger, les muscles et leur variables à charger et les constantes à charger)
                     : Si une des catégories (Variable, Constante ou muscle) n'est pas dans le dictionnaire, sa valeur sera None pour ne pas essayer de charger ces informations
 
     Sums the total variable for a muscle in multiple parts
     AddConstants : adds the constants that are not stored in the h5 file by reading them in the FileOut file
     Failed : removes the failed steps in case the simulation failed after a certain step
     GHReactionsShape : If the new MyGHReactions.any was activated, load these muscles and load the position of the
-    MyMuscleWrapping : list of the names of the muscles that were redefined with new wrapping (lateral, posterior or anterior)
 
     Template to load a variable :
         Results["nom_de_variable"] = LoadAnybodyData.LoadAnyVariable(h5File, "Output.Chemin.accès.variable.dans.Anybody.depuis.l'output",MultiplyFactor = , VariableDescription = "Description de la variable [unité de la variable]")
@@ -144,7 +143,7 @@ def LoadResultsLauranne(FileDirectory, FileName, Failed=False):
     COPlocalImplant = transform_vector(
         COPGlobal, RotG, PosG, inverse_transform=True)
 
-    Results["COP"] = ArrayToDictionary(
+    Results["COP"] = array_to_dictionary(
         COPlocalImplant, "Position du centre de pression [mm]")
 
     # Maximal COPy position
@@ -176,11 +175,11 @@ def LoadGraphLauranne():
     COP = np.array([COPxGraph, COPyGraph]).T
 
     Results = {}
-    Results["Angle"] = ArrayToDictionary(
+    Results["Angle"] = array_to_dictionary(
         AngleGraph, VariableDescription="Angle d'abduction [°]")
-    Results["ForceContact"] = ArrayToDictionary(
+    Results["ForceContact"] = array_to_dictionary(
         ForceGraph, VariableDescription="Force de contact [Newton]")
-    Results["COP"] = ArrayToDictionary(
+    Results["COP"] = array_to_dictionary(
         COP, VariableDescription="Position du centre de pression [mm]")
     Results["COP"]["Max y Angle"] = {
         "Angle": 60, "x": COPxGraph[2], "y": COPyGraph[2]}
@@ -190,7 +189,7 @@ def LoadGraphLauranne():
     return Results
 
 
-def LoadSimulationCases(FileDirectory, CasesFileNamesList, SimulationCasesNames, VariablesToLoad, Failed=False):
+def load_simulation_cases(FileDirectory, CasesFileNamesList, SimulationCasesNames, VariablesToLoad, Failed=False):
     """
     Charge plusieurs h5 et les mets dans le même dictionnaire sous forme de cas de simulation
 
@@ -231,7 +230,7 @@ def LoadSimulationCases(FileDirectory, CasesFileNamesList, SimulationCasesNames,
 
         # Crée un cas de simulation seulement si un fichier existe pour ce cas
         if not CasesFileNamesList[index] == '':
-            Results[SimulationCasesNames[index]] = LoadResultsh5(FileDirectory, CasesFileNamesList[index], VariablesToLoad, Failed[index])
+            Results[SimulationCasesNames[index]] = load_results(FileDirectory, CasesFileNamesList[index], VariablesToLoad, Failed[index])
 
     return Results
 
@@ -262,7 +261,7 @@ def LoadSimulationCases(FileDirectory, CasesFileNamesList, SimulationCasesNames,
 #                     : liste des cas de simulation s'il y en a
 
 
-#     AddConstants : Mettre à True si un fichier texte existe au même nom et au même endroit pour charger les constantes de simulations définies dans LoadResultsh5
+#     AddConstants : Mettre à True si un fichier texte existe au même nom et au même endroit pour charger les constantes de simulations définies dans load_results
 
 #     Exemple :
 #                 SimulationCasesNames = Liste des noms de cas de simulation ['Cas 1','Cas 2','Cas 3']
@@ -287,12 +286,12 @@ def LoadSimulationCases(FileDirectory, CasesFileNamesList, SimulationCasesNames,
 
 #         # Parcours les simulations et ajoute les cas de simulation
 #         for index, Simulation in enumerate(SimulationNamesList):
-#             Results[Simulation] = LoadSimulationCases(
+#             Results[Simulation] = load_simulation_cases(
 #                 FileDirectory, FileNamesList[index], SimulationCasesNames, VariablesToLoad)
 
 #     else:
 #         for index, Simulation in enumerate(SimulationNamesList):
-#             Results[Simulation] = LoadResultsh5(FileDirectory, FileNamesList[index], VariablesToLoad)
+#             Results[Simulation] = load_results(FileDirectory, FileNamesList[index], VariablesToLoad)
 #     return Results
 
 
@@ -324,7 +323,7 @@ def create_compared_simulations(simulation_names, *args):
     return compared_simulations
 
 
-def DefineVariablesToLoad(VariableDictionary, MuscleDictionary=None, MuscleVariableDictionary=None, ConstantsDictionary=None):
+def define_variables_to_load(VariableDictionary, MuscleDictionary=None, MuscleVariableDictionary=None, ConstantsDictionary=None):
     """
     Function to build the Dictionary that will store which variable to load from an h5File
 

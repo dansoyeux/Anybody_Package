@@ -46,7 +46,7 @@ def transform_vector(vector, rotation_matrix, translation_vect=None, inverse_tra
     return transformed_vector
 
 
-def ArrayToDictionary(Array, VariableDescription='', SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False):
+def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False):
     """
     Met en forme un array 2D (nstep,ndim) sous la forme d'un dictionnaire :
         "Description" : Description qui sera utilisée par les graphiques
@@ -168,7 +168,7 @@ def ArrayToDictionary(Array, VariableDescription='', SequenceComposantes='', Mul
 
 def AddVariableDictionaries(VariableDictionary_1, VariableDictionary_2):
     """
-    Add 2 dictionaries created by ArrayToDictionary that have the same SequenceComposantes and add them
+    Add 2 dictionaries created by array_to_dictionary that have the same SequenceComposantes and add them
 
     Returns a dictionary containing the added dictionaries components
     """
@@ -240,11 +240,11 @@ def CleanFailedSimulationSteps(Output, Failed):
     return CleanOutput
 
 
-def SaveVariableToFile(Variable, SaveDirectory, SaveFileName):
+def save_results_to_file(Variable, SaveDirectory, SaveFileName):
     """
-    Function to save a variable to a .pkl file
+    Function to save a result dictionary to a .pkl file
 
-    This file can later be loaded with the function LoadVariableFromFile
+    This file can later be loaded with the function load_results_from_file
 
     Variable : Any variable containing information
     SaveDirectory : string : contains the path of the directory in which the file must be saved in
@@ -268,9 +268,9 @@ def SaveVariableToFile(Variable, SaveDirectory, SaveFileName):
         file.close()
 
 
-def LoadVariableFromFile(SaveDirectory, SaveFileName):
+def load_results_from_file(SaveDirectory, SaveFileName):
     """
-    Loads a variable from a .pkl file (that can be created by the SaveVariableToFile)
+    Loads a result dictionary from a .pkl file (that can be created by the save_results_to_file)
 
     SaveDirectory : string : contains the path of the directory in which the file must be saved in
                   : the directory must already exist

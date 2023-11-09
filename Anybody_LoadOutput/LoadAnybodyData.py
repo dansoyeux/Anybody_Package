@@ -2,19 +2,19 @@ import anypytools.h5py_wrapper as h5py2
 from anypytools.datautils import read_anyoutputfile
 import numpy as np
 
-from Anybody_Package.Anybody_LoadOutput.Tools import ArrayToDictionary
+from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 from Anybody_Package.Anybody_LoadOutput.Tools import transform_vector
 from Anybody_Package.Anybody_LoadOutput.Tools import CleanFailedSimulationSteps
 
 # POUR L'INSTANT, LOAD LES VARIABLES DES H5, LOAD PAS LES VARIABLES DES FICHIERS TEXTES
 
 
-def Loadh5File(FilePath, Failed=False, GHReactionsShape=False, MyMuscleWrapping=False, AddConstants=False):
+def Loadh5File(FilePath, Failed=False, GHReactionsShape=False, AddConstants=False):
     """
     Wraps every information about the h5 file in one dictionary
 
 
-    GHReactionsShape  and MyMuscleWrapping are custom arguments in my simulation
+    GHReactionsShape is custom arguments in my simulation
 
     NOTE : IN THIS SCRIPT, THE H5 FILE IS NOT CLOSED WHICH CAN AFFECT PERFORMANCE A LOT IF A LOT OF h5 ARE LOADED
         : IF THE LoadResultsh5 function is used, the h5 FILE IS CLOSED AT THE END
@@ -30,7 +30,7 @@ def Loadh5File(FilePath, Failed=False, GHReactionsShape=False, MyMuscleWrapping=
     h5Data = h5py2.File(f"{FilePath}.anydata.h5", "r")
 
     h5File = {"FilePath": FilePath, "Failed": Failed, "h5Data": h5Data,
-              "GHReactions": GHReactionsShape, "MyMuscleWrapping": MyMuscleWrapping}
+              "GHReactions": GHReactionsShape}
 
     return h5File
 
@@ -244,7 +244,7 @@ def LoadAnyVariable(h5File, VariablePath, VariableDescription="", SequenceCompos
     if OutputDictionary:
 
         # Converts the array to a Dictionary
-        VariableOutput = ArrayToDictionary(CleanOutput, VariableDescription, SequenceComposantes, MultiplyFactor, Composantes_Inverse_Direction, offset)
+        VariableOutput = array_to_dictionary(CleanOutput, VariableDescription, SequenceComposantes, MultiplyFactor, Composantes_Inverse_Direction, offset)
 
     # Variable output est un array si OutputDictionary est False
     else:
