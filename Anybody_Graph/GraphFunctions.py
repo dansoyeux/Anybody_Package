@@ -8,6 +8,7 @@ Makes variable graps, muscle graphs and COP_graph
 
 import math
 import numpy as np
+import sys
 
 import matplotlib.pyplot as plt
 
@@ -879,7 +880,7 @@ def draw_COP_points(coordinates, x, y, points_step):
 # %% Graph functions
 
 
-def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], subplot=None, subplot_title=False, **kwargs):
+def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], subplot=None, subplot_title=False, compared_case="", **kwargs):
     """
     Fonction générale qui gère les graphiques
 
@@ -1018,7 +1019,8 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
 
     fig = subplot_setup(subplot, figsize, add_graph)
 
-    graph_select_data_to_plot(data, composante_x, composante_y, cases_on, custom_label, compared_case, **kwargs)
+    # Selects the data to graph
+    x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, **kwargs)
 
     # # S'il n'y a qu'une composante à tracer
     # if len(composante_y) == 1:
@@ -1109,6 +1111,10 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
         if legend_on:
             legend_setup(fig, graph_type, **kwargs)
 
+        # Traces the axis labels
+        plt.xlabel(x_description)
+        plt.ylabel(y_description)
+
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, **kwargs)
 
@@ -1146,6 +1152,10 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
             # Trace le titre de la figure
             plt.suptitle(figure_title)
 
+            # Traces the axis labels
+            plt.xlabel(x_description)
+            plt.ylabel(y_description)
+
             # Ajuste les distances entre les subplots quand ils sont tous tracés
             plt.tight_layout()
 
@@ -1154,7 +1164,7 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
                 legend_setup(fig, graph_type, **kwargs)
 
 
-def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figure_title="", composante_x="Total", composante_y=["Total"], compare=False, subplot=None, subplot_title=False, cases_on=False, MusclePartInformation=False, fig=None, **kwargs):
+def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figure_title="", composante_x="Total", composante_y=["Total"], compare=False, subplot=None, subplot_title=False, cases_on=False, MusclePartInformation=False, fig=None, compared_case="", **kwargs):
     """
     Fonction qui gère trace la variable d'une seule fibre musculaire
 
@@ -1269,89 +1279,110 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
                                  "Total Number Muscle Parts": 1}
 
     # Parcours toutes les parties de muscles à tracer
+    # Selects the data to graph
+    x_description, y_description = muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, MusclePartInformation, MusclePart, MuscleFolder, MuscleName, **kwargs)
 
-    # S'il n'y a qu'une composante à tracer
-    if len(composante_y) == 1:
 
-        # Prend la valeur de la composante comme elle est seule
-        composante_y = composante_y[0]
 
-        # if compare is False:
-        # était dans compare is false
-        if cases_on is False:
 
-            # Si plus d'une muscle part est tracée, on met une legende avec le nom de la musclepart
-            if MusclePartInformation["Total Number Muscle Parts"] > 1:
-                label = MusclePart
 
-            # Si seulement une muscle part est activée et qu'on ne compare pas, on ne met pas de légende
-            else:
-                label = None
 
-            plot_graph_functions(data, data[variable_x][composante_x], data[MuscleFolder][MuscleName]
-                                 [MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
 
-        # with simulation cases
-        else:
-            # On ne peut tracer qu'une seule donnée, donc on doit avoir soit un seul Case de sélectionné et n>=1 muscle parts
-            # Ou on peut avoir plusieurs Case de sélectionnés mais une seule muscle part à tracer
-            if len(cases_on) == 1 or MusclePartInformation["Total Number Muscle Parts"] == 1:
 
-                for Case in cases_on:
 
-                    # La légende est le nom du case si il n'y a qu'une seule muscle part à tracer et plus d'un Case sélectionné
-                    if len(cases_on) > 1 and MusclePartInformation["Total Number Muscle Parts"] == 1:
-                        label = Case
 
-                    # La légende est le nom de la muscle part s'il n'y a qu'un seul case et plusieurs Muscle part à tracer
-                    elif len(cases_on) == 1 and MusclePartInformation["Total Number Muscle Parts"] > 1:
-                        label = MusclePart
 
-                    # Si les deux sont 1, on ne met pas de légende
-                    else:
-                        label = None
 
-                    plot_graph_functions(data[Case], data[Case][variable_x][composante_x], data[Case][MuscleFolder][MuscleName]
-                                         [MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
 
-        # elif compare:
+    # # S'il n'y a qu'une composante à tracer
+    # if len(composante_y) == 1:
 
-        #     # Si on a plusieurs simulations, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
-        #     if MusclePartInformation["Total Number Muscle Parts"] == 1:
-        #         ListSimulations = list(data.keys())
+    #     # Prend la valeur de la composante comme elle est seule
+    #     composante_y = composante_y[0]
 
-        #         for Simulation in ListSimulations:
-        #             label = Simulation
+    #     # if compare is False:
+    #     # était dans compare is false
+    #     if cases_on is False:
 
-        #             if cases_on is False:
-        #                 plot_graph_functions(data[Simulation], data[Simulation][variable_x][composante_x], data[Simulation][MuscleFolder]
-        #                            [MuscleName][MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+    #         # Si plus d'une muscle part est tracée, on met une legende avec le nom de la musclepart
+    #         if MusclePartInformation["Total Number Muscle Parts"] > 1:
+    #             label = MusclePart
 
-        #             # When we compare, we compare only one case between several simulations
-        #             elif len(cases_on) == 1:
-        #                 plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x], data[Simulation][cases_on[0]]
-        #                            [MuscleFolder][MuscleName][MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+    #         # Si seulement une muscle part est activée et qu'on ne compare pas, on ne met pas de légende
+    #         else:
+    #             label = None
 
-    # Si plusieurs composantes sont activées
-    else:
+    #         plot_graph_functions(data, data[variable_x][composante_x], data[MuscleFolder][MuscleName]
+    #                              [MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
 
-        # Si on a plusieurs composantes, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
-        if MusclePartInformation["Total Number Muscle Parts"] == 1:
+    #     # with simulation cases
+    #     else:
+    #         # On ne peut tracer qu'une seule donnée, donc on doit avoir soit un seul Case de sélectionné et n>=1 muscle parts
+    #         # Ou on peut avoir plusieurs Case de sélectionnés mais une seule muscle part à tracer
+    #         if len(cases_on) == 1 or MusclePartInformation["Total Number Muscle Parts"] == 1:
 
-            # On ne peut comparer plusieurs simulations que si on active la même donnée, on ne peut pas afficher plusieurs composantes avec plusieurs simulations
-            if compare is False:
+    #             for Case in cases_on:
 
-                for Composante in composante_y:
-                    label = Composante
+    #                 # La légende est le nom du case si il n'y a qu'une seule muscle part à tracer et plus d'un Case sélectionné
+    #                 if len(cases_on) > 1 and MusclePartInformation["Total Number Muscle Parts"] == 1:
+    #                     label = Case
 
-                    if cases_on is False:
-                        plot_graph_functions(data, data[variable_x][composante_x], data[MuscleFolder][MuscleName]
-                                             [MusclePart][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
+    #                 # La légende est le nom de la muscle part s'il n'y a qu'un seul case et plusieurs Muscle part à tracer
+    #                 elif len(cases_on) == 1 and MusclePartInformation["Total Number Muscle Parts"] > 1:
+    #                     label = MusclePart
 
-                    # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
-                    elif len(cases_on) == 1:
-                        plot_graph_functions(data, data[cases_on[0]][variable_x][composante_x], data[cases_on[0]][MuscleFolder]
-                                             [MuscleName][MusclePart][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
+    #                 # Si les deux sont 1, on ne met pas de légende
+    #                 else:
+    #                     label = None
+
+    #                 plot_graph_functions(data[Case], data[Case][variable_x][composante_x], data[Case][MuscleFolder][MuscleName]
+    #                                      [MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    #     # elif compare:
+
+    #     #     # Si on a plusieurs simulations, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
+    #     #     if MusclePartInformation["Total Number Muscle Parts"] == 1:
+    #     #         ListSimulations = list(data.keys())
+
+    #     #         for Simulation in ListSimulations:
+    #     #             label = Simulation
+
+    #     #             if cases_on is False:
+    #     #                 plot_graph_functions(data[Simulation], data[Simulation][variable_x][composante_x], data[Simulation][MuscleFolder]
+    #     #                            [MuscleName][MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    #     #             # When we compare, we compare only one case between several simulations
+    #     #             elif len(cases_on) == 1:
+    #     #                 plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x], data[Simulation][cases_on[0]]
+    #     #                            [MuscleFolder][MuscleName][MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    # # Si plusieurs composantes sont activées
+    # else:
+
+    #     # Si on a plusieurs composantes, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
+    #     if MusclePartInformation["Total Number Muscle Parts"] == 1:
+
+    #         # On ne peut comparer plusieurs simulations que si on active la même donnée, on ne peut pas afficher plusieurs composantes avec plusieurs simulations
+    #         if compare is False:
+
+    #             for Composante in composante_y:
+    #                 label = Composante
+
+    #                 if cases_on is False:
+    #                     plot_graph_functions(data, data[variable_x][composante_x], data[MuscleFolder][MuscleName]
+    #                                          [MusclePart][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    #                 # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
+    #                 elif len(cases_on) == 1:
+    #                     plot_graph_functions(data, data[cases_on[0]][variable_x][composante_x], data[cases_on[0]][MuscleFolder]
+    #                                          [MuscleName][MusclePart][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+
+
+
+
+
+
 
     # Si on trace la dernière muscle part, trace les axes, la légende, les titres etc...
     if MusclePartInformation["LastPart"]:
@@ -1369,14 +1400,15 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
         #                    [MuscleName][MusclePart][variable_y]["Description"])
         # elif compare is False:
         # était dans compare is false
-        if cases_on is False:
-            plt.xlabel(data[variable_x]["Description"])
-            plt.ylabel(data[MuscleFolder][MuscleName]
-                       [MusclePart][variable_y]["Description"])
-        else:
-            plt.xlabel(data[cases_on[0]][variable_x]["Description"])
-            plt.ylabel(data[cases_on[0]][MuscleFolder][MuscleName]
-                       [MusclePart][variable_y]["Description"])
+        
+        # if cases_on is False:
+        #     plt.xlabel(data[variable_x]["Description"])
+        #     plt.ylabel(data[MuscleFolder][MuscleName]
+        #                [MusclePart][variable_y]["Description"])
+        # else:
+        #     plt.xlabel(data[cases_on[0]][variable_x]["Description"])
+        #     plt.ylabel(data[cases_on[0]][MuscleFolder][MuscleName]
+        #                [MusclePart][variable_y]["Description"])
 
         if subplot is None:
             plt.title(figure_title)
@@ -1390,6 +1422,10 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
             # shows the legend if activated
             if legend_on:
                 legend_setup(fig, graph_type, **kwargs)
+                
+            # Traces the axis labels
+            plt.xlabel(x_description)
+            plt.ylabel(y_description)
 
             # Setups the grid and the axes ticks of the graph
             graph_grid_setup(fig, **kwargs)
@@ -1429,6 +1465,10 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
             if last_subplot:
                 # Trace le titre de la figure
                 plt.suptitle(figure_title)
+                
+                # Traces the axis labels
+                plt.xlabel(x_description)
+                plt.ylabel(y_description)
 
                 # Ajuste les distances entre les subplots quand ils sont tous tracés
                 plt.tight_layout()
@@ -1572,7 +1612,14 @@ def muscle_graph(data, MuscleName, variable_x, variable_y, figure_title="", case
     if cases_on is False:
         # if compare is False:
         # était dans compare is false
-        MuscleParts = list(data[MuscleFolder][MuscleName].keys())
+        
+        try:
+        
+        
+            MuscleParts = list(data[MuscleFolder][MuscleName].keys())
+        except:
+            print(f"{MuscleName} is not a muscle in the the result dictionary")
+
         # else:
         #     ListSimulations = list(data.keys())
         #     MuscleParts = list(data[ListSimulations[0]][MuscleFolder][MuscleName].keys())
@@ -1581,7 +1628,15 @@ def muscle_graph(data, MuscleName, variable_x, variable_y, figure_title="", case
     else:
         # if compare is False:
         # était dans compare is false
-        MuscleParts = list(data[cases_on[0]][MuscleFolder][MuscleName].keys())
+        
+        
+        try:
+            MuscleParts = list(data[cases_on[0]][MuscleFolder][MuscleName].keys())
+        except:
+            print(f"{MuscleName} is not a muscle in the result dictionary")
+        
+        
+        
         # else:
         #     ListSimulations = list(data.keys())
         #     MuscleParts = list(data[ListSimulations[0]][cases_on[0]][MuscleFolder][MuscleName].keys())
@@ -1647,7 +1702,7 @@ def muscle_graph(data, MuscleName, variable_x, variable_y, figure_title="", case
             MusclePartInformation["LastPart"] = False
 
         muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figure_title, composante_x,
-                          composante_y, compare, subplot, subplot_title, cases_on, MusclePartInformation, fig=fig, **kwargs)
+                          composante_y, compare, subplot, subplot_title, cases_on, MusclePartInformation, fig=fig, compared_case=compared_case, **kwargs)
 
 
 def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composantes=["x", "y"], cases_on=False, subplot=None, compare=False, subplot_title=False, draw_COP_points_on=True, **kwargs):
@@ -1744,7 +1799,7 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
 
     # Takes the components of the variable and the name of the variable
     composante_x = composantes[0]
-    composante_y = composantes[1]
+    composante_y = [composantes[1]]
     variable_x = variable
     variable_y = variable
 
@@ -1798,39 +1853,38 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
         # And makes the axis sizes adjustable
         plt.gca().set_aspect('equal', adjustable="datalim")
 
-    # if compare is False:
-        # était dans compare is false
-    if cases_on is False:
-        label = None
-        plot_graph_functions(data, data[variable_x][composante_x], data[variable_y][composante_y],
-                             graph_type, label=label, custom_label=custom_label, **kwargs)
+    # Selects the data to graph
+    x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, **kwargs)
 
-    # If the graph used is CasesGraph
-    else:
-        for Case in cases_on:
-            label = Case
-            plot_graph_functions(data[Case], data[Case][variable_x][composante_x], data[Case][variable_y][composante_y], graph_type,
-                                 label=label, custom_label=custom_label, **kwargs)
+    # # if compare is False:
+    #     # était dans compare is false
+    # if cases_on is False:
+    #     label = None
+    #     plot_graph_functions(data, data[variable_x][composante_x], data[variable_y][composante_y],
+    #                          graph_type, label=label, custom_label=custom_label, **kwargs)
 
-    # elif compare:
+    # # If the graph used is CasesGraph
+    # else:
+    #     for Case in cases_on:
+    #         label = Case
+    #         plot_graph_functions(data[Case], data[Case][variable_x][composante_x], data[Case][variable_y][composante_y], graph_type,
+    #                              label=label, custom_label=custom_label, **kwargs)
 
-    #     ListSimulations = list(data.keys())
+    # # elif compare:
 
-    #     for Simulation in ListSimulations:
-    #         label = Simulation
+    # #     ListSimulations = list(data.keys())
 
-    #         if cases_on is False:
-    #             plot_graph_functions(data[Simulation], data[Simulation][variable_x][composante_x], data[Simulation][variable_y][composante_y],
-    #                        graph_type, label=label, custom_label=custom_label, **kwargs)
+    # #     for Simulation in ListSimulations:
+    # #         label = Simulation
 
-    #         # When we compare, we compare only one case between several simulations
-    #         elif len(cases_on) == 1:
-    #             plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x], data[Simulation][cases_on[0]][variable_y]
-    #                        [composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+    # #         if cases_on is False:
+    # #             plot_graph_functions(data[Simulation], data[Simulation][variable_x][composante_x], data[Simulation][variable_y][composante_y],
+    # #                        graph_type, label=label, custom_label=custom_label, **kwargs)
 
-    # labels
-    plt.xlabel("<-----Postérieur              Antérieur----->")
-    plt.ylabel("<----- Inférieur            Supérieur ----->")
+    # #         # When we compare, we compare only one case between several simulations
+    # #         elif len(cases_on) == 1:
+    # #             plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x], data[Simulation][cases_on[0]][variable_y]
+    # #                        [composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
 
     if subplot is None:
         plt.title(figure_title)
@@ -1844,6 +1898,10 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
         # shows the legend if activated
         if legend_on:
             legend_setup(fig, graph_type, **kwargs)
+
+        # traces the axis labels
+        plt.xlabel("<-----Postérieur              Antérieur----->")
+        plt.ylabel("<----- Inférieur            Supérieur ----->")
 
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, **kwargs)
@@ -1881,6 +1939,10 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
             # Trace le titre de la figure
             plt.suptitle(figure_title)
 
+            # traces the axis labels
+            plt.xlabel("<-----Postérieur              Antérieur----->")
+            plt.ylabel("<----- Inférieur            Supérieur ----->")
+
             # Ajuste les distances entre les subplots quand ils sont tous tracés
             plt.tight_layout()
 
@@ -1889,17 +1951,19 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
 
                 legend_setup(fig, graph_type, **kwargs)
 
-# %% functions that select the data to plot for each graph functions
+# %% select data to plot
 
 
-def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, custom_label, compared_case, **kwargs):
+def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, **kwargs):
     """
     selects the dictionary that contains the data, x and y data to be entered in plot_graph_functions
 
     prints errors (without stopping the graph) if some data to be grahped don't exist
 
-
-
+    -------------------------------
+    returns
+    x_description and y_description : str
+    the descriptions of the x and y variables to be set as xlabel and ylabel in the graph function
 
     """
 
@@ -1912,16 +1976,21 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, custom
     variable_x = kwargs.get("variable_x")
     variable_y = kwargs.get("variable_y")
 
-    graph_type = "graph"
-
     # initialises an empty dictionary with an empty description
     x_data = {"Description": ""}
     y_data = {"Description": ""}
 
     # error texts
-    exc_case_error_text = ["The case", "doesn't exist in the results dictionary"]
-    exc_x_error_text = ["The value", "doesn't exist in the x variable in Results_dictionary"]
-    exc_y_error_text = ["The value", "doesn't exist in the y variable in Results_dictionary"]
+    exc_x_error_text = ["The value : ", "doesn't exist in the x variable in : Results_dictionary"]
+    exc_y_error_text = ["The value : ", "doesn't exist in the y variable in : Results_dictionary"]
+
+    if compare:
+        exc_x_error_text[1] += f"/{compared_case}"
+        exc_y_error_text[1] += f"/{compared_case}"
+        exc_case_error_text = ["The case : ", "doesn't exist in the simulation :", "in the results dictionary"]
+    else:
+        exc_case_error_text = ["The case : ", "doesn't exist in the results dictionary"]
+
 
     # S'il n'y a qu'une composante à tracer
     if len(composante_y) == 1:
@@ -1929,9 +1998,11 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, custom
         # Prend la valeur de la composante comme elle est seule
         composante_y = composante_y[0]
 
-        # if compare is False:
-        # était dans compare is false (avec ajout tabluation)
+        # The program stops if there is an error because only one value to graph
         if cases_on is False:
+            
+            error_y_text = ""
+            
             label = None
 
             # checks that x exists in data
@@ -1949,12 +2020,19 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, custom
                     plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
 
                 except Exception as exc_y:
-                    print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{composante_y} \n")
+                    raise ValueError("")
+                    error_y_text = f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{composante_y} \n"
+
+                    sys.exit()
 
             except Exception as exc_x:
-                print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
+                if not error_y_text:
+                    raise ValueError(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
+                else:
+                    raise ValueError(error_y_text)
+                sys.exit(1)
 
-        # If the graph used is CasesGraph
+        # If the data has simulation cases
         else:
             for Case in cases_on:
                 label = Case
@@ -1977,20 +2055,18 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, custom
 
                             plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
 
-                            # était dans le compare is false
-                            # if cases_on is False:
-                            plt.xlabel(x_data["Description"])
-                            plt.ylabel(y_data["Description"])
-                            # else:
-
                         except Exception as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{composante_y} \n")
 
                     except Exception as exc_x:
                         print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
 
-                except Exception as exc_case:
-                    print(f"{exc_case_error_text[0]} {str(exc_case)} {exc_case_error_text[1]} \n")
+                except Exception:
+                    if compare:
+                        raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
+                    else:
+                        raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
+                    sys.exit(1)
 
     # Si plusieurs composantes sont activées
     else:
@@ -2024,10 +2100,10 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, custom
 
             # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
             elif len(cases_on) == 1:
-                
+
                 # get the case name
                 Case = cases_on[0]
-                
+
                 # checks that the case exists in data
                 try:
                     case_data = data[Case]
@@ -2046,24 +2122,344 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, custom
 
                             plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
 
-                            # était dans le compare is false
-                            # if cases_on is False:
-                            plt.xlabel(x_data["Description"])
-                            plt.ylabel(y_data["Description"])
-                            # else:
-
                         except Exception as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{Composante} \n")
 
                     except Exception as exc_x:
                         print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
 
-                except Exception as exc_case:
-                    print(f"{exc_case_error_text[0]} {str(exc_case)} {exc_case_error_text[1]} \n")
+                except Exception:
+                    if compare:
+                        raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
+                    else:
+                        raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
+                    sys.exit(1)
 
-    # plots the axis label
-    plt.xlabel(x_data["Description"])
-    plt.ylabel(y_data["Description"])
+    # Returns the description for each axis to be applied later
+    x_description = x_data["Description"]
+    y_description = y_data["Description"]
+
+    return x_description, y_description
+
+
+def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, MusclePartInformation, MusclePart, MuscleFolder, MuscleName, **kwargs):
+    """
+    selects the dictionary that contains the data, x and y data to be entered in plot_graph_functions
+
+    prints errors (without stopping the graph) if some data to be grahped don't exist
+
+    -------------------------------
+    returns
+    x_description and y_description : str
+    the descriptions of the x and y variables to be set as xlabel and ylabel in the graph function
+
+    """
+
+    """
+    AJOUTER UNE FONCTION QUI TEST LA STRUCTURE DES DICTIONAIRES ET FAIT ERREUR SELON LE CAS
+
+    def check_graphed_data_structure(data, cases_on, compare)
+    """
+
+    variable_x = kwargs.get("variable_x")
+    variable_y = kwargs.get("variable_y")
+
+    # initialises an empty dictionary with an empty description
+    x_data = {"Description": ""}
+    y_data = {"Description": ""}
+
+    # error texts
+    exc_x_error_text = ["The value : ", "doesn't exist in the x variable in : Results_dictionary"]
+    exc_y_error_text = ["The value : ", "doesn't exist in the y variable in : Results_dictionary"]
+
+    if compare:
+        exc_x_error_text[1] += f"/{compared_case}"
+        exc_y_error_text[1] += f"/{compared_case}"
+        exc_case_error_text = ["The case : ", "doesn't exist in the simulation :", "in the results dictionary"]
+    else:
+        exc_case_error_text = ["The case : ", "doesn't exist in the results dictionary"]
+        
+        
+
+
+
+
+    # S'il n'y a qu'une composante à tracer
+    if len(composante_y) == 1:
+
+        # Prend la valeur de la composante comme elle est seule
+        composante_y = composante_y[0]
+
+        # The program stops if there is an error because only one value to graph
+        if cases_on is False:
+            
+            error_y_text = ""
+            
+            # Si plus d'une muscle part est tracée, on met une legende avec le nom de la musclepart
+            if MusclePartInformation["Total Number Muscle Parts"] > 1:
+                label = MusclePart
+
+            # Si seulement une muscle part est activée et qu'on ne compare pas, on ne met pas de légende
+            else:
+                label = None
+
+            # checks that x exists in data
+            try:
+
+                x_data = data[variable_x]
+                x = x_data[composante_x]
+
+                # checks that y exists in data
+                try:
+
+                    y_data = data[MuscleFolder][MuscleName][MusclePart][variable_y]
+                    y = y_data[composante_y]
+
+                    plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+
+                except Exception as exc_y:
+                    error_y_text = f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{MuscleFolder}/{MuscleName}/{MusclePart}/{variable_y}/{composante_y} \n"
+
+            except Exception as exc_x:
+                if not error_y_text:
+                    raise ValueError(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
+                else:
+                    raise ValueError(error_y_text)
+                sys.exit(1)
+
+        # If the data has simulation cases
+        else:
+            # On ne peut tracer qu'une seule donnée, donc on doit avoir soit un seul Case de sélectionné et n>=1 muscle parts
+            # Ou on peut avoir plusieurs Case de sélectionnés mais une seule muscle part à tracer
+            if len(cases_on) == 1 or MusclePartInformation["Total Number Muscle Parts"] == 1:
+                for Case in cases_on:
+                    # La légende est le nom du case si il n'y a qu'une seule muscle part à tracer et plus d'un Case sélectionné
+                    if len(cases_on) > 1 and MusclePartInformation["Total Number Muscle Parts"] == 1:
+                        label = Case
+
+                    # La légende est le nom de la muscle part s'il n'y a qu'un seul case et plusieurs Muscle part à tracer
+                    elif len(cases_on) == 1 and MusclePartInformation["Total Number Muscle Parts"] > 1:
+                        label = MusclePart
+
+                    # Si les deux sont 1, on ne met pas de légende
+                    else:
+                        label = None
+    
+                    # checks that the case exists in data
+                    try:
+                        case_data = data[Case]
+    
+                        # checks that x exists in data
+                        try:
+    
+                            x_data = data[Case][variable_x]
+                            x = x_data[composante_x]
+    
+                            # checks that y exists in data
+                            try:
+    
+                                y_data = data[Case][MuscleFolder][MuscleName][MusclePart][variable_y]
+                                y = y_data[composante_y]
+    
+                                plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    
+                            except Exception as exc_y:
+                                print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{MuscleName}/{MusclePart}/{variable_y}/{composante_y} \n")
+    
+                        except Exception as exc_x:
+                            print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
+    
+                    except Exception:
+                        if compare:
+                            raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
+                        else:
+                            raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
+                        sys.exit(1)
+
+    # Si plusieurs composantes sont activées
+    else:
+
+        # On ne peut comparer que si on active la même donnée, donc seulement une seule composante
+        # if compare is False:
+        for Composante in composante_y:
+            label = Composante
+
+            if cases_on is False:
+
+                # checks that x exists in data
+                try:
+
+                    x_data = data[variable_x]
+                    x = x_data[composante_x]
+
+                    # checks that y exists in data
+                    try:
+
+                        y_data = data[MuscleFolder][MuscleName][MusclePart][variable_y]
+                        y = y_data[Composante]
+
+                        plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+
+                    except Exception as exc_y:
+                        print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{MuscleFolder}/{MuscleName}/{MusclePart}/{variable_y}/{Composante} \n")
+
+                except Exception as exc_x:
+                    print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
+
+            # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
+            elif len(cases_on) == 1:
+
+                # get the case name
+                Case = cases_on[0]
+
+                # checks that the case exists in data
+                try:
+                    case_data = data[Case]
+
+                    # checks that x exists in data
+                    try:
+
+                        x_data = data[Case][variable_x]
+                        x = x_data[composante_x]
+
+                        # checks that y exists in data
+                        try:
+
+                            y_data = data[Case][MuscleFolder][MuscleName][MusclePart][variable_y][variable_y]
+                            y = y_data[Composante]
+
+                            plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+
+                        except Exception as exc_y:
+                            print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{MuscleName}/{MusclePart}/{variable_y}/{Composante} \n")
+
+                    except Exception as exc_x:
+                        print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
+
+                except Exception:
+                    if compare:
+                        raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
+                    else:
+                        raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
+                    sys.exit(1)    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    """
+    old code
+    """
+    # # S'il n'y a qu'une composante à tracer
+    # if len(composante_y) == 1:
+
+    #     # Prend la valeur de la composante comme elle est seule
+    #     composante_y = composante_y[0]
+
+    #     # if compare is False:
+    #     # était dans compare is false
+    #     if cases_on is False:
+
+    #         # Si plus d'une muscle part est tracée, on met une legende avec le nom de la musclepart
+    #         if MusclePartInformation["Total Number Muscle Parts"] > 1:
+    #             label = MusclePart
+
+    #         # Si seulement une muscle part est activée et qu'on ne compare pas, on ne met pas de légende
+    #         else:
+    #             label = None
+
+    #         plot_graph_functions(data, data[variable_x][composante_x], data[MuscleFolder][MuscleName]
+    #                              [MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    #     # with simulation cases
+    #     else:
+    #         # On ne peut tracer qu'une seule donnée, donc on doit avoir soit un seul Case de sélectionné et n>=1 muscle parts
+    #         # Ou on peut avoir plusieurs Case de sélectionnés mais une seule muscle part à tracer
+    #         if len(cases_on) == 1 or MusclePartInformation["Total Number Muscle Parts"] == 1:
+
+    #             for Case in cases_on:
+
+    #                 # La légende est le nom du case si il n'y a qu'une seule muscle part à tracer et plus d'un Case sélectionné
+    #                 if len(cases_on) > 1 and MusclePartInformation["Total Number Muscle Parts"] == 1:
+    #                     label = Case
+
+    #                 # La légende est le nom de la muscle part s'il n'y a qu'un seul case et plusieurs Muscle part à tracer
+    #                 elif len(cases_on) == 1 and MusclePartInformation["Total Number Muscle Parts"] > 1:
+    #                     label = MusclePart
+
+    #                 # Si les deux sont 1, on ne met pas de légende
+    #                 else:
+    #                     label = None
+
+    #                 plot_graph_functions(data[Case], data[Case][variable_x][composante_x], data[Case][MuscleFolder][MuscleName]
+    #                                      [MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    #     # elif compare:
+
+    #     #     # Si on a plusieurs simulations, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
+    #     #     if MusclePartInformation["Total Number Muscle Parts"] == 1:
+    #     #         ListSimulations = list(data.keys())
+
+    #     #         for Simulation in ListSimulations:
+    #     #             label = Simulation
+
+    #     #             if cases_on is False:
+    #     #                 plot_graph_functions(data[Simulation], data[Simulation][variable_x][composante_x], data[Simulation][MuscleFolder]
+    #     #                            [MuscleName][MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    #     #             # When we compare, we compare only one case between several simulations
+    #     #             elif len(cases_on) == 1:
+    #     #                 plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x], data[Simulation][cases_on[0]]
+    #     #                            [MuscleFolder][MuscleName][MusclePart][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    # # Si plusieurs composantes sont activées
+    # else:
+
+    #     # Si on a plusieurs composantes, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
+    #     if MusclePartInformation["Total Number Muscle Parts"] == 1:
+
+    #         # # On ne peut comparer plusieurs simulations que si on active la même donnée, on ne peut pas afficher plusieurs composantes avec plusieurs simulations
+    #         # if compare is False:
+
+    #         for Composante in composante_y:
+    #             label = Composante
+
+    #             if cases_on is False:
+    #                 plot_graph_functions(data, data[variable_x][composante_x], data[MuscleFolder][MuscleName]
+    #                                      [MusclePart][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+    #             # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
+    #             elif len(cases_on) == 1:
+    #                 plot_graph_functions(data, data[cases_on[0]][variable_x][composante_x], data[cases_on[0]][MuscleFolder]
+    #                                      [MuscleName][MusclePart][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
+
+
+
+        
+    
+    
+    # Returns the description for each axis to be applied later
+    x_description = x_data["Description"]
+    y_description = y_data["Description"]
+
+    return x_description, y_description
 
 
 # %% old graph functions without flatten for compare 10 november
