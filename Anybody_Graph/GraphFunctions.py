@@ -463,6 +463,37 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                         the function will be updated only if last_subplot is True (all subplots have been plot)
 
     """
+    
+    # sub-modules used to set axes ticks
+    def set_xticks(axe, graph_xlim, grid_x_step):
+        """
+        function to set the xticks according to the grid_x_step argument
+        and rounds the ticks to the nearest number dividable by the entered grid step
+        """
+        # rounds the lim to the nearest number dividable by the entered grid step
+        min_lim = math.ceil(graph_xlim[0] / grid_x_step) * grid_x_step  
+        max_lim = math.ceil(graph_xlim[1] / grid_x_step) * grid_x_step  
+        
+        axe.set_xticks(np.arange(min_lim, max_lim + grid_x_step, grid_x_step))
+        
+    
+    def set_yticks(axe, graph_ylim, grid_y_step):
+        """
+        function to set the yticks according to the grid_x_step argument
+        and rounds the ticks to the nearest number dividable by the entered grid step
+        """
+        # rounds the lim to the nearest number dividable by the entered grid step
+        min_lim = math.ceil(graph_ylim[0] / grid_y_step) * grid_y_step  
+        max_lim = math.ceil(graph_ylim[1] / grid_y_step) * grid_y_step 
+        
+        axe.set_yticks(np.arange(min_lim, max_lim + grid_y_step, grid_y_step))
+
+    
+    # only executes this function if at least one of these arguments are entered
+    if not any([xlim, ylim, grid_x_step, grid_y_step, same_lim]):
+        plt.grid(visible=True)
+        return
+    
     # get the axis of the subplot
     ax = fig.axes
 
@@ -485,7 +516,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
 
                     for axe in ax:
-                        
+                         
                         graph_xlim = axe.get_xlim()
                         graph_ylim = axe.get_ylim()
 
@@ -517,10 +548,10 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
                     # Sets the grid steps if needed
                     if grid_x_step:
-                        axe.set_xticks(np.arange(graph_xlim[0], graph_xlim[1] + grid_x_step, grid_x_step))
+                        set_xticks(axe, graph_xlim, grid_x_step)
 
                     if grid_y_step:
-                        axe.set_yticks(np.arange(graph_ylim[0], graph_ylim[1] + grid_y_step, grid_y_step))
+                        set_yticks(axe, graph_ylim, grid_y_step)
 
         # if the limits and step grid are set individually (same_lim == False)
         else:
@@ -538,11 +569,13 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
             if grid_x_step:
                 graph_xlim = axe.get_xlim()
-                axe.set_xticks(np.arange(graph_xlim[0], graph_xlim[1] + grid_x_step, grid_x_step))
+                
+                set_xticks(axe, graph_xlim, grid_x_step)
 
             if grid_y_step:
                 graph_ylim = axe.get_ylim()
-                axe.set_yticks(np.arange(graph_ylim[0], graph_ylim[1] + grid_y_step, grid_y_step))
+                
+                set_yticks(axe, graph_ylim, grid_y_step)
 
     # if there is no subplot, the axis is one dimensional
     else:
@@ -561,11 +594,12 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
         if grid_x_step:
             graph_xlim = axe.get_xlim()
-            axe.set_xticks(np.arange(graph_xlim[0], graph_xlim[1] + grid_x_step, grid_x_step))
+            set_xticks(axe, graph_xlim, grid_x_step)
 
         if grid_y_step:
             graph_ylim = axe.get_ylim()
-            axe.set_yticks(np.arange(graph_ylim[0], graph_ylim[1] + grid_y_step, grid_y_step))
+            
+            set_yticks(axe, graph_ylim, grid_y_step)
 
 
 def get_simulation_description(label):
@@ -578,9 +612,6 @@ def get_simulation_description(label):
     """
 
     case_description = simulation_description[label]
-    
-    
-    # CaseDescription = SimulationDescription[SimulationDescription.index(Case) + 1]
     
     return case_description
 
