@@ -1198,13 +1198,13 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
                   : Par défaut : "Total"
                   : Si on veut activer y entrer : Composantes_x = "y"
 
-    MusclePartOn  : Liste contenant les numéros des parties à tracer
+    muscle_part_on  : Liste contenant les numéros des parties à tracer
                   : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
                   : "allparts" toutes les parties on sans le total
                   : "all" toutes les parties avec le total
 
                   : Défault = False : trace la variable totale du muscle entier
-                  : MusclePartOn = liste des numéros de la partie du muscle à tracer
+                  : muscle_part_on = liste des numéros de la partie du muscle à tracer
 
 
     compare : = True si on veut comparer plusieurs données
@@ -1281,18 +1281,6 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
     # Parcours toutes les parties de muscles à tracer
     # Selects the data to graph
     x_description, y_description = muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, MusclePartInformation, MusclePart, MuscleFolder, MuscleName, **kwargs)
-
-
-
-
-
-
-
-
-
-
-
-
 
     # # S'il n'y a qu'une composante à tracer
     # if len(composante_y) == 1:
@@ -1377,13 +1365,6 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
     #                     plot_graph_functions(data, data[cases_on[0]][variable_x][composante_x], data[cases_on[0]][MuscleFolder]
     #                                          [MuscleName][MusclePart][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
 
-
-
-
-
-
-
-
     # Si on trace la dernière muscle part, trace les axes, la légende, les titres etc...
     if MusclePartInformation["LastPart"]:
 
@@ -1400,7 +1381,7 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
         #                    [MuscleName][MusclePart][variable_y]["Description"])
         # elif compare is False:
         # était dans compare is false
-        
+
         # if cases_on is False:
         #     plt.xlabel(data[variable_x]["Description"])
         #     plt.ylabel(data[MuscleFolder][MuscleName]
@@ -1422,7 +1403,7 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
             # shows the legend if activated
             if legend_on:
                 legend_setup(fig, graph_type, **kwargs)
-                
+
             # Traces the axis labels
             plt.xlabel(x_description)
             plt.ylabel(y_description)
@@ -1465,7 +1446,7 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
             if last_subplot:
                 # Trace le titre de la figure
                 plt.suptitle(figure_title)
-                
+
                 # Traces the axis labels
                 plt.xlabel(x_description)
                 plt.ylabel(y_description)
@@ -1479,7 +1460,7 @@ def muscle_part_graph(data, MuscleName, MusclePart, variable_x, variable_y, figu
                     legend_setup(fig, graph_type, **kwargs)
 
 
-def muscle_graph(data, MuscleName, variable_x, variable_y, figure_title="", cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], MusclePartOn=False, subplot=None, subplot_title=False, **kwargs):
+def muscle_graph(data, MuscleName, variable_x, variable_y, figure_title="", cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], muscle_part_on=False, subplot=None, subplot_title=False, **kwargs):
     """
     Draws all the parts of a Muscle that were selected
 
@@ -1512,13 +1493,13 @@ def muscle_graph(data, MuscleName, variable_x, variable_y, figure_title="", case
                   : Par défaut : "Total"
                   : Si on veut activer y entrer : Composantes_x = "y"
 
-    MusclePartOn  : Liste contenant les numéros des parties à tracer
+    muscle_part_on  : Liste contenant les numéros des parties à tracer
                   : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
                   : "allparts" toutes les parties on sans le total
                   : "all" toutes les parties avec le total
 
                   : Défault = False : trace la variable totale du muscle entier
-                  : MusclePartOn = numéro de la partie du muscle à tracer
+                  : muscle_part_on = numéro de la partie du muscle à tracer
 
 
     compare : = True si on veut comparer plusieurs données
@@ -1612,10 +1593,9 @@ def muscle_graph(data, MuscleName, variable_x, variable_y, figure_title="", case
     if cases_on is False:
         # if compare is False:
         # était dans compare is false
-        
+
         try:
-        
-        
+
             MuscleParts = list(data[MuscleFolder][MuscleName].keys())
         except:
             print(f"{MuscleName} is not a muscle in the the result dictionary")
@@ -1628,38 +1608,35 @@ def muscle_graph(data, MuscleName, variable_x, variable_y, figure_title="", case
     else:
         # if compare is False:
         # était dans compare is false
-        
-        
+
         try:
             MuscleParts = list(data[cases_on[0]][MuscleFolder][MuscleName].keys())
         except:
             print(f"{MuscleName} is not a muscle in the result dictionary")
-        
-        
-        
+
         # else:
         #     ListSimulations = list(data.keys())
         #     MuscleParts = list(data[ListSimulations[0]][cases_on[0]][MuscleFolder][MuscleName].keys())
 
     # Si toutes les parties sont activées, fais une liste avec le nom de toutes les parties sauf le muscle total
     # n'enlève pas la partie totale si le muscle n'a pas de partie
-    if MusclePartOn == "allparts" and (not len(MuscleParts) == 1):
+    if muscle_part_on == "allparts" and (not len(MuscleParts) == 1):
 
         # Enlève le muscle total de la liste
         MuscleParts.remove(MuscleName)
 
     # Dans le cas où on a entré une liste des numéros des parties
-    elif isinstance(MusclePartOn, list):
+    elif isinstance(muscle_part_on, list):
 
         # Recrée les noms des parties à tracer en parcourant les numéros entrés
         ListMuscleParts = [
-            f"{MuscleName} {MusclePartNumber}" for MusclePartNumber in MusclePartOn]
+            f"{MuscleName} {MusclePartNumber}" for MusclePartNumber in muscle_part_on]
 
         # Stores the new value of muscleparts to draw
         MuscleParts = ListMuscleParts
 
     # Si on ne veut tracer qu'un seul muscle
-    elif MusclePartOn is False:
+    elif muscle_part_on is False:
         MuscleParts = [MuscleName]
 
     # Vérification qu'on ne dessine pas plusieurs parties de muscles tout en comparant
@@ -1951,7 +1928,53 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
 
                 legend_setup(fig, graph_type, **kwargs)
 
+
 # %% select data to plot
+
+def check_result_dictionary_data_structure(data, cases_on, compare):
+    """
+    function used in the graph functions to check that the arguments compare and cases_on are used according to the result dictionary structure
+
+    it checks if cases_on is used when simulation cases exis
+    it checks if compare=True is used when we compare simulation with simulation cases
+    """
+
+    # counter that counts how deep the variables are stored which indicates the data structure
+    # 0 : no simulation cases
+    # 1 : simulation cases
+    # 2 : compared simulation cases
+    # 3 : error
+    variables_deepness_counter = 0
+
+    tested_data = data
+
+    # searches for the entry "Loaded Variables" to know the data structure
+    while "Loaded Variables" not in list(tested_data.keys()) and variables_deepness_counter < 3:
+        # increases the ccuonter
+        variables_deepness_counter += 1
+
+        # goes one step deeper in the result dictionary
+        tested_data = tested_data[list(tested_data.keys())[0]]
+
+    # Check that the arguments entered match the result data structure
+    # No simulation cases data structure
+    if variables_deepness_counter == 0:
+        if cases_on or compare:
+            raise ValueError(f"For a result dictionary without simulation cases, cases_on and compare must both be False. \n While cases_on = {cases_on} and compare = {compare} were entered.")
+
+    # Simulation cases data structure
+    elif variables_deepness_counter == 1:
+        if not cases_on or compare:
+            raise ValueError(f"For a result dictionary with simulation cases, a cases_on list must be entered and compare must be False. \n While cases_on = {cases_on} and compare = {compare} were entered.")
+
+    # Simulation cases comparison data structure
+    elif variables_deepness_counter == 2:
+        if not cases_on or not compare:
+            raise ValueError(f"For a result dictionary that compares simulation cases, a cases_on list must be entered and compare must be True. \n While cases_on = {cases_on} and compare = {compare} were entered.")
+
+    # When the variables are deeper than 2 levels
+    else:
+        raise ValueError("The result dictionary used doesn't have a correct data structure. The variables are {variables_deepness_counter} levels deep while 2 is the maximum!")
 
 
 def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, **kwargs):
@@ -1973,6 +1996,9 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
     def check_graphed_data_structure(data, cases_on, compare)
     """
 
+    # First checks that the results data structure match the argument entered in the graph function
+    check_result_dictionary_data_structure(data, cases_on, compare)
+
     variable_x = kwargs.get("variable_x")
     variable_y = kwargs.get("variable_y")
 
@@ -1991,7 +2017,6 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
     else:
         exc_case_error_text = ["The case : ", "doesn't exist in the results dictionary"]
 
-
     # S'il n'y a qu'une composante à tracer
     if len(composante_y) == 1:
 
@@ -2000,9 +2025,9 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
 
         # The program stops if there is an error because only one value to graph
         if cases_on is False:
-            
+            # defines the y_error text as empty
             error_y_text = ""
-            
+
             label = None
 
             # checks that x exists in data
@@ -2020,14 +2045,16 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                     plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
 
                 except Exception as exc_y:
-                    raise ValueError("")
+                    # Stores the y_error text to print as an error later
                     error_y_text = f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{composante_y} \n"
-
-                    sys.exit()
+                    raise ValueError("")
+                    sys.exit(1)
 
             except Exception as exc_x:
+                # If no error on y
                 if not error_y_text:
                     raise ValueError(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
+                # if there is an error on y, raise the y error text string
                 else:
                     raise ValueError(error_y_text)
                 sys.exit(1)
@@ -2161,6 +2188,9 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
     def check_graphed_data_structure(data, cases_on, compare)
     """
 
+    # First checks that the results data structure match the argument entered in the graph function
+    check_result_dictionary_data_structure(data, cases_on, compare)
+
     variable_x = kwargs.get("variable_x")
     variable_y = kwargs.get("variable_y")
 
@@ -2178,11 +2208,6 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
         exc_case_error_text = ["The case : ", "doesn't exist in the simulation :", "in the results dictionary"]
     else:
         exc_case_error_text = ["The case : ", "doesn't exist in the results dictionary"]
-        
-        
-
-
-
 
     # S'il n'y a qu'une composante à tracer
     if len(composante_y) == 1:
@@ -2192,9 +2217,9 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
 
         # The program stops if there is an error because only one value to graph
         if cases_on is False:
-            
+
             error_y_text = ""
-            
+
             # Si plus d'une muscle part est tracée, on met une legende avec le nom de la musclepart
             if MusclePartInformation["Total Number Muscle Parts"] > 1:
                 label = MusclePart
@@ -2218,11 +2243,17 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                     plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
 
                 except Exception as exc_y:
+                    # Stores the y_error text to print as an error later
                     error_y_text = f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{MuscleFolder}/{MuscleName}/{MusclePart}/{variable_y}/{composante_y} \n"
+                    raise ValueError("")
+
+                    sys.exit()
 
             except Exception as exc_x:
+                # If no error on y
                 if not error_y_text:
                     raise ValueError(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
+                # if there is an error on y, raise the y error text string
                 else:
                     raise ValueError(error_y_text)
                 sys.exit(1)
@@ -2244,32 +2275,31 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                     # Si les deux sont 1, on ne met pas de légende
                     else:
                         label = None
-    
+
                     # checks that the case exists in data
                     try:
                         case_data = data[Case]
-    
+
                         # checks that x exists in data
                         try:
-    
+
                             x_data = data[Case][variable_x]
                             x = x_data[composante_x]
-    
+
                             # checks that y exists in data
                             try:
-    
+
                                 y_data = data[Case][MuscleFolder][MuscleName][MusclePart][variable_y]
                                 y = y_data[composante_y]
-    
+
                                 plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
 
-    
                             except Exception as exc_y:
                                 print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{MuscleName}/{MusclePart}/{variable_y}/{composante_y} \n")
-    
+
                         except Exception as exc_x:
                             print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
-    
+
                     except Exception:
                         if compare:
                             raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
@@ -2342,28 +2372,8 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                         raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
                     else:
                         raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
-                    sys.exit(1)    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+                    sys.exit(1)
+
     """
     old code
     """
@@ -2450,11 +2460,6 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
     #                 plot_graph_functions(data, data[cases_on[0]][variable_x][composante_x], data[cases_on[0]][MuscleFolder]
     #                                      [MuscleName][MusclePart][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
 
-
-
-        
-    
-    
     # Returns the description for each axis to be applied later
     x_description = x_data["Description"]
     y_description = y_data["Description"]
@@ -2988,13 +2993,13 @@ def muscle_part_graph_old(data, MuscleName, MusclePart, variable_x, variable_y, 
                   : Par défaut : "Total"
                   : Si on veut activer y entrer : Composantes_x = "y"
 
-    MusclePartOn  : Liste contenant les numéros des parties à tracer
+    muscle_part_on  : Liste contenant les numéros des parties à tracer
                   : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
                   : "allparts" toutes les parties on sans le total
                   : "all" toutes les parties avec le total
 
                   : Défault = False : trace la variable totale du muscle entier
-                  : MusclePartOn = liste des numéros de la partie du muscle à tracer
+                  : muscle_part_on = liste des numéros de la partie du muscle à tracer
 
 
     compare : = True si on veut comparer plusieurs données
@@ -3237,7 +3242,7 @@ def muscle_part_graph_old(data, MuscleName, MusclePart, variable_x, variable_y, 
                     legend_setup(fig, graph_type, **kwargs)
 
 
-def muscle_graph_old(data, MuscleName, variable_x, variable_y, figure_title, cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], MusclePartOn=False, subplot=None, subplot_title=False, **kwargs):
+def muscle_graph_old(data, MuscleName, variable_x, variable_y, figure_title, cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], muscle_part_on=False, subplot=None, subplot_title=False, **kwargs):
     """
     Draws all the parts of a Muscle that were selected
 
@@ -3270,13 +3275,13 @@ def muscle_graph_old(data, MuscleName, variable_x, variable_y, figure_title, cas
                   : Par défaut : "Total"
                   : Si on veut activer y entrer : Composantes_x = "y"
 
-    MusclePartOn  : Liste contenant les numéros des parties à tracer
+    muscle_part_on  : Liste contenant les numéros des parties à tracer
                   : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
                   : "allparts" toutes les parties on sans le total
                   : "all" toutes les parties avec le total
 
                   : Défault = False : trace la variable totale du muscle entier
-                  : MusclePartOn = numéro de la partie du muscle à tracer
+                  : muscle_part_on = numéro de la partie du muscle à tracer
 
 
     compare : = True si on veut comparer plusieurs données
@@ -3382,23 +3387,23 @@ def muscle_graph_old(data, MuscleName, variable_x, variable_y, figure_title, cas
 
     # Si toutes les parties sont activées, fais une liste avec le nom de toutes les parties sauf le muscle total
     # n'enlève pas la partie totale si le muscle n'a pas de partie
-    if MusclePartOn == "allparts" and (not len(MuscleParts) == 1):
+    if muscle_part_on == "allparts" and (not len(MuscleParts) == 1):
 
         # Enlève le muscle total de la liste
         MuscleParts.remove(MuscleName)
 
     # Dans le cas où on a entré une liste des numéros des parties
-    elif isinstance(MusclePartOn, list):
+    elif isinstance(muscle_part_on, list):
 
         # Recrée les noms des parties à tracer en parcourant les numéros entrés
         ListMuscleParts = [
-            f"{MuscleName} {MusclePartNumber}" for MusclePartNumber in MusclePartOn]
+            f"{MuscleName} {MusclePartNumber}" for MusclePartNumber in muscle_part_on]
 
         # Stores the new value of muscleparts to draw
         MuscleParts = ListMuscleParts
 
     # Si on ne veut tracer qu'un seul muscle
-    elif MusclePartOn is False:
+    elif muscle_part_on is False:
         MuscleParts = [MuscleName]
 
     # Vérification qu'on ne dessine pas plusieurs parties de muscles tout en comparant
@@ -3552,24 +3557,24 @@ def muscle_graph_old(data, MuscleName, variable_x, variable_y, figure_title, cas
 
 # # Juste une partie ou le total
 # muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False")
-# muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", MusclePartOn=[2])
+# muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", muscle_part_on=[2])
 
 # # Plusieurs part
-# muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", MusclePartOn=[1, 2])
-# muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", MusclePartOn="all")
-# muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", MusclePartOn="allparts")
+# muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", muscle_part_on=[1, 2])
+# muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", muscle_part_on="all")
+# muscle_graph(CasesOffcompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", muscle_part_on="allparts")
 
 
 # # compare True
 # # Juste une partie ou le total
 # muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = True", compare=True)
-# muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", MusclePartOn=[2], compare=True)
+# muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = False", muscle_part_on=[2], compare=True)
 
 # # Plusieurs part
 # # Message d'erreur fait
-# muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = True", MusclePartOn=[1, 2], compare=True)
-# muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = True", MusclePartOn="all", compare=True)
-# muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = True", MusclePartOn="allparts", compare=True)
+# muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = True", muscle_part_on=[1, 2], compare=True)
+# muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = True", muscle_part_on="all", compare=True)
+# muscle_graph(CasesOffcompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = False compare = True", muscle_part_on="allparts", compare=True)
 
 
 # %% CAS DE SIMULATION
@@ -3580,53 +3585,53 @@ def muscle_graph_old(data, MuscleName, variable_x, variable_y, figure_title, cas
 # # 1 Case
 # # Juste une partie ou le total
 # muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", cases_on=["Case 1"])
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn=[2], cases_on=["Case 1"])
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on=[2], cases_on=["Case 1"])
 
 # # Plusieurs part 1 case
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn=[1, 2], cases_on=["Case 1"])
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn="all", cases_on=["Case 1"])
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn="allparts", cases_on=["Case 1"])
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on=[1, 2], cases_on=["Case 1"])
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on="all", cases_on=["Case 1"])
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on="allparts", cases_on=["Case 1"])
 
 
 # # plusieurs Cases
 # # Juste une partie ou le total
 # muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", cases_on=["Case 1", "Case 2"])
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn=[2], cases_on=["Case 1", "Case 2"])
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on=[2], cases_on=["Case 1", "Case 2"])
 # muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", cases_on="all")
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn=[2], cases_on="all")
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on=[2], cases_on="all")
 
 
 # # Plusieurs part, plusieurs case
 # # Message d'erreur fait
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn=[1, 2], cases_on="all")
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn="all", cases_on="all")
-# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", MusclePartOn="allparts", cases_on="all")
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on=[1, 2], cases_on="all")
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on="all", cases_on="all")
+# muscle_graph(cases_oncompareOff, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = False", muscle_part_on="allparts", cases_on="all")
 
 
 # # compare True
 # # 1 Case
 # # Juste une partie ou le total
 # muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", compare=True, cases_on=["Case 1"])
-# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", MusclePartOn=[2], compare=True, cases_on=["Case 1"])
+# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", muscle_part_on=[2], compare=True, cases_on=["Case 1"])
 
 # # Plusieurs part
 # # Message d'erreur fait
-# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", MusclePartOn=[1, 2], compare=True, cases_on=["Case 1"])
-# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", MusclePartOn="all", compare=True, cases_on=["Case 1"])
-# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", MusclePartOn="allparts", compare=True, cases_on=["Case 1"])
+# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", muscle_part_on=[1, 2], compare=True, cases_on=["Case 1"])
+# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", muscle_part_on="all", compare=True, cases_on=["Case 1"])
+# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", muscle_part_on="allparts", compare=True, cases_on=["Case 1"])
 
 
 # # Plusieurs Case
 # # Juste une partie ou le total
 # # Message d'erreut fait
 # muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", compare=True, cases_on=["Case 1", "Case 2"])
-# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", MusclePartOn=[2], compare=True, cases_on=["Case 1", "Case 2"])
+# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", muscle_part_on=[2], compare=True, cases_on=["Case 1", "Case 2"])
 
 # # Plusieurs part un cas
 # # Message d'erreur fait
-# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", MusclePartOn=[1, 2], compare=True, cases_on=["Case 1", "Case 2"])
-# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", MusclePartOn="all", compare=True, cases_on=["Case 1", "Case 2"])
-# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", MusclePartOn="allparts", compare=True, cases_on=["Case 1", "Case 2"])
+# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", muscle_part_on=[1, 2], compare=True, cases_on=["Case 1", "Case 2"])
+# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", muscle_part_on="all", compare=True, cases_on=["Case 1", "Case 2"])
+# muscle_graph(cases_oncompareOn, "deltoideus lateral", "Abduction", "Fm", "Force muscle cases_on = True compare = True", muscle_part_on="allparts", compare=True, cases_on=["Case 1", "Case 2"])
 
 # %%                                 TEST COP_graph
 # # Pas de cas de simulation
