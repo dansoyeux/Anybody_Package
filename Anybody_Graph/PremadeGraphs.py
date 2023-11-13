@@ -5,9 +5,10 @@ Created on Mon Sep 18 09:24:20 2023
 @author: user
 """
 
-from Anybody_Package.Anybody_graphFunctions import graph
-from Anybody_Package.Anybody_graphFunctions import COP_graph
-from Anybody_Package.Anybody_graphFunctions import muscle_graph
+from Anybody_Package.Anybody_Graph.GraphFunctions import graph
+from Anybody_Package.Anybody_Graph.GraphFunctions import COP_graph
+from Anybody_Package.Anybody_Graph.GraphFunctions import muscle_graph
+from Anybody_Package.Anybody_Graph.GraphFunctions import check_result_dictionary_data_structure
 
 
 import numpy as np

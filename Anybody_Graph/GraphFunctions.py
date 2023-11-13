@@ -957,6 +957,8 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
 
                            Default value : lower center (below the figure)
     """
+    # First checks that the results data structure match the argument entered in the graph function
+    check_result_dictionary_data_structure(data, cases_on, compare)
 
     # get the customlabel if a label arguent is declared, puts None otherwise as a default value
     custom_label = kwargs.get("label", None)
@@ -1548,6 +1550,9 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
 
     """
 
+    # First checks that the results data structure match the argument entered in the graph function
+    check_result_dictionary_data_structure(data, cases_on, compare)
+
     # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
 
@@ -1758,6 +1763,9 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
                            Default value : lower center (below the figure)
 
     """
+
+    # First checks that the results data structure match the argument entered in the graph function
+    check_result_dictionary_data_structure(data, cases_on, compare)
 
     # get the customlabel if a label arguent is declared, puts None otherwise as a default value
     custom_label = kwargs.get("label", None)
@@ -1995,9 +2003,6 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
     def check_graphed_data_structure(data, cases_on, compare)
     """
 
-    # First checks that the results data structure match the argument entered in the graph function
-    check_result_dictionary_data_structure(data, cases_on, compare)
-
     variable_x = kwargs.get("variable_x")
     variable_y = kwargs.get("variable_y")
 
@@ -2186,9 +2191,6 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
 
     def check_graphed_data_structure(data, cases_on, compare)
     """
-
-    # First checks that the results data structure match the argument entered in the graph function
-    check_result_dictionary_data_structure(data, cases_on, compare)
 
     variable_x = kwargs.get("variable_x")
     variable_y = kwargs.get("variable_y")

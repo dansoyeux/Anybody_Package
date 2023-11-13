@@ -81,6 +81,10 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
     VariableOutput["Description"] = VariableDescription
     VariableOutput["SequenceComposantes"] = []
 
+    # Makes 1 column 2D array into 1D array so that every data with only one component have consistent shape
+    if Array.ndim == 2 and Array.shape[1] == 1:
+        Array = Array.flatten()
+
     # If the output is a vector (ndim=1) or has only one column, puts the output in total and no components are created
     if Array.ndim == 1 or Array.shape[1] == 1:
 
