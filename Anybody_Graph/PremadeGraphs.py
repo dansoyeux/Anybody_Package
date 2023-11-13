@@ -5,11 +5,15 @@ Created on Mon Sep 18 09:24:20 2023
 @author: user
 """
 
-import Anybody_Package.Anybody_Graph.GraphFunctions as Graph
+from Anybody_Package.Anybody_graphFunctions import graph
+from Anybody_Package.Anybody_graphFunctions import COP_graph
+from Anybody_Package.Anybody_graphFunctions import muscle_graph
+
+
 import numpy as np
 
 
-def graph_all_muscle_fibers(data, MuscleList, variable_x, variable_y, composante_y_muscle_part=["Total"], composante_y_muscle_combined=["Total"], cases_on=False, compare=False, **kwargs):
+def graph_all_muscle_fibers(data, muscle_list, variable_x, variable_y, composante_y_muscle_part=["Total"], composante_y_muscle_combined=["Total"], cases_on=False, compare=False, **kwargs):
     """
     Trace tous les muscles parties par parties en les rassemblant par muscles
     adapte la taille du subplot en fonction nombre de parties (subplot [2, n])
@@ -21,59 +25,59 @@ def graph_all_muscle_fibers(data, MuscleList, variable_x, variable_y, composante
         SimulationsList = list(data.keys())
 
         if cases_on is False:
-            MuscleData = data[SimulationsList[0]]["Muscles"]
+            muscle_data = data[SimulationsList[0]]["Muscles"]
         else:
-            CasesList = list(data[SimulationsList[0]].keys())
-            MuscleData = data[SimulationsList[0]][CasesList[0]]["Muscles"]
+            cases_list = list(data[SimulationsList[0]].keys())
+            muscle_data = data[SimulationsList[0]][cases_list[0]]["Muscles"]
 
     else:
         if cases_on is False:
-            MuscleData = data["Muscles"]
+            muscle_data = data["Muscles"]
 
         else:
-            CasesList = list(data.keys())
-            MuscleData = data[CasesList[0]]["Muscles"]
+            cases_list = list(data.keys())
+            muscle_data = data[cases_list[0]]["Muscles"]
 
-    for MuscleName in MuscleList:
+    for muscle_name in muscle_list:
 
-        # -1 to not count the total for muscles with parts (MuscleName, MuscleName 1, MuscleName 2) = 3-1 = 2 parts
+        # -1 to not count the total for muscles with parts (muscle_name, muscle_name 1, muscle_name 2) = 3-1 = 2 parts
         # Gets the number of muscle parts (0 means there is only the total so 0 parts)
-        Number_Of_Parts = len(MuscleData[MuscleName]) - 1
+        number_of_parts = len(muscle_data[muscle_name]) - 1
 
         # Combined muscle graph
-        Graph.muscle_graph(data, MuscleName, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=MuscleName, cases_on=cases_on, compare=compare, **kwargs)
+        muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=muscle_name, cases_on=cases_on, compare=compare, **kwargs)
 
         # Trace toutes les parties de muscles sur un subplot [2, n] en calculant le nombre n adéquat pour avoir tout sur un graphique
-        if Number_Of_Parts > 0:
+        if number_of_parts > 0:
 
-            # Trouve la dimension en y la plus proche pour avoir un subplot 2xsubplot_Dimension_y (si Number_Of_Parts est impair, le dernier graph sera vide)
-            subplot_Dimension_y = int(np.ceil(Number_Of_Parts / 2))
+            # Trouve la dimension en y la plus proche pour avoir un subplot 2xsubplot_Dimension_y (si number_of_parts est impair, le dernier graph sera vide)
+            subplot_Dimension_y = int(np.ceil(number_of_parts / 2))
 
             subplotNumber = 1
             last_subplot = False
 
             # Parcours les numéros de partie de 1 à NombreDeParties
-            for PartNumber in range(1, Number_Of_Parts + 1, 1):
+            for current_part_pumber in range(1, number_of_parts + 1, 1):
 
                 # Specifies that it's the last subplot once we reach the last muscle part (even if the graph has one subplot empty)
-                if PartNumber == Number_Of_Parts:
+                if current_part_pumber == number_of_parts:
                     last_subplot = True
 
                 # Graph du muscle part
-                Graph.muscle_graph(data, MuscleName, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=MuscleName, cases_on=cases_on, compare=compare, subplot={"dimension": [2, subplot_Dimension_y], "number": subplotNumber, "last_subplot": last_subplot}, subplot_title=f"{MuscleName} {PartNumber}", MusclePartOn=[PartNumber], **kwargs)
+                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=muscle_name, cases_on=cases_on, compare=compare, subplot={"dimension": [2, subplot_Dimension_y], "number": subplotNumber, "last_subplot": last_subplot}, subplot_title=f"{muscle_name} {current_part_pumber}", muscle_part_on=[current_part_pumber], **kwargs)
                 subplotNumber += 1
 
 
-def muscle_graph_by_variable(data, CasesCategories, MuscleList, variable_x, variable_y, MusclePartOn=False, composante_y_muscle_part=["Total"], composante_y_muscle_combined=["Total"], **kwargs):
+def muscle_graph_by_variable(data, cases_categories, muscle_list, variable_x, variable_y, muscle_part_on=False, composante_y_muscle_part=["Total"], composante_y_muscle_combined=["Total"], **kwargs):
     """
     Trace les muscles contenus dans une liste et les sépare variable par variable (down, up, long, short...)
     Trace les parties de muscle individuellement si les muscles en ont
 
     Ce marche que avec des cas de simulation !!!
 
-    MusclePartOn : Active ou non les parties de muscles par variables
+    muscle_part_on : Active ou non les parties de muscles par variables
 
-    CasesCategories : dictionnaire
+    cases_categories : dictionnaire
                    : détaille les variables à décomposer en valeurs
                    : 1 variable par ligne, chaque colonne correspond à une catégorie de valeur de cette variable
 
@@ -85,84 +89,84 @@ def muscle_graph_by_variable(data, CasesCategories, MuscleList, variable_x, vari
 
     """
 
-    # get the CasesList
-    CasesList = list(data.keys())
+    # get the cases_list
+    cases_list = list(data.keys())
 
     # Nombre de lignes dans le subplot (nombre de variables)
-    n_Lines = len(CasesCategories)
+    n_subplot_lines = len(cases_categories)
 
     # Nombre de catégories par variable
-    n_Categories = [len(CasesCategories[Category]) for Category in CasesCategories]
+    n_categories = [len(cases_categories[Category]) for Category in cases_categories]
 
     # Nombre de colonnes dans le subplot (correspond au nombre maximal de catégories)
-    n_Columns = np.max(n_Categories)
+    n_subplot_columns = np.max(n_categories)
 
     # Get the muscle data
-    MuscleData = data[CasesList[0]]["Muscles"]
+    muscle_data = data[cases_list[0]]["Muscles"]
 
-    List_Variables = list(CasesCategories.keys())
+    variables_list = list(cases_categories.keys())
 
     last_subplot = False
 
     # Checks if the last category has the same number of columns than the subplot to always show the legend even if the last subplots are empty
-    if len(CasesCategories[List_Variables[-1]]) < n_Columns:
-        last_subplot_Number = (n_Lines - 1) * n_Columns + len(CasesCategories[List_Variables[-1]])
+    if len(cases_categories[variables_list[-1]]) < n_subplot_columns:
+        last_subplot_Number = (n_subplot_lines - 1) * n_subplot_columns + len(cases_categories[variables_list[-1]])
     else:
-        last_subplot_Number = n_Lines * n_Columns
+        last_subplot_Number = n_subplot_lines * n_subplot_columns
 
     # Parcours la liste des muscles
-    for MuscleName in MuscleList:
+    for muscle_name in muscle_list:
 
         subplot_Number = 1
 
-        # -1 to not count the total for muscles with parts (MuscleName, MuscleName 1, MuscleName 2) = 3-1 = 2 parts
+        # -1 to not count the total for muscles with parts (muscle_name, muscle_name 1, muscle_name 2) = 3-1 = 2 parts
         # Gets the number of muscle parts (0 means there is only the total so 0 parts)
-        Number_Of_Parts = len(MuscleData[MuscleName]) - 1
+        number_of_parts = len(muscle_data[muscle_name]) - 1
 
-        for Category_index, Category in enumerate(CasesCategories):
+        for Category_index, Category in enumerate(cases_categories):
 
             # Parcours les catégories de la variable (1 catégorie par colomne)
-            for Categorie_Name, Categories_Cases in CasesCategories[Category].items():
+            for Categorie_Name, Categories_Cases in cases_categories[Category].items():
                 if subplot_Number == last_subplot_Number:
                     last_subplot = True
 
                 # Graph of the combined muscle
-                Graph.muscle_graph(data, MuscleName, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=f"{MuscleName}", cases_on=Categories_Cases, subplot={"dimension": [n_Lines, n_Columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
+                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=f"{muscle_name}", cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
 
                 # Incrémente le numéro de subplot
                 subplot_Number += 1
 
             # Met le numéro de subplot à la première case de la bonne colomne (utile si une case est vide car il n'y a pas le même nombre de catégories entre les variables)
-            subplot_Number = (Category_index + 1) * n_Columns + 1
+            subplot_Number = (Category_index + 1) * n_subplot_columns + 1
 
         # Graphiques des parties individuelles des muscles si activé
-        if MusclePartOn is True:
+        if muscle_part_on is True:
 
             # Trace les parties de muscles individuelles seulement si le muscle en a
-            if Number_Of_Parts > 0:
+            if number_of_parts > 0:
 
                 # Graphique par variables par partie de muscle
-                for PartNumber in range(1, Number_Of_Parts + 1, 1):
+                for current_part_pumber in range(1, number_of_parts + 1, 1):
 
                     subplot_Number = 1
-                    for Category_index, Category in enumerate(CasesCategories):
+                    for Category_index, Category in enumerate(cases_categories):
 
                         if subplot_Number == last_subplot_Number:
                             last_subplot = True
 
                         # Parcours les catégories de la variable (1 catégorie par colomne)
-                        for Categorie_Name, Categories_Cases in CasesCategories[Category].items():
+                        for Categorie_Name, Categories_Cases in cases_categories[Category].items():
 
-                            Graph.muscle_graph(data, MuscleName, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=f"{MuscleName} {PartNumber}", cases_on=Categories_Cases, subplot={"dimension": [n_Lines, n_Columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, MusclePartOn=[PartNumber], **kwargs)
+                            muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=f"{muscle_name} {current_part_pumber}", cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, muscle_part_on=[current_part_pumber], **kwargs)
 
                             # Incrémente le numéro de subplot
                             subplot_Number += 1
 
                         # Met le numéro de subplot à la première case de la bonne colomne (utile si une case est vide car il n'y a pas le même nombre de catégories entre les variables)
-                        subplot_Number = (Category_index + 1) * n_Columns + 1
+                        subplot_Number = (Category_index + 1) * n_subplot_columns + 1
 
 
-def muscle_graph_from_list(data, MuscleList, subplot_dimension, variable_x, variable_y, figure_title, cases_on=False, compare=False, composante_y=["Total"], **kwargs):
+def muscle_graph_from_list(data, muscle_list, subplot_dimension, variable_x, variable_y, figure_title, cases_on=False, compare=False, composante_y=["Total"], **kwargs):
     """
     Graph of a muscle list
     Must specify the dimension of the subplot
@@ -173,26 +177,26 @@ def muscle_graph_from_list(data, MuscleList, subplot_dimension, variable_x, vari
     n_subplot = subplot_dimension[0] * subplot_dimension[1]
 
     # Cheks that the subplot is big enough to draw every muscles
-    if n_subplot < len(MuscleList):
-        raise ValueError(f"The subplot is too small to plot every muscles in the list.\n{subplot_dimension} = {n_subplot} subplots < {len(MuscleList)} muscles \nIncrease the dimensions of the subplot (subplot_dimension)")
+    if n_subplot < len(muscle_list):
+        raise ValueError(f"The subplot is too small to plot every muscles in the list.\n{subplot_dimension} = {n_subplot} subplots < {len(muscle_list)} muscles \nIncrease the dimensions of the subplot (subplot_dimension)")
         return
 
     last_subplot = False
     # Parcours tous les muscles de la liste
-    for index, MuscleName in enumerate(MuscleList):
+    for index, muscle_name in enumerate(muscle_list):
         # Activates the legend once the end of the list is reached even if the subplot is too big for the list
-        if MuscleName == MuscleList[-1]:
+        if muscle_name == muscle_list[-1]:
             last_subplot = True
 
-        Graph.muscle_graph(data, MuscleName, variable_x, variable_y, figure_title, composante_y=composante_y, compare=compare, cases_on=cases_on, subplot_title=MuscleName, subplot={"dimension": subplot_dimension, "number": index + 1, "last_subplot": last_subplot}, **kwargs)
+        muscle_graph(data, muscle_name, variable_x, variable_y, figure_title, composante_y=composante_y, compare=compare, cases_on=cases_on, subplot_title=muscle_name, subplot={"dimension": subplot_dimension, "number": index + 1, "last_subplot": last_subplot}, **kwargs)
 
 
-def COP_graph_by_variable(data, CasesCategories, COP_contour=None, Variable="COP", figure_title="", Composantes=["x", "y"], DrawCOPPointsOn=True, **kwargs):
+def COP_graph_by_variable(data, cases_categories, COP_contour=None, variable="COP", figure_title="", composantes=["x", "y"], DrawCOPPointsOn=True, **kwargs):
     """
     Trace le COP et rassemble par variables
     subplots [3, 3] (tilt, acromion, CSA)
 
-    CasesCategories : dictionnaire
+    cases_categories : dictionnaire
                    : détaille les variables à décomposer en valeurs
                    : 1 variable par ligne, chaque colonne correspond à une catégorie de valeur de cette variable
 
@@ -204,81 +208,81 @@ def COP_graph_by_variable(data, CasesCategories, COP_contour=None, Variable="COP
     """
 
     # Nombre de lignes dans le subplot (nombre de variables)
-    n_Lines = len(CasesCategories)
+    n_subplot_lines = len(cases_categories)
 
     # Nombre de catégories par variable
-    n_Categories = [len(CasesCategories[Category]) for Category in CasesCategories]
+    n_categories = [len(cases_categories[Category]) for Category in cases_categories]
 
     # Nombre de colonnes dans le subplot (correspond au nombre maximal de catégories)
-    n_Columns = np.max(n_Categories)
+    n_subplot_columns = np.max(n_categories)
 
     subplot_Number = 1
     last_subplot = False
 
-    List_Variables = list(CasesCategories.keys())
+    variables_list = list(cases_categories.keys())
 
     # Checks if the last category has the same number of columns than the subplot to always show the legend even if the last subplots are empty
-    if len(CasesCategories[List_Variables[-1]]) < n_Columns:
-        last_subplot_Number = (n_Lines - 1) * n_Columns + len(CasesCategories[List_Variables[-1]])
+    if len(cases_categories[variables_list[-1]]) < n_subplot_columns:
+        last_subplot_Number = (n_subplot_lines - 1) * n_subplot_columns + len(cases_categories[variables_list[-1]])
     else:
-        last_subplot_Number = n_Lines * n_Columns
+        last_subplot_Number = n_subplot_lines * n_subplot_columns
 
     # Parcours les variables, toutes les catégories de variable sera placée sur une même ligne
-    for Category_index, Category in enumerate(CasesCategories):
+    for Category_index, Category in enumerate(cases_categories):
 
         # Parcours les catégories de la variable (1 catégorie par colomne)
-        for Categorie_Name, Categories_Cases in CasesCategories[Category].items():
+        for Categorie_Name, Categories_Cases in cases_categories[Category].items():
 
             if subplot_Number == last_subplot_Number:
                 last_subplot = True
 
-            Graph.COP_graph(data, COP_contour, Variable=Variable, figure_title=figure_title, Composantes=Composantes, cases_on=Categories_Cases, subplot={"dimension": [n_Lines, n_Columns], "number": subplot_Number, "last_subplot": last_subplot},
-                            DrawCOPPointsOn=DrawCOPPointsOn, subplot_title=Categorie_Name, **kwargs)
+            COP_graph(data, COP_contour, variable=variable, figure_title=figure_title, composantes=composantes, cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot},
+                      DrawCOPPointsOn=DrawCOPPointsOn, subplot_title=Categorie_Name, **kwargs)
 
             # Incrémente le numéro de subplot
             subplot_Number += 1
 
         # Met le numéro de subplot à la première case de la bonne colomne (utile si une case est vide car il n'y a pas le même nombre de catégories entre les variables)
-        subplot_Number = (Category_index + 1) * n_Columns + 1
+        subplot_Number = (Category_index + 1) * n_subplot_columns + 1
 
 
-def graph_by_variable(data, CasesCategories, variable_x, variable_y, figure_title, composante_y=["Total"], **kwargs):
+def graph_by_variable(data, cases_categories, variable_x, variable_y, figure_title, composante_y=["Total"], **kwargs):
     """
     Graphique [3, 3] par catégories de variables
     sans comparaison
     """
 
     # Nombre de lignes dans le subplot (nombre de variables)
-    n_Lines = len(CasesCategories)
+    n_subplot_lines = len(cases_categories)
 
     # Nombre de catégories par variable
-    n_Categories = [len(CasesCategories[Category]) for Category in CasesCategories]
+    n_categories = [len(cases_categories[Category]) for Category in cases_categories]
 
     # Nombre de colonnes dans le subplot (correspond au nombre maximal de catégories)
-    n_Columns = np.max(n_Categories)
+    n_subplot_columns = np.max(n_categories)
 
     subplot_Number = 1
     last_subplot = False
 
-    List_Variables = list(CasesCategories.keys())
+    variables_list = list(cases_categories.keys())
 
     # Checks if the last category has the same number of columns than the subplot to always show the legend even if the last subplots are empty
-    if len(CasesCategories[List_Variables[-1]]) < n_Columns:
-        last_subplot_Number = (n_Lines - 1) * n_Columns + len(CasesCategories[List_Variables[-1]])
+    if len(cases_categories[variables_list[-1]]) < n_subplot_columns:
+        last_subplot_Number = (n_subplot_lines - 1) * n_subplot_columns + len(cases_categories[variables_list[-1]])
     else:
-        last_subplot_Number = n_Lines * n_Columns
+        last_subplot_Number = n_subplot_lines * n_subplot_columns
 
-    for Category_index, Category in enumerate(CasesCategories):
+    for Category_index, Category in enumerate(cases_categories):
 
         # Parcours les catégories de la variable (1 catégorie par colomne)
-        for Categorie_Name, Categories_Cases in CasesCategories[Category].items():
+        for Categorie_Name, Categories_Cases in cases_categories[Category].items():
             if subplot_Number == last_subplot_Number:
                 last_subplot = True
 
-            Graph.graph(data, variable_x, variable_y, figure_title, composante_y=composante_y, cases_on=Categories_Cases, subplot={"dimension": [n_Lines, n_Columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
+            graph(data, variable_x, variable_y, figure_title, composante_y=composante_y, cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
 
             # Incrémente le numéro de subplot
             subplot_Number += 1
 
         # Met le numéro de subplot à la première case de la bonne colomne (utile si une case est vide car il n'y a pas le même nombre de catégories entre les variables)
-        subplot_Number = (Category_index + 1) * n_Columns + 1
+        subplot_Number = (Category_index + 1) * n_subplot_columns + 1
