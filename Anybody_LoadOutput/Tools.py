@@ -137,7 +137,7 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
         if SequenceComposantes == '':
             SequenceComposantes = DefaultSequence[0:Array.shape[1]]
 
-        # Sets the default Component multiply factor and adapts to the number of colimns in the array
+        # Sets the default Component multiply factor and adapts to the number of columns in the array
         if Composantes_Inverse_Direction is False:
             Composantes_MultiplyFactor = DefaultComposantes_MultiplyFactor[0:Array.shape[1]]
         else:
