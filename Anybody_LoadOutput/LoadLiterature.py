@@ -7,7 +7,7 @@ Created on Mon Nov 13 11:03:46 2023
 
 import pandas as pd
 import numpy as np
-from Tools import array_to_dictionary
+from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 
 
 # from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
@@ -346,7 +346,7 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
     return result_dictionary, variable_y_name
 
 
-def load_litterature_data(file_name, directory_path=""):
+def load_literature_data(file_name, directory_path=""):
     """
     Loads litterature data from the excel template
 
@@ -385,4 +385,3 @@ def load_litterature_data(file_name, directory_path=""):
     return result_dictionary
 
 
-a = load_litterature_data("Template_importation_littérature", "../Template")

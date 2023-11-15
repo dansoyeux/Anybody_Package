@@ -960,9 +960,6 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     # First checks that the results data structure match the argument entered in the graph function
     check_result_dictionary_data_structure(data, cases_on, compare)
 
-    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
-    custom_label = kwargs.get("label", None)
-
     # Get the add_graph variable. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
 
@@ -1022,7 +1019,7 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     fig = subplot_setup(subplot, figsize, add_graph)
 
     # Selects the data to graph
-    x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, **kwargs)
+    x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)
 
     if subplot is None:
         plt.title(figure_title)
@@ -1178,9 +1175,6 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
                           Default value : lower center (below the figure
     """
 
-    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
-    custom_label = kwargs.get("label", None)
-
     # get the legend_on argument that controls if the legend is drawn or not (Default True)
     legend_on = kwargs.get("legend_on", True)
 
@@ -1206,7 +1200,7 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
 
     # Parcours toutes les parties de muscles à tracer
     # Selects the data to graph
-    x_description, y_description = muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs)
+    x_description, y_description = muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs)
 
     
     # Si on trace la dernière muscle part, trace les axes, la légende, les titres etc...
@@ -1586,9 +1580,6 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # First checks that the results data structure match the argument entered in the graph function
     check_result_dictionary_data_structure(data, cases_on, compare)
 
-    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
-    custom_label = kwargs.get("label", None)
-
     # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
 
@@ -1657,7 +1648,7 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
         plt.gca().set_aspect('equal', adjustable="datalim")
 
     # Selects the data to graph
-    x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, **kwargs)
+    x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)
 
     if subplot is None:
         plt.title(figure_title)
@@ -1773,7 +1764,7 @@ def check_result_dictionary_data_structure(data, cases_on, compare):
         raise ValueError("The result dictionary used doesn't have a correct data structure. The variables are {variables_deepness_counter} levels deep while 2 is the maximum!")
 
 
-def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, **kwargs):
+def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs):
     """
     selects the dictionary that contains the data, x and y data to be entered in plot_graph_functions
 
@@ -1794,6 +1785,12 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
 
     variable_x = kwargs.get("variable_x")
     variable_y = kwargs.get("variable_y")
+
+    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
+    kwargs["label"] = kwargs.get("label", None)
+    kwargs["custom_label"] = kwargs["label"]
+    # deletes the entry "label" in the kwargs since it will be redefined
+    del kwargs["label"]
 
     # initialises an empty dictionary with an empty description
     x_data = {"Description": ""}
@@ -1835,15 +1832,15 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                     y_data = data[variable_y]
                     y = y_data[composante_y]
 
-                    plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+                    plot_graph_functions(data, x, y, graph_type, label=label, **kwargs)
 
-                except Exception as exc_y:
+                except KeyError as exc_y:
                     # Stores the y_error text to print as an error later
                     error_y_text = f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{composante_y} \n"
                     raise ValueError("")
                     sys.exit(1)
 
-            except Exception as exc_x:
+            except KeyError as exc_x:
                 # If no error on y
                 if not error_y_text:
                     raise ValueError(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
@@ -1873,19 +1870,19 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                             y_data = data[Case][variable_y]
                             y = y_data[composante_y]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+                            plot_graph_functions(case_data, x, y, graph_type, label=label, **kwargs)
 
-                        except Exception as exc_y:
+                        except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{composante_y} \n")
 
-                    except Exception as exc_x:
+                    except KeyError as exc_x:
                         print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
 
-                except Exception:
+                except KeyError:
                     if compare:
-                        raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
+                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} {Case}{exc_case_error_text[2]}\n")
                     else:
-                        raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
+                        raise ValueError(f"{exc_case_error_text[0]}'{Case}' {exc_case_error_text[1]} \n")
                     sys.exit(1)
 
     # Si plusieurs composantes sont activées
@@ -1910,12 +1907,12 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                         y_data = data[variable_y]
                         y = y_data[Composante]
 
-                        plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+                        plot_graph_functions(data, x, y, graph_type, label=label, **kwargs)
 
-                    except Exception as exc_y:
+                    except KeyError as exc_y:
                         print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{Composante} \n")
 
-                except Exception as exc_x:
+                except KeyError as exc_x:
                     print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
 
             # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
@@ -1940,19 +1937,19 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                             y_data = data[Case][variable_y]
                             y = y_data[Composante]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+                            plot_graph_functions(case_data, x, y, graph_type, label=label, **kwargs)
 
-                        except Exception as exc_y:
+                        except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{Composante} \n")
 
-                    except Exception as exc_x:
+                    except KeyError as exc_x:
                         print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
 
-                except Exception:
+                except KeyError:
                     if compare:
-                        raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
+                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} {Case}{exc_case_error_text[2]}\n")
                     else:
-                        raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
+                        raise ValueError(f"{exc_case_error_text[0]}'{Case}' {exc_case_error_text[1]} \n")
                     sys.exit(1)
 
     # Returns the description for each axis to be applied later
@@ -1962,7 +1959,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
     return x_description, y_description
 
 
-def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, custom_label, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs):
+def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs):
     """
     selects the dictionary that contains the data, x and y data to be entered in plot_graph_functions
 
@@ -1983,6 +1980,12 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
 
     variable_x = kwargs.get("variable_x")
     variable_y = kwargs.get("variable_y")
+
+    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
+    kwargs["label"] = kwargs.get("label", None)
+    kwargs["custom_label"] = kwargs["label"]
+    # deletes the entry "label" in the kwargs since it will be redefined
+    del kwargs["label"]
 
     # initialises an empty dictionary with an empty description
     x_data = {"Description": ""}
@@ -2030,16 +2033,16 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                     y_data = data[MuscleFolder][muscle_name][muscle_part][variable_y]
                     y = y_data[composante_y]
 
-                    plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+                    plot_graph_functions(data, x, y, graph_type, label=label, **kwargs)
 
-                except Exception as exc_y:
+                except KeyError as exc_y:
                     # Stores the y_error text to print as an error later
                     error_y_text = f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{composante_y} \n"
                     raise ValueError("")
 
                     sys.exit()
 
-            except Exception as exc_x:
+            except KeyError as exc_x:
                 # If no error on y
                 if not error_y_text:
                     raise ValueError(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
@@ -2062,9 +2065,9 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                     elif len(cases_on) == 1 and muscle_part_information["Total Number Muscle Parts"] > 1:
                         label = muscle_part
 
-                    # Si les deux sont 1, on ne met pas de légende
+                    # Si les deux sont 1, on ne met le nom du cas
                     else:
-                        label = None
+                        label = Case
 
                     # checks that the case exists in data
                     try:
@@ -2082,19 +2085,19 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                                 y_data = data[Case][MuscleFolder][muscle_name][muscle_part][variable_y]
                                 y = y_data[composante_y]
 
-                                plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+                                plot_graph_functions(case_data, x, y, graph_type, label=label, **kwargs)
 
-                            except Exception as exc_y:
+                            except KeyError as exc_y:
                                 print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{composante_y} \n")
 
-                        except Exception as exc_x:
+                        except KeyError as exc_x:
                             print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
 
-                    except Exception:
+                    except KeyError:
                         if compare:
-                            raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
+                            raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
                         else:
-                            raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
+                            raise ValueError(f"{exc_case_error_text[0]}'{Case}' {exc_case_error_text[1]} \n")
                         sys.exit(1)
 
     # Si plusieurs composantes sont activées
@@ -2119,12 +2122,12 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                         y_data = data[MuscleFolder][muscle_name][muscle_part][variable_y]
                         y = y_data[Composante]
 
-                        plot_graph_functions(data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+                        plot_graph_functions(data, x, y, graph_type, label=label, **kwargs)
 
-                    except Exception as exc_y:
+                    except KeyError as exc_y:
                         print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{Composante} \n")
 
-                except Exception as exc_x:
+                except KeyError as exc_x:
                     print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
 
             # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
@@ -2149,19 +2152,19 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                             y_data = data[Case][MuscleFolder][muscle_name][muscle_part][variable_y][variable_y]
                             y = y_data[Composante]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, custom_label=custom_label, **kwargs)
+                            plot_graph_functions(case_data, x, y, graph_type, label=label, **kwargs)
 
-                        except Exception as exc_y:
+                        except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{Composante} \n")
 
-                    except Exception as exc_x:
+                    except KeyError as exc_x:
                         print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
 
-                except Exception:
+                except KeyError:
                     if compare:
-                        raise ValueError(f"{exc_case_error_text[0]}{compared_case} {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
+                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} {Case} {exc_case_error_text[2]}\n")
                     else:
-                        raise ValueError(f"{exc_case_error_text[0]}{Case}{exc_case_error_text[1]} \n")
+                        raise ValueError(f"{exc_case_error_text[0]}'{Case}' {exc_case_error_text[1]} \n")
                     sys.exit(1)
 
     """
