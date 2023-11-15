@@ -195,9 +195,6 @@ def AddVariableDictionaries(VariableDictionary_1, VariableDictionary_2):
     #     for Composante in SequenceComposantes_1:
     #         Added_Dictionaries[Composante] = VariableDictionary_1[Composante] + VariableDictionary_2[Composante]
 
-
-
-
     # # Addition des totaux
     # Added_Dictionaries["Total"] = VariableDictionary_1["Total"] + VariableDictionary_2["Total"]
 

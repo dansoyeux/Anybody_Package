@@ -27,7 +27,12 @@ def Loadh5File(FilePath, Failed=False, GHReactionsShape=False, AddConstants=Fals
     """
 
     # Loads the h5 file data
-    h5Data = h5py2.File(f"{FilePath}.anydata.h5", "r")
+    file_extension = "anydata.h5"
+
+    try:
+        h5Data = h5py2.File(f"{FilePath}.{file_extension}", "r")
+    except OSError:
+        raise ValueError(f"The file doesn't exist or is damaged and wasn't posible to be opened : \n{FilePath}\nCheck the directory path or the file name or that the h5 file's name finishes with .anydata")
 
     h5File = {"FilePath": FilePath, "Failed": Failed, "h5Data": h5Data,
               "GHReactions": GHReactionsShape}
@@ -553,7 +558,6 @@ def LoadMuscleDictionary(h5File, MuscleDictionary, MuscleVariableDictionary, Fil
             # Parcours chaque liste contenant les informations de muscle
             for LineNumber in range(0, len(MuscleInformations)):
 
-
                 # Sélectionne le nom complet du dossier dans lequel le muscle est situé sur Anybody
                 AnybodyMuscleName = MuscleInformations[LineNumber][0]
 
@@ -623,7 +627,6 @@ def combine_muscle_parts(MuscleOutput, MuscleName, MuscleVariableDictionary):
     MuscleVariableDictionary : dict : Contains the informations of the muscle variable to load
 
     the way of combining the variable depends on the values on the list in the entry of MuscleVariableDictionary named : "combine_muscle_part_operations"
-#
     "combine_muscle_part_operations" : ["combining_operation_1", "combining_operation_2"...]
                                      : the combining operations are
                                          : (Default) : "total" sums the variable between all muscle parts
