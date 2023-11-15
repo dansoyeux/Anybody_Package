@@ -191,9 +191,9 @@ def LoadAnyVariable(h5File, VariablePath, VariableDescription="", SequenceCompos
     if VariablePath in h5Data:
         Output = np.array(h5Data[VariablePath])
 
-        # Makes 1 column 2D array into 1D array so that every data with only one component have consistent shape
-        if Output.ndim == 2 and Output.shape[1] == 1:
-            Output = Output.flatten()
+        # # Makes 1 column 2D array into 1D array so that every data with only one component have consistent shape
+        # if Output.ndim == 2 and Output.shape[1] == 1:
+        #     Output = Output.flatten()
 
         # Selects a particular line of the variable to create a vector
         if select_matrix_line is not False:
