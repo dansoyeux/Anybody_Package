@@ -1,0 +1,5 @@
+Flowcharts are done on the website LicidChart (ONLY COMMENTING PERMISSION FOR NOW):
+
+graph, COP_graph and data structure : https://lucid.app/lucidchart/d9d9ec72-79fa-44c9-964e-6383533028be/edit?viewport_loc=-7612%2C-6050%2C20800%2C9663%2C0_0&invitationId=inv_dd185f92-81c5-45f3-8b7a-193453f27564
+
+muscle_graph : https://lucid.app/lucidchart/81f66dcb-c6aa-4d87-a4fa-0669f133d356/edit?viewport_loc=-7450%2C-2125%2C20800%2C9663%2C0_0&invitationId=inv_99f10c23-af36-49fb-947d-ebe7c4d2cc28
