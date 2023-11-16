@@ -207,11 +207,8 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
 
     In this same folder, there is an array of pointer that tell which line corresponds to which reference frame.
 
-    So if we want output for the origin : select_muscle_RefFrame_output = "origin"
-    So if we want output for the insertion : select_muscle_RefFrame_output = "insertion"
-
-
-
+    So if we want output of the origin of the muscle : select_muscle_RefFrame_output = "origin"
+    So if we want output of the insertion of the muscle : select_muscle_RefFrame_output = "insertion"
 
     """
 
