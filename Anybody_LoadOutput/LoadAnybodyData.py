@@ -238,28 +238,25 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
             else:
                 raise ValueError(f"The variable : {VariablePath} \nisn't a matrix, the option select_matrix_column cannot be used")
 
-
-
-
-
-
         # Selects a certain line of a variable in a muscle RefFrameOutput
         if select_muscle_RefFrame_output:
             # The origin is always the first member of RefFrameArray
 
             # checks that the variable to charge is a muscle variable
             if not MusclePath:
-                raise ValueError(f"The variable : {VariablePath} \nmust be a muscle variable to activate the loading option 'select_muscle_RefFrame_output'")
+                raise ValueError(f"The variable : {VariablePath} \nmust be a muscle variable to activate the loading option : 'select_muscle_RefFrame_output'")
 
             # The variable must be a matrix in the RefFrameOutput
-            if not Output.ndim == 3 or "RefFrameOutput" in VariablePath:
-                raise ValueError(f"The variable : {VariablePath} must be a matrix in the RefFrameOutput folder of a muscle")
+            if not Output.ndim == 3 or "RefFrameOutput" not in VariablePath:
+                raise ValueError(f"The variable : {VariablePath} must be a matrix in the RefFrameOutput folder of a muscle to use the loading option 'select_muscle_RefFrame_output'")
 
             # the origin is always the first line
             if select_muscle_RefFrame_output == "origin":
 
-                RefFrameOutput_position = 0
+                # Selects the first ref frame output line
+                Output = Output[:, 0, :]
             # for the insertion the position depends on the number of via points
+
             elif select_muscle_RefFrame_output == "insertion":
                 # Counts the number of via points in this directory
                 # tests if there is only one via point
@@ -283,15 +280,6 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
                 Output = Output[:, RefFrameOutput_position, :]
             else:
                 raise ValueError(f"for the Muscle variable {VariablePath}\n'select_muscle_RefFrame_output' '{select_muscle_RefFrame_output}' not suported\nOnly'insertion' and 'origin' are supported")
-
-
-
-
-
-
-
-
-
 
     # Si la variable n'existe pas, ne la cherche pas, met un message d'erreur et remplit la variable avec des 0
     else:
@@ -507,19 +495,19 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                     # Gets the path of the folder that contains the variable
                     MuscleFolderPath = MuscleVariableDictionary[VariableName]["MuscleFolderPath"]
 
-                    MuscleVariablePath = MuscleFolderPath + "." + AnybodyMusclePart
+                    MusclePath = MuscleFolderPath + "." + AnybodyMusclePart
 
                     # if an AnybodyVariableName is entered, adds it to the path
                     # If AnybodyVariableName=="", it means the variable charged is named MuscleFolderPath.AnybodyMuscleName
                     if MuscleVariableDictionary[VariableName]["AnybodyVariableName"]:
-                        MuscleVariablePath += "." + MuscleVariableDictionary[VariableName]["AnybodyVariableName"]
+                        MuscleVariablePath = MusclePath + "." + MuscleVariableDictionary[VariableName]["AnybodyVariableName"]
 
                     # Gets the loading options of the variable other than its path
                     variable_loading_options = MuscleVariableDictionary[VariableName].copy()
                     del variable_loading_options["AnybodyVariableName"]
 
                     # Loads the muscle part variables
-                    MuscleOutput[MusclePart][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, **variable_loading_options)
+                    MuscleOutput[MusclePart][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
 
             # # Loads the muscle variables from a AnyFileOut file
             # else:
