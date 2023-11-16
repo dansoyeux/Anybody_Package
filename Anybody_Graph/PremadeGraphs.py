@@ -132,7 +132,7 @@ def muscle_graph_by_variable(data, cases_categories, muscle_list, variable_x, va
                     last_subplot = True
 
                 # Graph of the combined muscle
-                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=f"{muscle_name}", cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
+                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=f"{muscle_name} : {variable_y} {composante_y_muscle_combined[0]}", cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
 
                 # Incrémente le numéro de subplot
                 subplot_Number += 1
@@ -158,7 +158,7 @@ def muscle_graph_by_variable(data, cases_categories, muscle_list, variable_x, va
                         # Parcours les catégories de la variable (1 catégorie par colomne)
                         for Categorie_Name, Categories_Cases in cases_categories[Category].items():
 
-                            muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=f"{muscle_name} {current_part_pumber}", cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, muscle_part_on=[current_part_pumber], **kwargs)
+                            muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=f"{muscle_name} {current_part_pumber} : {variable_y} {composante_y_muscle_part[0]}", cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, muscle_part_on=[current_part_pumber], **kwargs)
 
                             # Incrémente le numéro de subplot
                             subplot_Number += 1
