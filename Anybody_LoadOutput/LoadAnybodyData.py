@@ -142,7 +142,7 @@ def LoadAnyFileOut(FileOutPath, ConstantsDictionary, FileType="txt", LoadConstan
     return FileOut
 
 
-def LoadAnyVariable(h5File, VariablePath, VariableDescription="", SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False, OutputDictionary=True, rotation_matrix_path="", inverse_rotation=False, select_matrix_line=False, select_matrix_column=False, **kwargs):
+def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFrame_output="", VariableDescription="", SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False, OutputDictionary=True, rotation_matrix_path="", inverse_rotation=False, select_matrix_line=False, select_matrix_column=False, **kwargs):
     """
     Uses the Anypytool function to load a model variable from an .anydata.h5 file by using the anybody variable path in the study with . instead of /
 
@@ -185,6 +185,34 @@ def LoadAnyVariable(h5File, VariablePath, VariableDescription="", SequenceCompos
 
     select_matrix_column : int : the index of the line from a matrix to select if the variable is a matrix
                                : the index of the first line is 0
+
+
+
+
+
+
+    AJOUTER DANS LA DOC
+    Only use for a muscle :
+
+    select_muscle_RefFrame_output : str : selects the muscle output in the "insertion" or "origin" reference frame of the muscle
+
+    Under every muscle, there is a folder RefFrameOutput containing the output information of the muscle (Force, moment force, jacobian)
+    And each of theses variables is a matrix (a n x 3 matrix) that contain the output of the muscle at different reference frame.
+    Each reference frame are the ones used to define the muscle, there are in this order if they exist :(insertion, via point, origin, wrapping segment, other refframes).
+
+    For a simple muscle, the matrix is 2x3 where the first line is the insertion and the second is the origin.
+    But for a muscle that has a via point, the order is : insertion, via_point, origin
+
+    So if we want the force at the origin, it is sometimes in the second line, sometimes later depending on the number of viapoints.
+
+    In this same folder, there is an array of pointer that tell which line corresponds to which reference frame.
+
+    So if we want output for the origin : select_muscle_RefFrame_output = "origin"
+    So if we want output for the insertion : select_muscle_RefFrame_output = "insertion"
+
+
+
+
     """
 
     # Extrait les informations nécessaires du dictionnaire h5File créé avec la fonction Loadh5FileData
@@ -196,29 +224,63 @@ def LoadAnyVariable(h5File, VariablePath, VariableDescription="", SequenceCompos
     if VariablePath in h5Data:
         Output = np.array(h5Data[VariablePath])
 
-        # # Makes 1 column 2D array into 1D array so that every data with only one component have consistent shape
-        # if Output.ndim == 2 and Output.shape[1] == 1:
-        #     Output = Output.flatten()
-
         # Selects a particular line of the variable to create a vector
         if select_matrix_line is not False:
             if Output.ndim == 3:
                 Output = Output[:, select_matrix_line, :]
             else:
-                raise ValueError(f"The variable : {VariablePath} isn't a matrix, the option select_matrix_line cannot be used")
+                raise ValueError(f"The variable : {VariablePath} \nisn't a matrix, the option select_matrix_line cannot be used")
 
         # Selects a particular column of the variable to create a vector
         if select_matrix_column is not False:
             if Output.ndim == 3:
                 Output = Output[:, :, select_matrix_column]
             else:
-                raise ValueError(f"The variable : {VariablePath} isn't a matrix, the option select_matrix_column cannot be used")
+                raise ValueError(f"The variable : {VariablePath} \nisn't a matrix, the option select_matrix_column cannot be used")
 
-        # if the output is a matrix, we can select if activated
+        # Selects a certain line of a variable in a muscle RefFrameOutput
+        if select_muscle_RefFrame_output:
+            # The origin is always the first member of RefFrameArray
+            
+            
+            # checks that the variable to charge is a muscle variable
+            if not MusclePath:
+                raise ValueError(f"The variable : {VariablePath} \nmust be a muscle variable to activate the loading option 'select_muscle_RefFrame_output'")
+
+            # The variable must be a matrix in the RefFrameOutput
+            if not Output.ndim == 3 or "RefFrameOutput" in VariablePath:
+                raise ValueError(f"The variable : {VariablePath} must be a matrix in the RefFrameOutput folder of a muscle")
+
+            # the origin is always the first line
+            if select_muscle_RefFrame_output == "origin":
+            
+                RefFrameOutput_position = 0
+            else:
+                # Counts the number of via points in this directory
+                # tests if there is only one via point
+                if f"{MusclePath}.Via" in h5Data:
+                    # there is one via point so the insertion is at position 2 (3rd line)
+                    RefFrameOutput_position = 2
+                
+                # increase the number after Via (Via1, Via2) and counts the max number of via points
+                else:
+                    via_points_counter = 0
+                    while f"{MusclePath}.Via{via_points_counter + 1}" in h5Data:
+                        via_points_counter += 1
+                    
+                    # if no via points, the position is the second row (1)
+                    if via_points_counter == 0:
+                        RefFrameOutput_position = 1
+                    else:
+                        RefFrameOutput_position = 1 + via_points_counter
+                
+                # Selects the wanted ref frame output
+                Output = Output[:, RefFrameOutput_position, :]
+
 
     # Si la variable n'existe pas, ne la cherche pas, met un message d'erreur et remplit la variable avec des 0
     else:
-        print(f"La variable : {VariablePath} n'existe pas dans le fichier h5 : {FilePath}")
+        print(f"La variable : {VariablePath} \nn'existe pas dans le fichier h5 : {FilePath}")
         Output = np.zeros(len(h5Data["Output.Abscissa.t"]))
 
     # If Failed is the number of the first step that failed, deletes these failed steps
@@ -322,19 +384,19 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                 MuscleFolderPath = MuscleVariableDictionary[VariableName]["MuscleFolderPath"]
 
                 # Builds the Muscle variable path
-                MuscleVariablePath = MuscleFolderPath + "." + AnybodyMuscleName
+                MusclePath = MuscleFolderPath + "." + AnybodyMuscleName
 
                 # if an AnybodyVariableName is entered, adds it to the path
                 # If AnybodyVariableName=="", it means the variable charged is named MuscleFolderPath.AnybodyMuscleName
                 if MuscleVariableDictionary[VariableName]["AnybodyVariableName"]:
-                    MuscleVariablePath += "." + MuscleVariableDictionary[VariableName]["AnybodyVariableName"]
+                    MuscleVariablePath = MusclePath + "." + MuscleVariableDictionary[VariableName]["AnybodyVariableName"]
 
                 # Gets the loading options of the variable other than its path
                 variable_loading_options = MuscleVariableDictionary[VariableName].copy()
                 del variable_loading_options["AnybodyVariableName"]
 
                 # Loads the muscle variable and stores it in a Dictionary
-                MuscleOutput[MuscleName][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, **variable_loading_options)
+                MuscleOutput[MuscleName][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
 
         # # Loads the muscle variables from a AnyFileOut file
         # else:
@@ -368,19 +430,19 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                 # Gets the path of the folder that contains the variable
                 MuscleFolderPath = MuscleVariableDictionary[VariableName]["MuscleFolderPath"]
 
-                MuscleVariablePath = MuscleFolderPath + "." + AnybodyMusclePart
+                MusclePath = MuscleFolderPath + "." + AnybodyMusclePart
 
                 # if an AnybodyVariableName is entered, adds it to the path
                 # If AnybodyVariableName=="", it means the variable charged is named MuscleFolderPath.AnybodyMuscleName
                 if MuscleVariableDictionary[VariableName]["AnybodyVariableName"]:
-                    MuscleVariablePath += "." + MuscleVariableDictionary[VariableName]["AnybodyVariableName"]
+                    MuscleVariablePath = MusclePath + "." + MuscleVariableDictionary[VariableName]["AnybodyVariableName"]
 
                 # Gets the loading options of the variable other than its path
                 variable_loading_options = MuscleVariableDictionary[VariableName].copy()
                 del variable_loading_options["AnybodyVariableName"]
 
                 # Loads the muscle part variables
-                MuscleOutput[MusclePart][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, **variable_loading_options)
+                MuscleOutput[MusclePart][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
 
         # # Loads the muscle variables from a AnyFileOut file
         # else:
@@ -580,8 +642,7 @@ def LoadMuscleDictionary(h5File, MuscleDictionary, MuscleVariableDictionary, Fil
                 previous_last_part_number = PartNumbers_in_Dictionary[1]
 
                 # Met le muscle dans un dossier en fonction du nom choisi et des numéros de partie choisis
-                Current_Muscle_selection = LoadMuscle(
-                    h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNumbers, MuscleVariableDictionary, PartNumbers_in_Dictionary, FileType)
+                Current_Muscle_selection = LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNumbers, MuscleVariableDictionary, PartNumbers_in_Dictionary, FileType)
 
                 # Adds the current muscle selection to the muscle dictionary containing the previously loaded muscle parts
                 Muscles[MuscleName] = {**Muscles[MuscleName], **Current_Muscle_selection}
@@ -609,8 +670,6 @@ def LoadMuscleDictionary(h5File, MuscleDictionary, MuscleVariableDictionary, Fil
                 h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNumbers, MuscleVariableDictionary, PartNumbers_in_Dictionary, FileType)
 
         # Creates an entry in the dictionary that will store all the muscle parts variables combined
-        # if len(Muscles[MuscleName]) > 1:
-
         Muscles[MuscleName] = combine_muscle_parts(Muscles[MuscleName], MuscleName, MuscleVariableDictionary)
 
     return Muscles
