@@ -238,11 +238,15 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
             else:
                 raise ValueError(f"The variable : {VariablePath} \nisn't a matrix, the option select_matrix_column cannot be used")
 
+
+
+
+
+
         # Selects a certain line of a variable in a muscle RefFrameOutput
         if select_muscle_RefFrame_output:
             # The origin is always the first member of RefFrameArray
-            
-            
+
             # checks that the variable to charge is a muscle variable
             if not MusclePath:
                 raise ValueError(f"The variable : {VariablePath} \nmust be a muscle variable to activate the loading option 'select_muscle_RefFrame_output'")
@@ -253,29 +257,40 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
 
             # the origin is always the first line
             if select_muscle_RefFrame_output == "origin":
-            
+
                 RefFrameOutput_position = 0
-            else:
+            # for the insertion the position depends on the number of via points
+            elif select_muscle_RefFrame_output == "insertion":
                 # Counts the number of via points in this directory
                 # tests if there is only one via point
                 if f"{MusclePath}.Via" in h5Data:
                     # there is one via point so the insertion is at position 2 (3rd line)
                     RefFrameOutput_position = 2
-                
+
                 # increase the number after Via (Via1, Via2) and counts the max number of via points
                 else:
                     via_points_counter = 0
                     while f"{MusclePath}.Via{via_points_counter + 1}" in h5Data:
                         via_points_counter += 1
-                    
+
                     # if no via points, the position is the second row (1)
                     if via_points_counter == 0:
                         RefFrameOutput_position = 1
                     else:
                         RefFrameOutput_position = 1 + via_points_counter
-                
-                # Selects the wanted ref frame output
+
+                # Selects the wanted ref frame output line
                 Output = Output[:, RefFrameOutput_position, :]
+            else:
+                raise ValueError(f"for the Muscle variable {VariablePath}\n'select_muscle_RefFrame_output' '{select_muscle_RefFrame_output}' not suported\nOnly'insertion' and 'origin' are supported")
+
+
+
+
+
+
+
+
 
 
     # Si la variable n'existe pas, ne la cherche pas, met un message d'erreur et remplit la variable avec des 0
