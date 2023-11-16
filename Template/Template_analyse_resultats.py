@@ -51,7 +51,7 @@ SimulationDescriptionDictionary = {"NOM_DE_LA_SIMULATION_1": "TEXTE_DE_DESCRIPTI
                                    "NOM_DE_LA_SIMULATION_2": "TEXTE_DE_DESCRIPTION_2",
                                    "Wickham": "Wickham et al. 2010, n=24",
                                    "Bergmann": "Bergmann et al. 2007"
-                                  }
+                                   }
 
 # Fonctions pour définir les légendes et styles des graphiques en fonction des noms des simulations dans les dictionnaires
 define_simulations_line_style(SimulationsLineStyleDictionary)
@@ -65,18 +65,7 @@ SaveSimulationsDirectory = "Saved Simulations"
 # NOM_DE_SIMULATION = LoadOutputTools.load_results_from_file(SaveSimulationsDirectory, "NOM_DU_FICHIER_DE_SAUVEGARDE_DE_SIMULATION")
 Results = load_results_from_file(SaveSimulationsDirectory, "Results")
 
-# dataBergmann
-dataBergmann = load_results_from_file(SaveSimulationsDirectory, "dataBergmann")
-
-# dataWickham abduction (EMG des muscles lors abduction)
-dataWickham = load_results_from_file(SaveSimulationsDirectory, "dataWickham_abduction")
-
-# Données pour comparer les simulations faites avec les données de Wickham et al. (2010)
-Comp_Wickham = Results.copy()
-Comp_Wickham["Wickham"] = dataWickhams_BallAndSocket_FullRange = load_results_from_file(SaveSimulationsDirectory, "Results_BallAndSocket_FullRange")
-
 # %%                                                Chargement autres résultats et variables
-
 
 # Chargement des dictionnaires de variable
 SaveVariablesDirectory = "Saved VariablesDictionary"
@@ -84,23 +73,9 @@ SaveVariablesDirectory = "Saved VariablesDictionary"
 # Chargement des variables de simulation sauvegardées
 Variables = load_results_from_file(SaveVariablesDirectory, "Variables")
 
-# %%                                                Chargement autres résultats pour validation
+# %%                                                Chargement des données de littérature
 
-# dataBergmann_2007
-dataBergmann_2007 = load_results_from_file(SaveSimulationsDirectory, "dataBergmann_2007")
-
-# dataWickham abduction
-dataWickham = load_results_from_file(SaveSimulationsDirectory, "dataWickham_abduction")
-# FDK avec data de validation de Wickham
-dataWickham_abduction = load_results_from_file(SaveSimulationsDirectory, "dataWickham_abduction")
-dataWickham_adduction = load_results_from_file(SaveSimulationsDirectory, "dataWickham_adduction")
-dataWickham_abduction_FullRange = load_results_from_file(SaveSimulationsDirectory, "dataWickham_abduction_FullRange")
-
-# data Dal Maso
-data_Dal_Maso_sup = load_results_from_file(SaveSimulationsDirectory, "data_Dal_Maso_sup")
-data_Dal_Maso_inf = load_results_from_file(SaveSimulationsDirectory, "data_Dal_Maso_inf")
-
-data_Dal_Maso = {"Dal Maso supérieur": data_Dal_Maso_sup, "Dal Maso inférieur": data_Dal_Maso_inf}
+Results_Literature = load_results_from_file(SaveSimulationsDirectory, "Results_Literature")
 
 # %% Liste des catégories de muscles
 
@@ -187,3 +162,7 @@ AllMuscles_List = list(Variables["Muscles"].keys())
 
 # Muscles par parties individuelles
 # PremadeGraphs.graph_all_muscle_fibers(Results, AllMuscles_List, "Abduction", "Activity", composante_y_muscle_combined=["Max"], cases_on="all")
+
+# Comparaison des activités avec la littérature (avec les listes de muscles de l'étude de Wickham)
+# PremadeGraphs.muscle_graph_from_list(Results, Muscle_Comp_Main, [3, 3], "Abduction", "Activity", "Muscles principaux : Activation maximale des muscles", cases_on="all", composante_y=["Max"])
+# PremadeGraphs.muscle_graph_from_list(Results_Literature["Activity"], Muscle_Comp_Main, [3, 3], "Abduction", "Activity", "Muscles principaux : Activation maximale des muscles", cases_on="all", composante_y=["Max"], add_graph=True)
