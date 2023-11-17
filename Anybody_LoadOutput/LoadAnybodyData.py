@@ -237,7 +237,6 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
 
         # Selects a certain line of a variable in a muscle RefFrameOutput
         if select_muscle_RefFrame_output:
-            # The origin is always the first member of RefFrameArray
 
             # checks that the variable to charge is a muscle variable
             if not MusclePath:
@@ -247,7 +246,7 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
             if not Output.ndim == 3 or "RefFrameOutput" not in VariablePath:
                 raise ValueError(f"The variable : {VariablePath} must be a matrix in the RefFrameOutput folder of a muscle to use the loading option 'select_muscle_RefFrame_output'")
 
-            # the origin is always the first line
+            # The origin is always the first member of RefFrameArray
             if select_muscle_RefFrame_output == "origin":
 
                 # Selects the first ref frame output line
@@ -305,7 +304,7 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
                 print(f"The rotation matrix : {rotation_matrix_path} n'existe pas dans le fichier h5 : {FilePath}")
         # if the array isn't a vector, it cannot be transformed
         else:
-            print(f"La variable : {VariablePath} isn't a vector, so it cannot be rotated")
+            raise ValueError(f"The variable : '{VariablePath}' isn't a vector, so it cannot be rotated by using the argument 'rotation_matrix_path'")
 
     # Mise en forme du dictionnaire output si activé
     if OutputDictionary:
@@ -720,10 +719,19 @@ def combine_muscle_parts(MuscleOutput, MuscleName, MuscleVariableDictionary):
     nstep = len(MuscleOutput[first_muscle_part_name][list(MuscleVariableDictionary.keys())[0]]["Total"])
 
     for Variable_Name in MuscleVariableDictionary:
+
+        # only variable dictionary can be combined, not matrices. So by default this variable won't get combined
+        if isinstance(MuscleOutput[first_muscle_part_name][Variable_Name], np.ndarray):
+            if "combine_muscle_part_operations" in MuscleVariableDictionary[Variable_Name]:
+                raise ValueError(f"The muscle variable '{Variable_Name}' is a matrix, it cannot be combined. 'combine_muscle_part_operations' shouldn't be used for this variable.")
+            else:
+                continue
+
         # Gets the seqence and the descriptions of the variable
         Sequence_Composantes = MuscleOutput[first_muscle_part_name][Variable_Name]["SequenceComposantes"]
         Variable_description = MuscleOutput[first_muscle_part_name][Variable_Name]["Description"]
 
+        # Gets the combine muscle operation list
         operations = MuscleVariableDictionary[Variable_Name].get("combine_muscle_part_operations", ["total"])
 
         # Stores the description of the combined muscle variable
