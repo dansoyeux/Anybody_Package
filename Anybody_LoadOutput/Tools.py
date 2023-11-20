@@ -46,7 +46,7 @@ def transform_vector(vector, rotation_matrix, translation_vect=None, inverse_tra
     return transformed_vector
 
 
-def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False):
+def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False, vect_dir=False, **kwargs):
     """
     Met en forme un array 2D (nstep,ndim) sous la forme d'un dictionnaire :
         "Description" : Description qui sera utilisée par les graphiques
@@ -75,6 +75,9 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
 
               : Example : A value originally in meter, needs to be converted to mm and also offset to 1mm as the first value
                         : offset = [1]
+
+        vect_dir : bool : activates the fact that the output array is divided by its norm to get the direction of a vector
+                        : (only available for vectors)
     """
 
     VariableOutput = {}
@@ -107,6 +110,9 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
         VariableOutput[Composante] = Array * MultiplyFactor
 
         VariableOutput["SequenceComposantes"].append(Composante)
+
+        if vect_dir:
+            raise ValueError("The argument 'vect_dir' can only be used for 3D vectors, not 1D values")
 
     # If the output is 2D
     elif Array.ndim == 2:
@@ -151,15 +157,23 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
                 else:
                     raise ValueError("Composantes_Inverse_Direction must be filled with True or False")
 
-        # Parcours le nom des composantes dans l'ordre spécifié
-        # Et multiplie par le facteur multiplicatif de la composante
-        for col, Composante in enumerate(SequenceComposantes):
-            VariableOutput[Composante] = Array[:, col] * MultiplyFactor * Composantes_MultiplyFactor[col]
-
         # Calculates the total of the component at each timestep if the total is not already calculated
         if "Total" not in SequenceComposantes:
             VariableOutput["Total"] = np.linalg.norm(Array, axis=1) * MultiplyFactor
             VariableOutput["SequenceComposantes"].append("Total")
+
+        # if vect_dir is activated, the component values are the direction of the direction vector (value/norm_vector)
+        if vect_dir:
+            # each column of the array are divided by a column vector containing the total
+            Array = Array / VariableOutput["Total"][:, None]
+
+            # Resets the total to a vector filled with ones
+            VariableOutput["Total"] = np.ones(len(VariableOutput["Total"]))
+
+        # Parcours le nom des composantes dans l'ordre spécifié
+        # Et multiplie par le facteur multiplicatif de la composante
+        for col, Composante in enumerate(SequenceComposantes):
+            VariableOutput[Composante] = Array[:, col] * MultiplyFactor * Composantes_MultiplyFactor[col]
 
         # Stores the variable component sequence
         VariableOutput["SequenceComposantes"] = [*VariableOutput["SequenceComposantes"], *SequenceComposantes]

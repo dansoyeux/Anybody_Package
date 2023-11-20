@@ -142,7 +142,7 @@ def LoadAnyFileOut(FileOutPath, ConstantsDictionary, FileType="txt", LoadConstan
     return FileOut
 
 
-def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFrame_output="", VariableDescription="", SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False, OutputDictionary=True, rotation_matrix_path="", inverse_rotation=False, select_matrix_line=False, select_matrix_column=False, **kwargs):
+def LoadAnyVariable(h5File, VariablePath="", MusclePath="", OutputDictionary=True, select_muscle_RefFrame_output="", rotation_matrix_path="", inverse_rotation=False, select_matrix_line=False, select_matrix_column=False, **kwargs):
     """
     Uses the Anypytool function to load a model variable from an .anydata.h5 file by using the anybody variable path in the study with . instead of /
 
@@ -185,10 +185,6 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
 
     select_matrix_column : int : the index of the line from a matrix to select if the variable is a matrix
                                : the index of the first line is 0
-
-
-
-
 
 
     AJOUTER DANS LA DOC
@@ -310,10 +306,11 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", select_muscle_RefFra
     if OutputDictionary:
 
         # Converts the array to a Dictionary
-        VariableOutput = array_to_dictionary(CleanOutput, VariableDescription, SequenceComposantes, MultiplyFactor, Composantes_Inverse_Direction, offset)
+        VariableOutput = array_to_dictionary(CleanOutput, **kwargs)
 
     # Variable output est un array si OutputDictionary est False
     else:
+        MultiplyFactor = kwargs.get("MultiplyFactor", 1)
         VariableOutput = CleanOutput * MultiplyFactor
 
     return VariableOutput
