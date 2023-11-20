@@ -9,6 +9,9 @@ from Anybody_Package.Anybody_Graph.GraphFunctions import define_simulations_line
 from Anybody_Package.Anybody_Graph.GraphFunctions import define_simulation_description
 from Anybody_Package.Anybody_Graph.GraphFunctions import define_COP_contour
 
+from Anybody_Package.Anybody_LoadOutput.LoadOutput import combine_simulation_cases
+from Anybody_Package.Anybody_LoadOutput.LoadLiterature import load_literature_data
+
 from Anybody_Package.Anybody_Graph import PremadeGraphs
 
 import matplotlib

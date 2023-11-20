@@ -10,6 +10,7 @@ from Anybody_Package.Anybody_LoadOutput.Tools import save_results_to_file
 from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 
 from Anybody_Package.Anybody_LoadOutput.LoadLiterature import load_literature_data
+from Anybody_Package.Anybody_LoadOutput.LoadOutput import combine_simulation_cases
 
 import numpy as np
 
@@ -125,3 +126,18 @@ Results_Literature = load_literature_data(file_name, directory_path)
 
 # Saves it to a .pkl file
 save_results_to_file(Results_Literature, SaveSimulationsDirectory, "Results_Literature")
+
+# %% Combiner des cas de simulations
+
+combine_cases = {"cas_13": ["cas_1", "cas_3"],
+                 "cas_24": ["cas_2", "cas_4"],
+                 "cas_5": ["cas_5"]
+                 }
+
+# moyenne des cas de simulations
+combined_results = combine_simulation_cases(Results, combine_cases, "mean")
+
+# Saves it to a .pkl file
+save_results_to_file(combined_results, SaveSimulationsDirectory, "combined_results")
+
+
