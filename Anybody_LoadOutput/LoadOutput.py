@@ -2,6 +2,7 @@ import numpy as np
 
 from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 from Anybody_Package.Anybody_LoadOutput.Tools import transform_vector
+from Anybody_Package.Anybody_LoadOutput.Tools import combine_variable
 
 import Anybody_Package.Anybody_LoadOutput.LoadAnybodyData as LoadAnybodyData
 
@@ -528,3 +529,85 @@ def define_variables_to_load(VariableDictionary, MuscleDictionary=None, MuscleVa
         VariablesToLoad["Constantes"] = ConstantsDictionary
 
     return VariablesToLoad
+
+
+def combine_simulation_cases(result_dictionary, combine_cases, operation="mean"):
+    """
+    function that combines multiple simulation cases into one result dictionary
+    Makes the average of each variable between the cases
+
+    result_dictionary : dictionary : Result dictionary with simulation cases
+
+    combine_cases : dict : combine_cases = {"combined_case_name_1": [list_of_cases_to_combine_1]
+                                            "combined_case_name_2": [list_of_cases_to_combine_2]
+                                            "combined_case_name_3": [list_of_cases_to_combine_3]
+                                            }
+
+    operation : str : name of the operation done
+              : list of combination posible : ["mean", "total", "min" "max"]
+
+    return
+
+    combined_results : dict : dictionary with simulation the simulation cases : new_case_name_1, new_case_name_2, new_case_name_3
+                        Example : for a result dictionary with simulation cases : case_1, case_2, case_3, case_4, case_5, case_6 we want the average of case_1 and case_3 to be put in a case named combined_1
+                                : and case_2 and case_4 to be averaged a and put in combined_2, and keep case_5 as it was
+                                : combine_cases = {"combined_1": ["case_1", "case_3"],
+                                                   "combined_2": ["case_2", "case_4"],
+                                                   "case_5": ["case_5"]
+                                                   }
+
+    """
+
+    # Trouve la liste des variables normales, des variables musculaires et les noms des muscles
+    loaded_variables = result_dictionary[list(result_dictionary.keys())[0]]["Loaded Variables"]
+
+    Variables = loaded_variables["Variables"]
+    MuscleVariables = loaded_variables["MuscleVariables"]
+    Muscles = loaded_variables["Muscles"]
+
+    combined_results = {}
+
+    # Goes through each case group to combine
+    for combined_case_name, cases_to_combine in combine_cases.items():
+
+        # Does the combine operations only if there are multiple cases to combine
+        if len(cases_to_combine) == 1:
+            try:
+                combined_results[combined_case_name] = result_dictionary[cases_to_combine[0]]
+
+            except KeyError as exc:
+                raise ValueError(f"The case '{exc}' in the category '{combined_case_name}' doesn't exist in the result dictionary")
+
+        else:
+            combined_results[combined_case_name] = {"Loaded Variables": loaded_variables, "Muscles": {}}
+
+            # goes through each normal variable
+            for variable_name in Variables:
+
+                try:
+                    # builds the list of the variable dictionaries to combine
+                    variable_dictionaries_list = [result_dictionary[case][variable_name] for case in cases_to_combine]
+
+                except KeyError as exc:
+                    raise ValueError(f"The case '{exc}' in the category '{combined_case_name}' doesn't exist in the result dictionary")
+
+                # combines the current variable
+                combined_results[combined_case_name][variable_name] = combine_variable(variable_dictionaries_list, operation)
+
+            # goes through each muscle
+            for muscle_name in Muscles:
+                combined_results[combined_case_name]["Muscles"][muscle_name] = {}
+
+                # goes through each muscle part
+                for muscle_part in result_dictionary[cases_to_combine[0]]["Muscles"][muscle_name]:
+                    combined_results[combined_case_name]["Muscles"][muscle_name][muscle_part] = {}
+
+                    # goes through each variable name
+                    for muscle_variable_name in MuscleVariables:
+                        # builds the list of the variable dictionaries to combine
+                        muscle_part_variable_dictionaries_list = [result_dictionary[case]["Muscles"][muscle_name][muscle_part][muscle_variable_name] for case in cases_to_combine]
+
+                        # combines the current muscle variable
+                        combined_results[combined_case_name]["Muscles"][muscle_name][muscle_part][muscle_variable_name] = combine_variable(muscle_part_variable_dictionaries_list, operation)
+
+    return combined_results

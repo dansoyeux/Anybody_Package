@@ -305,6 +305,12 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", OutputDictionary=Tru
     # Mise en forme du dictionnaire output si activé
     if OutputDictionary:
 
+        # If the output is a vector (ndim=1) or has only one column
+        # vect_dir cannot be activated
+        if CleanOutput.ndim == 1 or CleanOutput.shape[1] == 1:
+            if kwargs.get("vect_dir", False):
+                raise ValueError(f"The variable '{VariablePath}' is a 1D value not a vector, so the argument 'vect_dir' cannot be used to calculate the director vector")
+
         # Converts the array to a Dictionary
         VariableOutput = array_to_dictionary(CleanOutput, **kwargs)
 
@@ -732,7 +738,7 @@ def combine_muscle_parts(MuscleOutput, MuscleName, MuscleVariableDictionary):
         operations = MuscleVariableDictionary[Variable_Name].get("combine_muscle_part_operations", ["total"])
 
         # Stores the description of the combined muscle variable
-        combined_MuscleOutput[Variable_Name] = {"Sequence_Composantes": [], "Description": Variable_description}
+        combined_MuscleOutput[Variable_Name] = {"SequenceComposantes": [], "Description": Variable_description}
 
         for Composante in Sequence_Composantes:
             composantes_value = np.zeros([nstep, len(MuscleOutput)])
@@ -755,7 +761,7 @@ def combine_muscle_parts(MuscleOutput, MuscleName, MuscleVariableDictionary):
                     combined_composante_name = operation.capitalize() + "_" + Composante
 
                 # Adds the combined_composante_name to the sequence of components
-                combined_MuscleOutput[Variable_Name]["Sequence_Composantes"].append(combined_composante_name)
+                combined_MuscleOutput[Variable_Name]["SequenceComposantes"].append(combined_composante_name)
 
                 # For muscles with multiple parts
                 if number_of_parts > 1:

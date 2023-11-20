@@ -111,6 +111,7 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
 
         VariableOutput["SequenceComposantes"].append(Composante)
 
+        # error message
         if vect_dir:
             raise ValueError("The argument 'vect_dir' can only be used for 3D vectors, not 1D values")
 
@@ -253,6 +254,49 @@ def CleanFailedSimulationSteps(Output, Failed):
     CleanOutput = np.reshape(CleanOutput, shapeClean)
 
     return CleanOutput
+
+
+def combine_variable(variable_dictionaries_list, operation="mean"):
+    """
+    From a list of variable dictionaries, combines each variable component
+
+    variable_dictionaries : dict  = [variable_dictionary_1, variable_dictionary_2, variable_dictionary_3]
+
+    operation : str : name of the operation done
+              : list of combination posible : ["mean", "total", "min" "max"]
+    ------------------------------------------------
+    return
+    combined_variable : dict : variable dictionary with the combined values of every
+    """
+    # makes a copy of the first variable
+    combined_variable = variable_dictionaries_list[0].copy()
+
+    Sequence_Composantes = variable_dictionaries_list[0]["SequenceComposantes"]
+
+    list_operation = ["mean", "total", "min" "max"]
+    if operation not in list_operation:
+        raise ValueError(f"The combine variables operation '{operation}' is not part of the operations posible : list_operation")
+
+    # goes through each component data
+    for composante in Sequence_Composantes:
+        # initializes the array that will contain the data for the current component
+        composante_data = np.zeros((len(variable_dictionaries_list[0][composante]), len(variable_dictionaries_list)))
+
+        # goes through each dictionary data and takes the value of the current component
+        for variable_dictionary_index, variable_dictionary_data in enumerate(variable_dictionaries_list):
+            composante_data[:, variable_dictionary_index] = variable_dictionary_data[composante]
+
+        # makes wanted operation on all components
+        if operation == "mean":
+            combined_variable[composante] = np.mean(composante_data, axis=1)
+        elif operation == "total":
+            combined_variable[composante] = np.sum(composante_data, axis=1)
+        elif operation == "max":
+            combined_variable[composante] = np.max(composante_data, axis=1)
+        elif operation == "min":
+            combined_variable[composante] = np.min(composante_data, axis=1)
+
+    return combined_variable
 
 
 def save_results_to_file(result_dictionary, save_directory_path, save_file_name):
