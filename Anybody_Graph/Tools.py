@@ -222,29 +222,29 @@ def unsuperpose_plot_annotations(annotation_offset=None, annotation_reference_of
 
         number_text_moved += 1
 
-    # # Updates the limits of the graph so no annotation are out of the subplot box
-    # if update_xlim or update_ylim:
-    #     # Draws to be able to take the texts into account in the update of the limits
-    #     plt.draw()
+    # Updates the limits of the graph so no annotation are out of the subplot box
+    if update_xlim or update_ylim:
+        # Draws to be able to take the texts into account in the update of the limits
+        plt.draw()
 
-    #     # gets the new axis and texts informations
-    #     ax_2 = plt.gca()
-    #     texts = ax_2.texts
+        # gets the new axis and texts informations
+        ax_2 = plt.gca()
+        texts = ax_2.texts
 
-    #     annotation_corners = np.array([[], []]).T
+        annotation_corners = np.array([[], []]).T
 
-    #     # Goes through all the texts and adds their corner dimensions to the Corner array
-    #     for text in texts:
+        # Goes through all the texts and adds their corner dimensions to the Corner array
+        for text in texts:
 
-    #         bbox = text.get_window_extent()
+            bbox = text.get_window_extent()
 
-    #         # Transforms the bbox object into the data coordinate system
-    #         bbox_data = bbox.transformed(ax_2.transData.inverted())
+            # Transforms the bbox object into the data coordinate system
+            bbox_data = bbox.transformed(ax_2.transData.inverted())
 
-    #         # Gets the text corners coordinates
-    #         annotation_corners = np.append(annotation_corners, bbox_data.corners(), axis=0)
+            # Gets the text corners coordinates
+            annotation_corners = np.append(annotation_corners, bbox_data.corners(), axis=0)
 
-    #     # Uses the annotation_corners array to update the axis limits
-    #     ax_2.update_datalim(annotation_corners, updatex=update_xlim, updatey=update_ylim)
+        # Uses the annotation_corners array to update the axis limits
+        ax_2.update_datalim(annotation_corners, updatex=update_xlim, updatey=update_ylim)
 
-    #     ax_2.autoscale_view()
+        ax_2.autoscale_view()
