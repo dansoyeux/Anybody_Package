@@ -1409,32 +1409,19 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
     # Construit la liste des parties de muscle à tracer
     # Sans cas de simulation selon le cas (avec/sans des cas, avec/sans comparaison)
     if cases_on is False:
-        # if compare is False:
-        # était dans compare is false
 
         try:
 
             muscle_parts_list = list(data[MuscleFolder][muscle_name].keys())
-        except:
-            print(f"{muscle_name} is not a muscle in the the result dictionary")
+        except KeyError:
+            raise ValueError(f"'{muscle_name}' is not a muscle in the the result dictionary")
 
-        # else:
-        #     ListSimulations = list(data.keys())
-        #     muscle_parts_list = list(data[ListSimulations[0]][MuscleFolder][muscle_name].keys())
-
-    # Dans les cas où on a des cas de simulation
     else:
-        # if compare is False:
-        # était dans compare is false
 
         try:
             muscle_parts_list = list(data[cases_on[0]][MuscleFolder][muscle_name].keys())
-        except:
-            print(f"{muscle_name} is not a muscle in the result dictionary")
-
-        # else:
-        #     ListSimulations = list(data.keys())
-        #     muscle_parts_list = list(data[ListSimulations[0]][cases_on[0]][MuscleFolder][muscle_name].keys())
+        except KeyError:
+            raise ValueError(f"'{muscle_name}' is not a muscle in the result dictionary")
 
     # Si toutes les parties sont activées, fais une liste avec le nom de toutes les parties sauf le muscle total
     # n'enlève pas la partie totale si le muscle n'a pas de partie
