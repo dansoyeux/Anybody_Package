@@ -29,7 +29,7 @@ def transform_vector(vector, rotation_matrix, translation_vect=None, inverse_tra
         # Transformation inverse
         else:
             for step in range(nstep):
-                transformed_vector[step, :] = np.dot(rotation_matrix[step, :, :].T, vector[step, :])
+                transformed_vector[step, :] = np.dot(vector[step, :], rotation_matrix[step, :, :])
 
     # Rotation and translation
     else:
@@ -41,7 +41,7 @@ def transform_vector(vector, rotation_matrix, translation_vect=None, inverse_tra
         # Transformation inverse
         else:
             for step in range(nstep):
-                transformed_vector[step, :] = np.dot(rotation_matrix[step, :, :].T, vector[step, :] - translation_vect[step, :])
+                transformed_vector[step, :] = np.dot(vector[step, :] - translation_vect[step, :], rotation_matrix[step, :, :])
 
     return transformed_vector
 
