@@ -95,6 +95,8 @@ def variable_data_frame_to_dictionary(variable_dataframe, variable_informations,
 
     variable_x_dictionary : dict : Contains the values, description and component sequence of the x variable that was interpolated with n_interpolate_points
     variable_y_dictionary : dict : Contains the values, description and component sequence of the y variable
+    nStep : int the number of steps in the data
+    
     """
 
     # deletes lines full of nan values
@@ -193,6 +195,9 @@ def variable_data_frame_to_dictionary(variable_dataframe, variable_informations,
             # interpolates the component with the setted parameters
             variable_y_interpolated_array[:, component_index] = interpolate_y_variable(variable_x_component_array, variable_y_component_array, x_variable_interpolation_values)
 
+            # Calculates the number of points for this author which is the number of interpolation points
+            nStep = n_interpolate_points
+
         # Transforms the obtained arrays to a dictionary
         variable_x_dictionary = array_to_dictionary(x_variable_interpolation_values, **loaded_variables[variable_x_name])
         variable_y_dictionary = array_to_dictionary(variable_y_interpolated_array, **loaded_variables[variable_y_name])
@@ -203,7 +208,10 @@ def variable_data_frame_to_dictionary(variable_dataframe, variable_informations,
         variable_x_dictionary = array_to_dictionary(variable_x_array[:, 0], **loaded_variables[variable_x_name])
         variable_y_dictionary = array_to_dictionary(variable_y_array, **loaded_variables[variable_y_name])
 
-    return variable_x_dictionary, variable_y_dictionary, loaded_variables
+        # Calculates the number of points for this author which is the number of points in the x array
+        nStep = len(variable_x_array)
+
+    return variable_x_dictionary, variable_y_dictionary, loaded_variables, nStep
 
 
 def interpolate_y_variable(variable_x_array, variable_y_array, x_variable_interpolation_values):
@@ -321,7 +329,7 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
             # goes through each muscle data for the current author
             for muscle_name, current_muscle_data in muscle_author_data.items():
 
-                variable_x_dictionary, variable_y_dictionary, loaded_variables = variable_data_frame_to_dictionary(current_muscle_data, variable_informations, interpolation_informations, author_name)
+                variable_x_dictionary, variable_y_dictionary, loaded_variables, nStep = variable_data_frame_to_dictionary(current_muscle_data, variable_informations, interpolation_informations, author_name)
 
                 # stores the current muscle y_variable
                 result_dictionary[author_name]["Muscles"][muscle_name] = {muscle_name: {variable_y_name: variable_y_dictionary}}
@@ -335,13 +343,15 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
         # if the loaded variable is a normal variable
         else:
             # transforms the variables data into a result dictionary
-            variable_x_dictionary, variable_y_dictionary, loaded_variables = variable_data_frame_to_dictionary(current_author_data, variable_informations, interpolation_informations, author_name)
+            variable_x_dictionary, variable_y_dictionary, loaded_variables, nStep = variable_data_frame_to_dictionary(current_author_data, variable_informations, interpolation_informations, author_name)
 
             # for a normal variable
             result_dictionary[author_name] = {variable_x_name: variable_x_dictionary, variable_y_name: variable_y_dictionary}
 
             # stores the informations about the loaded variables
             result_dictionary[author_name]["Loaded Variables"] = {"Variables": loaded_variables}
+
+        result_dictionary[author_name]["Loaded Variables"]["nStep"] = nStep
 
     return result_dictionary, variable_y_name
 

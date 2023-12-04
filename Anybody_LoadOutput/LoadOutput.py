@@ -39,7 +39,7 @@ def load_simulation(FileDirectory, FileName, VariablesToLoad, Failed=False, GHRe
 
     h5File = LoadAnybodyData.Loadh5File(FilePath, Failed, GHReactionsShape)
 
-    Results = {"Loaded Variables": VariablesToLoad}
+    Results = {}
 
     # Charge les variables seulement s'il y en a
     if "Variables" in VariablesToLoad:
@@ -95,6 +95,15 @@ def load_simulation(FileDirectory, FileName, VariablesToLoad, Failed=False, GHRe
 
     # Ferme le fichier h5
     h5File["h5Data"].close()
+
+    # operations to calculate the length of the data
+    first_variable_name = list(VariablesToLoad["Variables"].keys())[0]
+    first_variable_component = Results[first_variable_name]["SequenceComposantes"][0]
+    nStep = len(Results[first_variable_name][first_variable_component])
+
+    # adds the number of steps in the loadedvariables dictionary
+    VariablesToLoad["nStep"] = nStep
+    Results["Loaded Variables"] = VariablesToLoad
 
     return Results
 

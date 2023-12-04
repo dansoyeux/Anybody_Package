@@ -1196,13 +1196,12 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
     # Initialise les informations sur les muscles parts si elle n'a pas été spécifiée (c'est à dire qu'il n'y a qu'une seule musclePart à dessiner)
     if muscle_part_information is False:
         muscle_part_information = {"LastPart": True,
-                                 "Total Number Muscle Parts": 1}
+                                   "Total Number Muscle Parts": 1}
 
     # Parcours toutes les parties de muscles à tracer
     # Selects the data to graph
     x_description, y_description = muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs)
 
-    
     # Si on trace la dernière muscle part, trace les axes, la légende, les titres etc...
     if muscle_part_information["LastPart"]:
 
@@ -1705,12 +1704,17 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
 
 # %% select data to plot
 
-def check_result_dictionary_data_structure(data, cases_on, compare):
+def get_result_dictionary_data_structure(data):
     """
-    function used in the graph functions to check that the arguments compare and cases_on are used according to the result dictionary structure
+    returns a deepnest counter that indicates the data structure of the result dictionary entered
 
-    it checks if cases_on is used when simulation cases exis
-    it checks if compare=True is used when we compare simulation with simulation cases
+    --------------------------------------------------------------------------
+    return
+    counter that counts how deep the variables are stored which indicates the data structure
+    0 : no simulation cases
+    1 : simulation cases
+    2 : compared simulation cases
+    3+ : error
     """
 
     # counter that counts how deep the variables are stored which indicates the data structure
@@ -1720,15 +1724,29 @@ def check_result_dictionary_data_structure(data, cases_on, compare):
     # 3 : error
     variables_deepness_counter = 0
 
-    tested_data = data
-
     # searches for the entry "Loaded Variables" to know the data structure
-    while "Loaded Variables" not in list(tested_data.keys()) and variables_deepness_counter < 3:
+    while "Loaded Variables" not in list(data.keys()) and variables_deepness_counter < 3:
         # increases the ccuonter
         variables_deepness_counter += 1
 
         # goes one step deeper in the result dictionary
-        tested_data = tested_data[list(tested_data.keys())[0]]
+        data = data[list(data.keys())[0]]
+
+    if variables_deepness_counter > 2:
+        raise ValueError("The result dictionary used doesn't have a correct data structure. The variables are {variables_deepness_counter} levels deep while 2 is the maximum!")
+
+    return variables_deepness_counter
+
+
+def check_result_dictionary_data_structure(data, cases_on, compare):
+    """
+    function used in the graph functions to check that the arguments compare and cases_on are used according to the result dictionary structure
+
+    it checks if cases_on is used when simulation cases exis
+    it checks if compare=True is used when we compare simulation with simulation cases
+    """
+
+    variables_deepness_counter = get_result_dictionary_data_structure(data)
 
     # Check that the arguments entered match the result data structure
     # No simulation cases data structure
@@ -1745,10 +1763,6 @@ def check_result_dictionary_data_structure(data, cases_on, compare):
     elif variables_deepness_counter == 2:
         if not cases_on or not compare:
             raise ValueError(f"For a result dictionary that compares simulation cases, a cases_on list must be entered and compare must be True. \n While cases_on = {cases_on} and compare = {compare} were entered.")
-
-    # When the variables are deeper than 2 levels
-    else:
-        raise ValueError("The result dictionary used doesn't have a correct data structure. The variables are {variables_deepness_counter} levels deep while 2 is the maximum!")
 
 
 def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs):
@@ -2851,7 +2865,7 @@ def muscle_part_graph_old(data, muscle_name, muscle_part, variable_x, variable_y
     # Initialise les informations sur les muscles parts si elle n'a pas été spécifiée (c'est à dire qu'il n'y a qu'une seule musclePart à dessiner)
     if muscle_part_information is False:
         muscle_part_information = {"LastPart": True,
-                                 "Total Number Muscle Parts": 1}
+                                   "Total Number Muscle Parts": 1}
 
     # Parcours toutes les parties de muscles à tracer
 
@@ -3153,7 +3167,7 @@ def muscle_graph_old(data, muscle_name, variable_x, variable_y, figure_title, ca
         else:
             ListSimulations = list(data.keys())
             muscle_parts_list = list(data[ListSimulations[0]]
-                               [MuscleFolder][muscle_name].keys())
+                                     [MuscleFolder][muscle_name].keys())
 
     # Dans les cas où on a des cas de simulation
     else:
