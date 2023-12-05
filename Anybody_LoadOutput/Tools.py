@@ -136,16 +136,15 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
                 # Offsets the column
                 Array[:, col_index] = Array[:, col_index] - component_offset
 
-        # Si la séquence n'est pas spécifiée, met xyz en séquence par défaut en s'adaptant au nombre de composantes
-        DefaultSequence = ['x', 'y', 'z']
-        DefaultComposantes_MultiplyFactor = [1, 1, 1]
-
         # Sets the sequence to the default and adapts to the number of columns in the array
         if SequenceComposantes == '':
+            # Si la séquence n'est pas spécifiée, met xyz en séquence par défaut en s'adaptant au nombre de composantes
+            DefaultSequence = ['x', 'y', 'z']
             SequenceComposantes = DefaultSequence[0:Array.shape[1]]
 
         # Sets the default Component multiply factor and adapts to the number of columns in the array
         if Composantes_Inverse_Direction is False:
+            DefaultComposantes_MultiplyFactor = [1, 1, 1]
             Composantes_MultiplyFactor = DefaultComposantes_MultiplyFactor[0:Array.shape[1]]
         else:
             Composantes_MultiplyFactor = []

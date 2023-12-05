@@ -959,6 +959,7 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     """
     # First checks that the results data structure match the argument entered in the graph function
     data_source = check_result_dictionary_data_structure(data, cases_on, compare)
+    kwargs["Data Source"] = data_source
 
     # Get the add_graph variable. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
@@ -1200,11 +1201,11 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
 
     data_source = kwargs["Data Source"]
 
-    # Selects the data to graph depending on the data source (Anybody or Litterature)
+    # Selects the data to graph depending on the data source (Anybody or Literature)
     if data_source == "Anybody":
         x_description, y_description = muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs)
-    elif data_source == "Litterature":
-        x_description, y_description = muscle_graph_select_data_to_plot_litterature(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs)
+    elif data_source == "Literature":
+        x_description, y_description = muscle_graph_select_data_to_plot_literature(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs)
 
     # Si on trace la dernière muscle part, trace les axes, la légende, les titres etc...
     if muscle_part_information["LastPart"]:
@@ -1572,6 +1573,9 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # First checks that the results data structure match the argument entered in the graph function
     data_source = check_result_dictionary_data_structure(data, cases_on, compare)
 
+    # stores the data source in the kwargs to be used later
+    kwargs["Data Source"] = data_source
+
     # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
 
@@ -1722,7 +1726,7 @@ def get_result_dictionary_data_structure(data):
     2 : compared simulation cases
     3+ : error
 
-    data_source : (str) The data source ("Anybody" or "Litterature")
+    data_source : (str) The data source ("Anybody" or "Literature")
     """
 
     # counter that counts how deep the variables are stored which indicates the data structure
@@ -1743,7 +1747,7 @@ def get_result_dictionary_data_structure(data):
     if variables_deepness_counter > 2:
         raise ValueError("The result dictionary used doesn't have a correct data structure. The variables are {variables_deepness_counter} levels deep while 2 is the maximum!")
 
-    # Gets the source of the data (anybody or the litterature)
+    # Gets the source of the data (anybody or the literature)
     data_source = data["Loaded Variables"]["Data Source"]
 
     return variables_deepness_counter, data_source
@@ -1806,6 +1810,9 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
     # deletes the entry "label" in the kwargs since it will be redefined
     del kwargs["label"]
 
+    # Gets the data source (Anybody or Literature)
+    data_source = kwargs["Data Source"]
+
     # initialises an empty dictionary with an empty description
     x_data = {"Description": ""}
     y_data = {"Description": ""}
@@ -1826,6 +1833,11 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
 
         # Prend la valeur de la composante comme elle est seule
         composante_y = composante_y[0]
+
+        # For the literature data, x and y value have mathing comopnent names
+        # changes the x_component name set automatically to the y component name
+        if data_source == "Literature":
+            composante_x = composante_y
 
         # The program stops if there is an error because only one value to graph
         if cases_on is False:
@@ -1906,6 +1918,11 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
         # if compare is False:
         for Composante in composante_y:
             label = Composante
+
+            # For the literature data, x and y value have mathing comopnent names
+            # changes the x_component name set automatically to the y component name
+            if data_source == "Literature":
+                composante_x = Composante
 
             if cases_on is False:
 
@@ -2188,10 +2205,10 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
     return x_description, y_description
 
 
-def muscle_graph_select_data_to_plot_litterature(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs):
+def muscle_graph_select_data_to_plot_literature(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, muscle_part_information, muscle_part, MuscleFolder, muscle_name, **kwargs):
     """
     selects the dictionary that contains the data, x and y data to be entered in plot_graph_functions
-    but for a data that is from the litterature (this function is a copy of muscle_graph_select_data_to_plot, but the x variable is in a muscle variable)
+    but for a data that is from the literature (this function is a copy of muscle_graph_select_data_to_plot, but the x variable is in a muscle variable)
 
     prints errors (without stopping the graph) if some data to be grahped don't exist
 
@@ -2237,6 +2254,10 @@ def muscle_graph_select_data_to_plot_litterature(data, composante_x, composante_
 
         # Prend la valeur de la composante comme elle est seule
         composante_y = composante_y[0]
+
+        # For the literature data, x and y value have mathing comopnent names
+        # changes the x_component name set automatically to the y component name
+        composante_x = composante_y
 
         # The program stops if there is an error because only one value to graph
         if cases_on is False:
@@ -2337,6 +2358,10 @@ def muscle_graph_select_data_to_plot_litterature(data, composante_x, composante_
         # if compare is False:
         for Composante in composante_y:
             label = Composante
+
+            # For the literature data, x and y value have mathing comopnent names
+            # changes the x_component name set automatically to the y component name
+            composante_x = Composante
 
             if cases_on is False:
 

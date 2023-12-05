@@ -86,14 +86,11 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
                                                      variable_y_name: {"VariableDescription": variable_y_description, "MultiplyFactor": variable_y_multiply_factor}
                                                      }
 
-    # interpolation_informations : dict : stores the informations about how the y values were interpolated (number of interpolated points, min and max value of the x variable used for interpolation)
-    #                             interpolation_informations= {"n_interpolate_points": n_interpolate_points, "min_x": variable_x_min, "max_x": variable_x_max}
-
     -------------------------------------------------
     return
     loaded_variables : dict : informations about the loaded variables
 
-    variable_x_dictionary : dict : Contains the values, description and component sequence of the x variable that was interpolated with n_interpolate_points
+    variable_x_dictionary : dict : Contains the values, description and component sequence of the x variable
     variable_y_dictionary : dict : Contains the values, description and component sequence of the y variable
     nStep : int the number of steps in the data
 
@@ -134,12 +131,7 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
     # sets the dictionary that will store all the variable informations
     loaded_variables = variable_informations
 
-    # The x variable gets the y variable sequence if there are multiple components
-    if len(variable_y_component_sequence) > 1:
-        loaded_variables[variable_x_name]["SequenceComposantes"] = variable_y_component_sequence
-    # if the y variable only has one component, the sequence is the total
-    else:
-        loaded_variables[variable_x_name]["SequenceComposantes"] = ["Total"]
+    loaded_variables[variable_x_name]["SequenceComposantes"] = variable_y_component_sequence
 
     # Adds the component sequence to the loaded variables informations
     loaded_variables[variable_y_name]["SequenceComposantes"] = variable_y_component_sequence
@@ -155,7 +147,7 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
         raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\neach x variable must be associated to a y variable")
 
     # if there is a nan in the variable data, it means that the component have different lengths
-    # so the x values won't match across components if there is no interpolation done
+    # Deletes these nan values
     nan_value_in_dataframe = bool(variable_dataframe.isnull().values.any())
 
     # if there are only one component for y, x and y values should have the same length
@@ -163,65 +155,8 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
         ExcelFile.close()
         raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\nthe x and y values must have the same length")
 
-    # # for y variables with multiple components
-    # if n_composantes > 1:
-
-    #     # if there is a NaN value and no interpolation, raises an error
-    #     if nan_value_in_dataframe and interpolation_informations is None:
-    #         ExcelFile.close()
-    #         raise ValueError(f"For the author : '{author_name}'\ny_variable components don't have the same length. \n In this case the interpolation must be set activated (set the B8 cell to ON)")
-
-    # # if all x and y values have the same length (nan_value_in_dataframe == False) and no interpolation
-    # # all x values must be the same if there is no interpolation activated
-    # if nan_value_in_dataframe is False and interpolation_informations is None:
-    #     if not bool(np.all(np.all(variable_x_array.T == variable_x_array.T[0, :], axis=0))):
-    #         ExcelFile.close()
-    #         raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\nAll the '{variable_x_name}' values are not equal, the interpolation should be on to make them equal (set the B8 cell to ON)")
-
-    # # Interpolates the y values if it is activated and if there is more than one value to interpolate
-    # if interpolation_informations is not None and len(variable_x_array) > 1:
-
-    #     # number of interpolation points
-    #     n_interpolate_points = interpolation_informations["n_interpolate_points"]
-
-    #     # initializes the array that will store the interpolated values
-    #     variable_y_interpolated_array = np.zeros([n_interpolate_points, n_composantes])
-
-    #     # Goes through each y variable component and interpolates it
-    #     for component_index in range(0, len(variable_y_component_sequence)):
-
-    #         # Builds an array from the setted min and max x value
-    #         x_variable_interpolation_values = np.linspace(interpolation_informations["min_x"], interpolation_informations["max_x"], n_interpolate_points)
-
-    #         # Selects the x variable value
-    #         variable_x_component_array = variable_x_array[:, component_index]
-    #         # Deletes nan values
-    #         variable_x_component_array = variable_x_component_array[~np.isnan(variable_x_component_array)]
-
-    #         # Selects the y variable component value
-    #         variable_y_component_array = variable_y_array[:, component_index]
-    #         # Deletes nan values
-    #         variable_y_component_array = variable_y_component_array[~np.isnan(variable_y_component_array)]
-
-    #         # Only interoplates if there are more than one value
-    #         if len(variable_x_component_array) > 1:
-    #             # interpolates the component with the setted parameters
-    #             variable_y_interpolated_array[:, component_index] = interpolate_y_variable(variable_x_component_array, variable_y_component_array, x_variable_interpolation_values)
-    #         else:
-    #             # For a single y value for this component, the y value is changed to a constant value
-    #             variable_y_interpolated_array[:, component_index] = np.ones(n_interpolate_points) * variable_y_component_array
-
-    #         # Calculates the number of points for this author which is the number of interpolation points
-    #         nStep = len(x_variable_interpolation_values)
-
-    #     # Transforms the obtained arrays to a dictionary
-    #     variable_x_dictionary = array_to_dictionary(x_variable_interpolation_values, **loaded_variables[variable_x_name])
-    #     variable_y_dictionary = array_to_dictionary(variable_y_interpolated_array, **loaded_variables[variable_y_name])
-
-    # without interpolation
-    # else:
     # Transforms the obtained arrays to a dictionary
-    variable_x_dictionary = array_to_dictionary(variable_x_array[:, 0], **loaded_variables[variable_x_name])
+    variable_x_dictionary = array_to_dictionary(variable_x_array, **loaded_variables[variable_x_name])
     variable_y_dictionary = array_to_dictionary(variable_y_array, **loaded_variables[variable_y_name])
 
     return variable_x_dictionary, variable_y_dictionary, loaded_variables
@@ -255,8 +190,6 @@ def get_excel_sheet_variable_informations(variable_informations_data):
 
     variable descriptions and multiply factors
 
-    variable x min and max for interpolation
-
     ----------------------------------------------------------
     return
             variable_informations : dict : informations about the x and y variables (component sequence, multiply factors, descriptions)
@@ -264,20 +197,14 @@ def get_excel_sheet_variable_informations(variable_informations_data):
                                                              variable_y_name: {"VariableDescription": variable_y_description, "MultiplyFactor": variable_y_multiply_factor}
                                                              }
 
-            # interpolation_informations : dict : stores the informations about how the y values were interpolated (number of interpolated points, min and max value of the x variable used for interpolation)
-            #                             interpolation_informations= {"n_interpolate_points": n_interpolate_points, "min_x": variable_x_min, "max_x": variable_x_max}
-            #                            : in case the interpolation is off, interpolation_informations is set to None
-
     """
-    # gets the index f
+    # gets the index of the variables informations
     x_variable_index = int(variable_informations_data[variable_informations_data.loc[:, 0] == "Variable x"].index.values[0])
     y_variable_index = int(variable_informations_data[variable_informations_data.loc[:, 0] == "Variable y"].index.values[0])
-    interpolation_variable_index = int(variable_informations_data[variable_informations_data.loc[:, 0] == "Interpolation"].index.values[0])
 
     # gets the data frame for each variable informations
-    x_variable_informations = variable_informations_data.loc[x_variable_index:y_variable_index - 1, 1]
-    y_variable_informations = variable_informations_data.loc[y_variable_index:interpolation_variable_index - 1, 1].dropna()
-    interpolation_variable_informations = variable_informations_data.loc[interpolation_variable_index: len(variable_informations_data) - 1, 1].dropna()
+    x_variable_informations = variable_informations_data.loc[x_variable_index: x_variable_index + 2, 1]
+    y_variable_informations = variable_informations_data.loc[y_variable_index: y_variable_index + 2, 1].dropna()
 
     # variable x informations
     variable_x_name = x_variable_informations.iloc[0]
@@ -289,21 +216,9 @@ def get_excel_sheet_variable_informations(variable_informations_data):
     variable_y_description = y_variable_informations.iloc[1]
     variable_y_multiply_factor = y_variable_informations.iloc[2]
 
-    # # interpolation informations
-    # interpolation_on = interpolation_variable_informations.iloc[0]
-    # variable_x_min = interpolation_variable_informations.iloc[1]
-    # variable_x_max = interpolation_variable_informations.iloc[2]
-    # n_interpolate_points = interpolation_variable_informations.iloc[3]
-
     variable_informations = {variable_x_name: {"VariableDescription": variable_x_description, "MultiplyFactor": variable_x_multiply_factor},
                              variable_y_name: {"VariableDescription": variable_y_description, "MultiplyFactor": variable_y_multiply_factor}
                              }
-    # # the interpolation of the y variable is activated only if interpolation_on == "On"
-    # if interpolation_on == "On":
-    #     interpolation_informations = {"n_interpolate_points": n_interpolate_points, "min_x": variable_x_min, "max_x": variable_x_max}
-
-    # else:
-    #     interpolation_informations = None
 
     return variable_informations, variable_x_name, variable_y_name
 
@@ -364,14 +279,14 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
             # stores the informations about the loaded variables
             result_dictionary[author_name]["Loaded Variables"] = {"Variables": loaded_variables}
 
-        result_dictionary[author_name]["Loaded Variables"]["Data Source"] = "Litterature"
+        result_dictionary[author_name]["Loaded Variables"]["Data Source"] = "Literature"
 
-    return result_dictionary, variable_y_name
+    return result_dictionary
 
 
 def load_literature_data(file_name, directory_path=""):
     """
-    Loads litterature data from the excel template
+    Loads literature data from the excel template
 
     file_name : str : name of the excel file
 
@@ -398,7 +313,10 @@ def load_literature_data(file_name, directory_path=""):
     for current_sheet_name in sheet_names_list:
 
         # gets the data for the current y variable
-        sheet_result_dictionary, variable_y_name = get_Excel_sheet_variables(ExcelFile, current_sheet_name)
+        sheet_result_dictionary = get_Excel_sheet_variables(ExcelFile, current_sheet_name)
+
+        # gets the name of the sheet (without the Muscle. at the beginning)
+        variable_y_name = current_sheet_name.split(".")[-1]
 
         # stores each sheet data as an entry in the result dictionary with the y variable name
         result_dictionary[variable_y_name] = sheet_result_dictionary
@@ -406,4 +324,3 @@ def load_literature_data(file_name, directory_path=""):
     ExcelFile.close()
 
     return result_dictionary
-
