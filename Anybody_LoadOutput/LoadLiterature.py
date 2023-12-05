@@ -73,7 +73,7 @@ def seperate_data_frame_by_category(data_frame):
     return seperated_categories_dictionary
 
 
-def variable_data_frame_to_dictionary(variable_dataframe, variable_informations, interpolation_informations, author_name):
+def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_informations, interpolation_informations, author_name):
     """
     function that takes the variables from the cariable_data and returns them as a dictionary containing its description, component sequence and values by component
 
@@ -96,7 +96,7 @@ def variable_data_frame_to_dictionary(variable_dataframe, variable_informations,
     variable_x_dictionary : dict : Contains the values, description and component sequence of the x variable that was interpolated with n_interpolate_points
     variable_y_dictionary : dict : Contains the values, description and component sequence of the y variable
     nStep : int the number of steps in the data
-    
+
     """
 
     # deletes lines full of nan values
@@ -140,11 +140,13 @@ def variable_data_frame_to_dictionary(variable_dataframe, variable_informations,
 
     # all x component names should match
     if not np.all(np.array(variable_x_component_sequence) == np.array(variable_x_component_sequence)[0]):
-        raise ValueError(f"For the variable : {variable_y_name}, for the author : {author_name}\nEach x variable component must be the same")
+        ExcelFile.close()
+        raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\nEach x variable component must be the same")
 
     # For each x variable there must be a y variable associated
     if not len(variable_x_index) == len(variable_y_index):
-        raise ValueError(f"For the variable : {variable_y_name}, for the author : {author_name}\neach x variable must be associated to a y variable")
+        ExcelFile.close()
+        raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\neach x variable must be associated to a y variable")
 
     # if there is a nan in the variable data, it means that the component have different lengths
     # so the x values won't match across components if there is no interpolation done
@@ -152,35 +154,38 @@ def variable_data_frame_to_dictionary(variable_dataframe, variable_informations,
 
     # if there are only one component for y, x and y values should have the same length
     if n_composantes == 1 and nan_value_in_dataframe:
-        raise ValueError(f"For the variable : {variable_y_name}, for the author : {author_name}\nthe x and y values must have the same length")
+        ExcelFile.close()
+        raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\nthe x and y values must have the same length")
 
     # for y variables with multiple components
     if n_composantes > 1:
 
         # if there is a NaN value and no interpolation, raises an error
         if nan_value_in_dataframe and interpolation_informations is None:
-            raise ValueError(f"For the author : {author_name}\ny_variable components don't have the same length. \n In this case the interpolation must be set activated (set the B8 cell to ON)")
+            ExcelFile.close()
+            raise ValueError(f"For the author : '{author_name}'\ny_variable components don't have the same length. \n In this case the interpolation must be set activated (set the B8 cell to ON)")
 
     # if all x and y values have the same length (nan_value_in_dataframe == False) and no interpolation
     # all x values must be the same if there is no interpolation activated
     if nan_value_in_dataframe is False and interpolation_informations is None:
         if not bool(np.all(np.all(variable_x_array.T == variable_x_array.T[0, :], axis=0))):
-            raise ValueError(f"For the variable : {variable_y_name}, for the author : {author_name}\nAll the {variable_x_name} values are not equal, the interpolation should be on to make them equal (set the B8 cell to ON)")
+            ExcelFile.close()
+            raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\nAll the '{variable_x_name}' values are not equal, the interpolation should be on to make them equal (set the B8 cell to ON)")
 
-    # Interpolates the y values if it is activated
-    if interpolation_informations is not None:
+    # Interpolates the y values if it is activated and if there is more than one value to interpolate
+    if interpolation_informations is not None and len(variable_x_array) > 1:
 
         # number of interpolation points
         n_interpolate_points = interpolation_informations["n_interpolate_points"]
-
-        # Builds an array from the setted min and max x value
-        x_variable_interpolation_values = np.linspace(interpolation_informations["min_x"], interpolation_informations["max_x"], n_interpolate_points)
 
         # initializes the array that will store the interpolated values
         variable_y_interpolated_array = np.zeros([n_interpolate_points, n_composantes])
 
         # Goes through each y variable component and interpolates it
         for component_index in range(0, len(variable_y_component_sequence)):
+
+            # Builds an array from the setted min and max x value
+            x_variable_interpolation_values = np.linspace(interpolation_informations["min_x"], interpolation_informations["max_x"], n_interpolate_points)
 
             # Selects the x variable value
             variable_x_component_array = variable_x_array[:, component_index]
@@ -192,11 +197,16 @@ def variable_data_frame_to_dictionary(variable_dataframe, variable_informations,
             # Deletes nan values
             variable_y_component_array = variable_y_component_array[~np.isnan(variable_y_component_array)]
 
-            # interpolates the component with the setted parameters
-            variable_y_interpolated_array[:, component_index] = interpolate_y_variable(variable_x_component_array, variable_y_component_array, x_variable_interpolation_values)
+            # Only interoplates if there are more than one value
+            if len(variable_x_component_array) > 1:
+                # interpolates the component with the setted parameters
+                variable_y_interpolated_array[:, component_index] = interpolate_y_variable(variable_x_component_array, variable_y_component_array, x_variable_interpolation_values)
+            else:
+                # For a single y value for this component, the y value is changed to a constant value
+                variable_y_interpolated_array[:, component_index] = np.ones(n_interpolate_points) * variable_y_component_array
 
             # Calculates the number of points for this author which is the number of interpolation points
-            nStep = n_interpolate_points
+            nStep = len(x_variable_interpolation_values)
 
         # Transforms the obtained arrays to a dictionary
         variable_x_dictionary = array_to_dictionary(x_variable_interpolation_values, **loaded_variables[variable_x_name])
@@ -329,7 +339,7 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
             # goes through each muscle data for the current author
             for muscle_name, current_muscle_data in muscle_author_data.items():
 
-                variable_x_dictionary, variable_y_dictionary, loaded_variables, nStep = variable_data_frame_to_dictionary(current_muscle_data, variable_informations, interpolation_informations, author_name)
+                variable_x_dictionary, variable_y_dictionary, loaded_variables, nStep = variable_data_frame_to_dictionary(ExcelFile, current_muscle_data, variable_informations, interpolation_informations, author_name)
 
                 # stores the current muscle y_variable
                 result_dictionary[author_name]["Muscles"][muscle_name] = {muscle_name: {variable_y_name: variable_y_dictionary}}
@@ -343,7 +353,7 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
         # if the loaded variable is a normal variable
         else:
             # transforms the variables data into a result dictionary
-            variable_x_dictionary, variable_y_dictionary, loaded_variables, nStep = variable_data_frame_to_dictionary(current_author_data, variable_informations, interpolation_informations, author_name)
+            variable_x_dictionary, variable_y_dictionary, loaded_variables, nStep = variable_data_frame_to_dictionary(ExcelFile, current_author_data, variable_informations, interpolation_informations, author_name)
 
             # for a normal variable
             result_dictionary[author_name] = {variable_x_name: variable_x_dictionary, variable_y_name: variable_y_dictionary}
@@ -393,5 +403,4 @@ def load_literature_data(file_name, directory_path=""):
     ExcelFile.close()
 
     return result_dictionary
-
 
