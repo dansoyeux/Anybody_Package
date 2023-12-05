@@ -103,6 +103,7 @@ def load_simulation(FileDirectory, FileName, VariablesToLoad, Failed=False, GHRe
 
     # adds the number of steps in the loadedvariables dictionary
     VariablesToLoad["nStep"] = nStep
+    VariablesToLoad["Data Source"] = "Anybody"
     Results["Loaded Variables"] = VariablesToLoad
 
     return Results
@@ -655,7 +656,7 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
     from Anybody_Package.Anybody_Graph.GraphFunctions import get_result_dictionary_data_structure
 
     # gets the data structure
-    data_structure_counter = get_result_dictionary_data_structure(data)
+    data_structure_counter, data_source = get_result_dictionary_data_structure(data)
 
     def sum_variables(data, summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add=[], muscle_variables_to_add=[], case_name_error=""):
         """
