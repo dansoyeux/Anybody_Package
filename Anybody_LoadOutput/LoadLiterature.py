@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 
+from openpyxl.utils.cell import get_column_letter
 
 # from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 
@@ -73,7 +74,7 @@ def seperate_data_frame_by_category(data_frame):
     return seperated_categories_dictionary
 
 
-def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_informations, author_name):
+def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_informations, author_name, muscle_name=""):
     """
     function that takes the variables from the cariable_data and returns them as a dictionary containing its description, component sequence and values by component
 
@@ -114,8 +115,38 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
     last_value_index = variable_dataframe.index.values[-1]
 
     # column index where the x_variables and y_variables are stored
-    variable_x_index = variable_line[variable_line == variable_x_name].index.values
-    variable_y_index = variable_line[variable_line == variable_y_name].index.values
+    variable_x_index = variable_line.iloc[0::2].index.values
+    variable_y_index = variable_line.iloc[1::2].index.values
+
+
+    # names entered as the x and y variables
+    variable_x_columns = variable_line.iloc[0::2]
+    variable_y_columns = variable_line.iloc[1::2]
+
+    # Checks that all the variables names entered on the variable data column match the name of the variable name
+    variable_x_name_error_index = variable_x_columns[variable_x_columns != variable_x_name].index.values
+    variable_y_name_error_index = variable_y_columns[variable_y_columns != variable_y_name].index.values
+    # variable_y_name_error_index = variable_line[(variable_line.loc[variable_x_index] != variable_x_name) & (variable_line != variable_y_name)].index.values
+
+    # if error on x
+    if not variable_x_name_error_index.size == 0:
+        # gets the column name where the errors are
+        column_names_x_error = [get_column_letter(error_index + 1) for error_index in variable_x_name_error_index]
+        ExcelFile.close()
+        if muscle_name:
+            raise ValueError(f"For the author '{author_name}' in the muscle '{muscle_name}', the columns {column_names_x_error} must be equal to the variable x name = '{variable_x_name}'")
+        else:
+            raise ValueError(f"For the author '{author_name}', the columns {column_names_x_error} must be equal to the variable x name = '{variable_x_name}'")
+
+    # if error on y
+    if not variable_y_name_error_index.size == 0:
+        # gets the column name where the errors are
+        column_names_y_error = [get_column_letter(error_index + 1) for error_index in variable_y_name_error_index]
+        ExcelFile.close()
+        if muscle_name:
+            raise ValueError(f"For the author '{author_name}' in the muscle '{muscle_name}', the columns {column_names_y_error} must be equal to the variable y name = '{variable_y_name}'")
+        else:
+            raise ValueError(f"For the author '{author_name}', the columns {column_names_y_error} must be equal to the variable y name = '{variable_y_name}'")
 
     # variables component sequence
     variable_x_component_sequence = component_line.loc[variable_x_index].tolist()
@@ -235,7 +266,6 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
     variable_informations, variable_x_name, variable_y_name = get_excel_sheet_variable_informations(variable_informations_data)
 
     # gets the variable data
-    # drops the lines that are full of empty values
     variables_data = sheet_data.iloc[:, 2:len(sheet_data.iloc[0, :]) + 1]
 
     result_dictionary = {}
@@ -257,7 +287,7 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
             # goes through each muscle data for the current author
             for muscle_name, current_muscle_data in muscle_author_data.items():
 
-                variable_x_dictionary, variable_y_dictionary, loaded_variables = variable_data_frame_to_dictionary(ExcelFile, current_muscle_data, variable_informations, author_name)
+                variable_x_dictionary, variable_y_dictionary, loaded_variables = variable_data_frame_to_dictionary(ExcelFile, current_muscle_data, variable_informations, author_name, muscle_name)
 
                 # stores the current muscle y_variable
                 result_dictionary[author_name]["Muscles"][muscle_name] = {muscle_name: {variable_y_name: variable_y_dictionary}}
