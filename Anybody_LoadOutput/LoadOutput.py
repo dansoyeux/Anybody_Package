@@ -35,7 +35,10 @@ def load_simulation(FileDirectory, FileName, VariablesToLoad, Failed=False, GHRe
     """
 
     # Chemin d'accès au fichier (sans l'extension)
-    FilePath = FileDirectory + "/" + FileName
+    if FileDirectory == "":
+        FilePath = FileName
+    else:
+        FilePath = FileDirectory + "/" + FileName
 
     h5File = LoadAnybodyData.Loadh5File(FilePath, Failed, GHReactionsShape)
 

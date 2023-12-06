@@ -236,7 +236,7 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
 
     # gets the variable data
     # drops the lines that are full of empty values
-    variables_data = sheet_data.iloc[:, 2:len(sheet_data) + 1]
+    variables_data = sheet_data.iloc[:, 2:len(sheet_data.iloc[0, :]) + 1]
 
     result_dictionary = {}
 
@@ -297,7 +297,10 @@ def load_literature_data(file_name, directory_path=""):
     extension = "xlsx"
 
     # builds the path of the excel file to load
-    file_path = f"{directory_path}/{file_name}.{extension}"
+    if directory_path:
+        file_path = f"{directory_path}/{file_name}.{extension}"
+    else:
+        file_path = f"{file_name}.{extension}"
 
     ExcelFile = pd.ExcelFile(file_path)
 
