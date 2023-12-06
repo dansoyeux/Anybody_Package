@@ -155,9 +155,9 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
         ExcelFile.close()
         raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\nthe x and y values must have the same length")
 
-    # Transforms the obtained arrays to a dictionary
-    variable_x_dictionary = array_to_dictionary(variable_x_array, **loaded_variables[variable_x_name])
-    variable_y_dictionary = array_to_dictionary(variable_y_array, **loaded_variables[variable_y_name])
+    # Transforms the obtained arrays to a dictionary and doesn't calculate the total
+    variable_x_dictionary = array_to_dictionary(variable_x_array, **loaded_variables[variable_x_name], total_on=False)
+    variable_y_dictionary = array_to_dictionary(variable_y_array, **loaded_variables[variable_y_name], total_on=False)
 
     return variable_x_dictionary, variable_y_dictionary, loaded_variables
 
@@ -236,7 +236,7 @@ def get_Excel_sheet_variables(ExcelFile, current_sheet_name):
 
     # gets the variable data
     # drops the lines that are full of empty values
-    variables_data = sheet_data.iloc[:, 2:len(sheet_data)]
+    variables_data = sheet_data.iloc[:, 2:len(sheet_data) + 1]
 
     result_dictionary = {}
 

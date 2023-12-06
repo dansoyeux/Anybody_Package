@@ -959,7 +959,6 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     """
     # First checks that the results data structure match the argument entered in the graph function
     data_source = check_result_dictionary_data_structure(data, cases_on, compare)
-    kwargs["Data Source"] = data_source
 
     # Get the add_graph variable. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
@@ -982,8 +981,7 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
             cases_on = list(data.keys())
 
         elif type(cases_on) is str:
-            raise ValueError(
-                "cases_on doit être une liste si 'all' n'est pas utilisé")
+            raise ValueError("cases_on doit être une liste si 'all' n'est pas utilisé")
             return
 
         # Vérifie qu'on n'active pas plusieurs cas tout en comparant
@@ -994,14 +992,12 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
 
         # Vérifie qu'on ne dessine pas plusieurs variables tout en dessinant plusieurs cas
         if len(cases_on) > 1 and len(composante_y) > 1:
-            raise ValueError(
-                "On ne peut pas dessiner plusieurs cas et plusieurs composantes en même temps")
+            raise ValueError("On ne peut pas dessiner plusieurs cas et plusieurs composantes en même temps")
             return
 
     # Vérification qu'on ne dessine pas plusieurs variables tout en comparant
     if compare and len(composante_y) > 1:
-        raise ValueError(
-            "On ne peut pas comparer plusieurs simulations et dessiner plusieurs variables")
+        raise ValueError("On ne peut pas comparer plusieurs simulations et dessiner plusieurs variables")
         return
 
     # flatten the data into a simulation cases form if compare=True
@@ -1019,8 +1015,11 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
 
     fig = subplot_setup(subplot, figsize, add_graph)
 
-    # Selects the data to graph
-    x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)
+    # Selects the data to graph depending on the type of data ("Literature or Anybody")
+    if data_source == "Anybody":
+        x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)
+    elif data_source == "Literature":
+        x_description, y_description = graph_select_data_to_plot_literature(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)
 
     if subplot is None:
         plt.title(figure_title)
@@ -1573,8 +1572,8 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # First checks that the results data structure match the argument entered in the graph function
     data_source = check_result_dictionary_data_structure(data, cases_on, compare)
 
-    # stores the data source in the kwargs to be used later
-    kwargs["Data Source"] = data_source
+    if data_source == "Literature":
+        raise ValueError("Data from the literature are not supported in the COP_graph function")
 
     # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
@@ -1810,8 +1809,201 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
     # deletes the entry "label" in the kwargs since it will be redefined
     del kwargs["label"]
 
-    # Gets the data source (Anybody or Literature)
-    data_source = kwargs["Data Source"]
+    # initialises an empty dictionary with an empty description
+    x_data = {"Description": ""}
+    y_data = {"Description": ""}
+
+    # error texts
+    exc_x_error_text = ["The value : ", "doesn't exist in the x variable in : Results_dictionary"]
+    exc_y_error_text = ["The value : ", "doesn't exist in the y variable in : Results_dictionary"]
+
+    if compare:
+        exc_x_error_text[1] += f"/{compared_case}"
+        exc_y_error_text[1] += f"/{compared_case}"
+        exc_case_error_text = ["The case : ", "doesn't exist in the simulation :", "in the results dictionary"]
+    else:
+        exc_case_error_text = ["The case : ", "doesn't exist in the results dictionary"]
+
+    # S'il n'y a qu'une composante à tracer
+    if len(composante_y) == 1:
+
+        # Prend la valeur de la composante comme elle est seule
+        composante_y = composante_y[0]
+
+        # The program stops if there is an error because only one value to graph
+        if cases_on is False:
+            # defines the y_error text as empty
+            error_y_text = ""
+
+            label = None
+
+            # checks that x exists in data
+            try:
+
+                x_data = data[variable_x]
+                x = x_data[composante_x]
+
+                # checks that y exists in data
+                try:
+
+                    y_data = data[variable_y]
+                    y = y_data[composante_y]
+
+                    plot_graph_functions(data, x, y, graph_type, label=label, **kwargs)
+
+                except KeyError as exc_y:
+                    # Stores the y_error text to print as an error later
+                    error_y_text = f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{composante_y} \n"
+                    raise ValueError("")
+                    sys.exit(1)
+
+            except KeyError as exc_x:
+                # If no error on y
+                if not error_y_text:
+                    raise ValueError(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
+                # if there is an error on y, raise the y error text string
+                else:
+                    raise ValueError(error_y_text)
+                sys.exit(1)
+
+        # If the data has simulation cases
+        else:
+            for Case in cases_on:
+                label = Case
+
+                # checks that the case exists in data
+                try:
+                    case_data = data[Case]
+
+                    # checks that x exists in data
+                    try:
+
+                        x_data = data[Case][variable_x]
+                        x = x_data[composante_x]
+
+                        # checks that y exists in data
+                        try:
+
+                            y_data = data[Case][variable_y]
+                            y = y_data[composante_y]
+
+                            plot_graph_functions(case_data, x, y, graph_type, label=label, **kwargs)
+
+                        except KeyError as exc_y:
+                            print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{composante_y} \n")
+
+                    except KeyError as exc_x:
+                        print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
+
+                except KeyError:
+                    if compare:
+                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} {Case}{exc_case_error_text[2]}\n")
+                    else:
+                        raise ValueError(f"{exc_case_error_text[0]}'{Case}' {exc_case_error_text[1]} \n")
+                    sys.exit(1)
+
+    # Si plusieurs composantes sont activées
+    else:
+
+        # On ne peut comparer que si on active la même donnée, donc seulement une seule composante
+        # if compare is False:
+        for Composante in composante_y:
+            label = Composante
+
+            if cases_on is False:
+
+                # checks that x exists in data
+                try:
+
+                    x_data = data[variable_x]
+                    x = x_data[composante_x]
+
+                    # checks that y exists in data
+                    try:
+
+                        y_data = data[variable_y]
+                        y = y_data[Composante]
+
+                        plot_graph_functions(data, x, y, graph_type, label=label, **kwargs)
+
+                    except KeyError as exc_y:
+                        print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{Composante} \n")
+
+                except KeyError as exc_x:
+                    print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{variable_x}/{composante_x} \n")
+
+            # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
+            elif len(cases_on) == 1:
+
+                # get the case name
+                Case = cases_on[0]
+
+                # checks that the case exists in data
+                try:
+                    case_data = data[Case]
+
+                    # checks that x exists in data
+                    try:
+
+                        x_data = data[Case][variable_x]
+                        x = x_data[composante_x]
+
+                        # checks that y exists in data
+                        try:
+
+                            y_data = data[Case][variable_y]
+                            y = y_data[Composante]
+
+                            plot_graph_functions(case_data, x, y, graph_type, label=label, **kwargs)
+
+                        except KeyError as exc_y:
+                            print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{Composante} \n")
+
+                    except KeyError as exc_x:
+                        print(f"{exc_x_error_text[0]} {str(exc_x)} {exc_x_error_text[1]}/{Case}/{variable_x}/{composante_x} \n")
+
+                except KeyError:
+                    if compare:
+                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} {Case}{exc_case_error_text[2]}\n")
+                    else:
+                        raise ValueError(f"{exc_case_error_text[0]}'{Case}' {exc_case_error_text[1]} \n")
+                    sys.exit(1)
+
+    # Returns the description for each axis to be applied later
+    x_description = x_data["Description"]
+    y_description = y_data["Description"]
+
+    return x_description, y_description
+
+
+def graph_select_data_to_plot_literature(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs):
+    """
+    selects the dictionary that contains the data, x and y data to be entered in plot_graph_functions
+    Function made for a data from the literature, so the x variable component matches the y variable component
+
+    prints errors (without stopping the graph) if some data to be grahped don't exist
+
+    -------------------------------
+    returns
+    x_description and y_description : str
+    the descriptions of the x and y variables to be set as xlabel and ylabel in the graph function
+
+    """
+
+    """
+    AJOUTER UNE FONCTION QUI TEST LA STRUCTURE DES DICTIONAIRES ET FAIT ERREUR SELON LE CAS
+
+    def check_graphed_data_structure(data, cases_on, compare)
+    """
+
+    variable_x = kwargs.get("variable_x")
+    variable_y = kwargs.get("variable_y")
+
+    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
+    kwargs["label"] = kwargs.get("label", None)
+    kwargs["custom_label"] = kwargs["label"]
+    # deletes the entry "label" in the kwargs since it will be redefined
+    del kwargs["label"]
 
     # initialises an empty dictionary with an empty description
     x_data = {"Description": ""}
@@ -1836,8 +2028,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
 
         # For the literature data, x and y value have mathing comopnent names
         # changes the x_component name set automatically to the y component name
-        if data_source == "Literature":
-            composante_x = composante_y
+        composante_x = composante_y
 
         # The program stops if there is an error because only one value to graph
         if cases_on is False:
@@ -1921,8 +2112,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
 
             # For the literature data, x and y value have mathing comopnent names
             # changes the x_component name set automatically to the y component name
-            if data_source == "Literature":
-                composante_x = Composante
+            composante_x = Composante
 
             if cases_on is False:
 

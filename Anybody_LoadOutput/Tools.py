@@ -46,7 +46,7 @@ def transform_vector(vector, rotation_matrix, translation_vect=None, inverse_tra
     return transformed_vector
 
 
-def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False, vect_dir=False, **kwargs):
+def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False, vect_dir=False, total_on=True, **kwargs):
     """
     Met en forme un array 2D (nstep,ndim) sous la forme d'un dictionnaire :
         "Description" : Description qui sera utilisée par les graphiques
@@ -57,6 +57,8 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
 
         "Total" : Calcule la valeur totale de la variable à chaque step de simulation
                 : Cette valeur n'est pas calculée si la séquence de composante contient la valeur "Total"
+
+        total_on : (bool) activates the calculation of the total
 
         Composantes_Inverse_Direction : list : example SequenceComposantes = ['x','y','z'], if you want to revert the direction of 'y' only
                                       : Composantes_Inverse_Direction = [False, True, True]
@@ -107,7 +109,8 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
         else:
             Composante = SequenceComposantes[0]
 
-        VariableOutput[Composante] = Array * MultiplyFactor
+        # Stores the vector without the nan values
+        VariableOutput[Composante] = Array[~np.isnan(Array)] * MultiplyFactor
 
         VariableOutput["SequenceComposantes"].append(Composante)
 
@@ -157,8 +160,8 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
                 else:
                     raise ValueError("Composantes_Inverse_Direction must be filled with True or False")
 
-        # Calculates the total of the component at each timestep if the total is not already calculated
-        if "Total" not in SequenceComposantes:
+        # Calculates the total of the component at each timestep if the total is not already calculated and is activated
+        if "Total" not in SequenceComposantes and total_on:
             VariableOutput["Total"] = np.linalg.norm(Array, axis=1) * MultiplyFactor
             VariableOutput["SequenceComposantes"].append("Total")
 
@@ -172,8 +175,9 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
 
         # Parcours le nom des composantes dans l'ordre spécifié
         # Et multiplie par le facteur multiplicatif de la composante
+        # And deletes nan values
         for col, Composante in enumerate(SequenceComposantes):
-            VariableOutput[Composante] = Array[:, col] * MultiplyFactor * Composantes_MultiplyFactor[col]
+            VariableOutput[Composante] = Array[:, col][~np.isnan(Array[:, col])] * MultiplyFactor * Composantes_MultiplyFactor[col]
 
         # Stores the variable component sequence
         VariableOutput["SequenceComposantes"] = [*VariableOutput["SequenceComposantes"], *SequenceComposantes]
