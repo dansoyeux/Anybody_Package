@@ -1416,17 +1416,15 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
     if cases_on is False:
 
         try:
-
             muscle_parts_list = list(data[MuscleFolder][muscle_name].keys())
         except KeyError:
-            raise ValueError(f"'{muscle_name}' is not a muscle in the the result dictionary")
+            print(f"'{muscle_name}' is not a muscle in the the result dictionary")
 
     else:
-
         try:
             muscle_parts_list = list(data[cases_on[0]][MuscleFolder][muscle_name].keys())
         except KeyError:
-            raise ValueError(f"'{muscle_name}' is not a muscle in the result dictionary")
+            print(f"'{muscle_name}' is not a muscle in the result dictionary")
 
     # Si toutes les parties sont activées, fais une liste avec le nom de toutes les parties sauf le muscle total
     # n'enlève pas la partie totale si le muscle n'a pas de partie
