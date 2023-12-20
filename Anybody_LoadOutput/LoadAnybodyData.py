@@ -26,11 +26,21 @@ def Loadh5File(FilePath, Failed=False, GHReactionsShape=False, AddConstants=Fals
     (TRY TO RENAME THE H5 FILE WITH A SHORTER NAME OR CHECK THAT A DIRECTORY DOESN'T HAVE A VERY LONG NAME)
     """
 
+    import os
+
     # Loads the h5 file data
     file_extension = "anydata.h5"
 
+    file_full_name = f"{FilePath}.{file_extension}"
+
+    # Gets the absolute path of the file that will be open
+    file_absolute_path = os.path.abspath(file_full_name)
+
+    if len(file_absolute_path) > 241:
+        raise ValueError(f"The path of the file : \n{FilePath}\nis too long ({len(file_absolute_path)} > 241) so it cannot be opened.\nTry to shorten the name of the file or the names of the directories containing this file or put the file less deep on your harddrive")
+
     try:
-        h5Data = h5py2.File(f"{FilePath}.{file_extension}", "r")
+        h5Data = h5py2.File(file_full_name, "r")
     except OSError:
         raise ValueError(f"The file doesn't exist or is damaged and wasn't posible to be opened : \n{FilePath}\nCheck the directory path or the file name or that the h5 file's name finishes with .anydata")
 
