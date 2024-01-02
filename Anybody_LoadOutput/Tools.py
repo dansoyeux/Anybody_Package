@@ -145,9 +145,14 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
             DefaultSequence = ['x', 'y', 'z']
             SequenceComposantes = DefaultSequence[0:Array.shape[1]]
 
+        # Calculates the total of the component at each timestep if the total is not already calculated and is activated
+        if "Total" not in SequenceComposantes and total_on:
+            VariableOutput["Total"] = np.linalg.norm(Array, axis=1) * MultiplyFactor
+            VariableOutput["SequenceComposantes"].append("Total")
+
         # Sets the default Component multiply factor and adapts to the number of columns in the array
         if Composantes_Inverse_Direction is False:
-            DefaultComposantes_MultiplyFactor = [1, 1, 1]
+            DefaultComposantes_MultiplyFactor = [1, 1, 1, 1]
             Composantes_MultiplyFactor = DefaultComposantes_MultiplyFactor[0:Array.shape[1]]
         else:
             Composantes_MultiplyFactor = []
@@ -159,11 +164,6 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
                     Composantes_MultiplyFactor.append(1)
                 else:
                     raise ValueError("Composantes_Inverse_Direction must be filled with True or False")
-
-        # Calculates the total of the component at each timestep if the total is not already calculated and is activated
-        if "Total" not in SequenceComposantes and total_on:
-            VariableOutput["Total"] = np.linalg.norm(Array, axis=1) * MultiplyFactor
-            VariableOutput["SequenceComposantes"].append("Total")
 
         # if vect_dir is activated, the component values are the direction of the direction vector (value/norm_vector)
         if vect_dir:

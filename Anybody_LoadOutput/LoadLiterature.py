@@ -118,7 +118,6 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
     variable_x_index = variable_line.iloc[0::2].index.values
     variable_y_index = variable_line.iloc[1::2].index.values
 
-
     # names entered as the x and y variables
     variable_x_columns = variable_line.iloc[0::2]
     variable_y_columns = variable_line.iloc[1::2]
@@ -186,7 +185,7 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
         ExcelFile.close()
         raise ValueError(f"For the variable : '{variable_y_name}', for the author : '{author_name}'\nthe x and y values must have the same length")
 
-    # Transforms the obtained arrays to a dictionary and doesn't calculate the total
+    # Transforms the obtained arrays to a dictionary and doesn't calculate the total because the x array can be different across the y data components
     variable_x_dictionary = array_to_dictionary(variable_x_array, **loaded_variables[variable_x_name], total_on=False)
     variable_y_dictionary = array_to_dictionary(variable_y_array, **loaded_variables[variable_y_name], total_on=False)
 
