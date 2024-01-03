@@ -1818,7 +1818,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
     if compare:
         exc_x_error_text[1] += f"/{compared_case}"
         exc_y_error_text[1] += f"/{compared_case}"
-        exc_case_error_text = ["The case : ", "doesn't exist in the simulation :", "in the results dictionary"]
+        exc_case_error_text = ["The case : ", "doesn't exist in the simulation : ", "in the results dictionary"]
     else:
         exc_case_error_text = ["The case : ", "doesn't exist in the results dictionary"]
 
@@ -1895,7 +1895,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
 
                 except KeyError:
                     if compare:
-                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} {Case}{exc_case_error_text[2]}\n")
+                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]}'{Case}' {exc_case_error_text[2]}\n")
                     else:
                         raise ValueError(f"{exc_case_error_text[0]}'{Case}' {exc_case_error_text[1]} \n")
                     sys.exit(1)
@@ -1962,7 +1962,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
 
                 except KeyError:
                     if compare:
-                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} {Case}{exc_case_error_text[2]}\n")
+                        raise ValueError(f"{exc_case_error_text[0]}'{compared_case}' {exc_case_error_text[1]} '{Case}' {exc_case_error_text[2]}\n")
                     else:
                         raise ValueError(f"{exc_case_error_text[0]}'{Case}' {exc_case_error_text[1]} \n")
                     sys.exit(1)
