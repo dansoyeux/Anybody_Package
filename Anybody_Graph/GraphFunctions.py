@@ -176,7 +176,7 @@ def plot_graph_functions(data, x, y, graph_type, label=None, custom_label=None, 
         # selects the data for the errorbar and draws it if it exists
         if f"sd_{composante_y}" in data[variable_y]:
             yerr = data[variable_y][f"sd_{composante_y}"]
-            plt.errorbar(x, y, yerr=yerr, capsize=error_capsize, capthick=error_capthick, errorevery=errorevery)
+            plt.errorbar(x, y, yerr=yerr, color=plt.gca().lines[-1].get_color(), capsize=error_capsize, capthick=error_capthick, errorevery=errorevery)
 
 
 def subplot_setup(subplot, figsize=None, add_graph=False):
