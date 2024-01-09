@@ -267,6 +267,7 @@ def combine_variable(variable_dictionaries_list, operation="mean"):
 
     operation : str : name of the operation done
               : list of combination posible : ["mean", "total", "min" "max"]
+              : for "mean" also calculates the standard deviation
     ------------------------------------------------
     return
     combined_variable : dict : variable dictionary with the combined values of every
@@ -290,14 +291,25 @@ def combine_variable(variable_dictionaries_list, operation="mean"):
             composante_data[:, variable_dictionary_index] = variable_dictionary_data[composante]
 
         # makes wanted operation on all components
+        # For the mean, also calculates the standard deviation
         if operation == "mean":
             combined_variable[composante] = np.mean(composante_data, axis=1)
+
+            # Calculates the standard deviaton for the component and calls it "sd_component"
+            combined_variable[f"sd_{composante}"] = np.std(composante_data, axis=1)
+
         elif operation == "total":
             combined_variable[composante] = np.sum(composante_data, axis=1)
         elif operation == "max":
             combined_variable[composante] = np.max(composante_data, axis=1)
         elif operation == "min":
             combined_variable[composante] = np.min(composante_data, axis=1)
+
+    # adds the standard deviation to Sequence_Composantes
+    if operation == "mean":
+        sd_Sequence_Composantes = [f"sd_{composante}" for composante in Sequence_Composantes]
+
+        combined_variable["SequenceComposantes"].extend(sd_Sequence_Composantes)
 
     return combined_variable
 
