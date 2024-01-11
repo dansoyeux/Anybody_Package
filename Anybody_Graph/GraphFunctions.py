@@ -177,9 +177,8 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
         error_capthick = kwargs.get("error_capthick", 3)
 
         # selects the data for the errorbar and draws it if it exists
-        if f"sd_{composante_y}" in y_data:
-            yerr = y_data[f"sd_{composante_y}"]
-            plt.errorbar(x, y, yerr=yerr, color=plt.gca().lines[-1].get_color(), capsize=error_capsize, capthick=error_capthick, errorevery=errorevery, fmt='none')
+        yerr = y_data[f"sd_{composante_y}"]
+        plt.errorbar(x, y, yerr=yerr, color=plt.gca().lines[-1].get_color(), capsize=error_capsize, capthick=error_capthick, errorevery=errorevery, fmt='none')
 
 
 def subplot_setup(subplot, figsize=None, add_graph=False):
