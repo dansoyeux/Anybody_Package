@@ -74,7 +74,7 @@ def flatten_compared_simulations(compared_simulations_data, case_on):
 # %% Plot Setup Functions
 
 
-def plot_graph_functions(data, x, y, graph_type, label=None, custom_label=None, composante_x="", composante_y="", **kwargs):
+def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_label=None, composante_x="", composante_y="", **kwargs):
     """
     Function ploting the datas
 
@@ -91,6 +91,9 @@ def plot_graph_functions(data, x, y, graph_type, label=None, custom_label=None, 
     # The style depends on the graph_type : "graph", "muscle_graph" "COP_graph"
 
     """
+
+    x = x_data[composante_x]
+    y = y_data[composante_y]
 
     variable_x = kwargs["variable_x"]
     variable_y = kwargs["variable_y"]
@@ -170,13 +173,13 @@ def plot_graph_functions(data, x, y, graph_type, label=None, custom_label=None, 
     # Draws errorbar if activated
     if errorbar:
         errorevery = kwargs.get("errorevery", 1)
-        error_capsize = kwargs.get("error_capsize", 3)
-        error_capthick = kwargs.get("error_capthick", 2)
+        error_capsize = kwargs.get("error_capsize", 5)
+        error_capthick = kwargs.get("error_capthick", 3)
 
         # selects the data for the errorbar and draws it if it exists
-        if f"sd_{composante_y}" in data[variable_y]:
-            yerr = data[variable_y][f"sd_{composante_y}"]
-            plt.errorbar(x, y, yerr=yerr, color=plt.gca().lines[-1].get_color(), capsize=error_capsize, capthick=error_capthick, errorevery=errorevery)
+        if f"sd_{composante_y}" in y_data:
+            yerr = y_data[f"sd_{composante_y}"]
+            plt.errorbar(x, y, yerr=yerr, color=plt.gca().lines[-1].get_color(), capsize=error_capsize, capthick=error_capthick, errorevery=errorevery, fmt='none')
 
 
 def subplot_setup(subplot, figsize=None, add_graph=False):
@@ -1858,7 +1861,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                     y_data = data[variable_y]
                     y = y_data[composante_y]
 
-                    plot_graph_functions(data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
+                    plot_graph_functions(data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
 
                 except KeyError as exc_y:
                     # Stores the y_error text to print as an error later
@@ -1896,7 +1899,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                             y_data = data[Case][variable_y]
                             y = y_data[composante_y]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
+                            plot_graph_functions(case_data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
 
                         except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{composante_y} \n")
@@ -1933,7 +1936,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                         y_data = data[variable_y]
                         y = y_data[Composante]
 
-                        plot_graph_functions(data, x, y, graph_type, label=label, **kwargs)
+                        plot_graph_functions(data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
 
                     except KeyError as exc_y:
                         print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{Composante} \n")
@@ -1963,7 +1966,7 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
                             y_data = data[Case][variable_y]
                             y = y_data[Composante]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, **kwargs)
+                            plot_graph_functions(case_data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
 
                         except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{Composante} \n")
@@ -2058,7 +2061,7 @@ def graph_select_data_to_plot_literature(data, composante_x, composante_y, cases
                     y_data = data[variable_y]
                     y = y_data[composante_y]
 
-                    plot_graph_functions(data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
+                    plot_graph_functions(data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
 
                 except KeyError as exc_y:
                     # Stores the y_error text to print as an error later
@@ -2096,7 +2099,7 @@ def graph_select_data_to_plot_literature(data, composante_x, composante_y, cases
                             y_data = data[Case][variable_y]
                             y = y_data[composante_y]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
+                            plot_graph_functions(case_data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
 
                         except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{composante_y} \n")
@@ -2137,7 +2140,7 @@ def graph_select_data_to_plot_literature(data, composante_x, composante_y, cases
                         y_data = data[variable_y]
                         y = y_data[Composante]
 
-                        plot_graph_functions(data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
+                        plot_graph_functions(data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
 
                     except KeyError as exc_y:
                         print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{variable_y}/{Composante} \n")
@@ -2167,7 +2170,7 @@ def graph_select_data_to_plot_literature(data, composante_x, composante_y, cases
                             y_data = data[Case][variable_y]
                             y = y_data[Composante]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
+                            plot_graph_functions(case_data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
 
                         except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{variable_y}/{Composante} \n")
@@ -2263,7 +2266,7 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                     y_data = data[MuscleFolder][muscle_name][muscle_part][variable_y]
                     y = y_data[composante_y]
 
-                    plot_graph_functions(data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
+                    plot_graph_functions(data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
 
                 except KeyError as exc_y:
                     # Stores the y_error text to print as an error later
@@ -2315,7 +2318,7 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                                 y_data = data[Case][MuscleFolder][muscle_name][muscle_part][variable_y]
                                 y = y_data[composante_y]
 
-                                plot_graph_functions(case_data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
+                                plot_graph_functions(case_data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
 
                             except KeyError as exc_y:
                                 print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{composante_y} \n")
@@ -2352,7 +2355,7 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                         y_data = data[MuscleFolder][muscle_name][muscle_part][variable_y]
                         y = y_data[Composante]
 
-                        plot_graph_functions(data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
+                        plot_graph_functions(data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
 
                     except KeyError as exc_y:
                         print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{Composante} \n")
@@ -2382,7 +2385,7 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
                             y_data = data[Case][MuscleFolder][muscle_name][muscle_part][variable_y][variable_y]
                             y = y_data[Composante]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
+                            plot_graph_functions(case_data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
 
                         except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{Composante} \n")
@@ -2483,7 +2486,7 @@ def muscle_graph_select_data_to_plot_literature(data, composante_x, composante_y
                     y_data = data[MuscleFolder][muscle_name][muscle_part][variable_y]
                     y = y_data[composante_y]
 
-                    plot_graph_functions(data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
+                    plot_graph_functions(data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
 
                 except KeyError as exc_y:
                     # Stores the y_error text to print as an error later
@@ -2535,7 +2538,7 @@ def muscle_graph_select_data_to_plot_literature(data, composante_x, composante_y
                                 y_data = data[Case][MuscleFolder][muscle_name][muscle_part][variable_y]
                                 y = y_data[composante_y]
 
-                                plot_graph_functions(case_data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
+                                plot_graph_functions(case_data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=composante_y, **kwargs)
 
                             except KeyError as exc_y:
                                 print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{composante_y} \n")
@@ -2576,7 +2579,7 @@ def muscle_graph_select_data_to_plot_literature(data, composante_x, composante_y
                         y_data = data[MuscleFolder][muscle_name][muscle_part][variable_y]
                         y = y_data[Composante]
 
-                        plot_graph_functions(data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
+                        plot_graph_functions(data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
 
                     except KeyError as exc_y:
                         print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{Composante} \n")
@@ -2598,15 +2601,15 @@ def muscle_graph_select_data_to_plot_literature(data, composante_x, composante_y
                     try:
 
                         x_data = data[Case][MuscleFolder][muscle_name][muscle_part][variable_y][variable_x]
-                        x = x_data[composante_x]
+                        # x = x_data[composante_x]
 
                         # checks that y exists in data
                         try:
 
                             y_data = data[Case][MuscleFolder][muscle_name][muscle_part][variable_y][variable_y]
-                            y = y_data[Composante]
+                            # y = y_data[Composante]
 
-                            plot_graph_functions(case_data, x, y, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
+                            plot_graph_functions(case_data, x_data, y_data, graph_type, label=label, composante_x=composante_x, composante_y=Composante, **kwargs)
 
                         except KeyError as exc_y:
                             print(f"{exc_y_error_text[0]} {str(exc_y)} {exc_y_error_text[1]}/{Case}/{MuscleFolder}/{muscle_name}/{muscle_part}/{variable_y}/{Composante} \n")
