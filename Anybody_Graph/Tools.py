@@ -248,3 +248,20 @@ def unsuperpose_plot_annotations(annotation_offset=None, annotation_reference_of
         ax_2.update_datalim(annotation_corners, updatex=update_xlim, updatey=update_ylim)
 
         ax_2.autoscale_view()
+
+
+def save_all_active_figures(save_folder_path, folder_name, file_name, save_format="png"):
+    """Function that saves all the active figuresand saves them in a subfolder"""
+
+    import os
+    import matplotlib.pyplot as plt
+
+    subfolder_path = f"{save_folder_path}/{folder_name}"
+    # Creates the category folder
+    os.mkdir(subfolder_path)
+
+    # Get all active figures and save them
+    for i in plt.get_fignums():
+        plt.figure(i)
+        plt.savefig(f"{subfolder_path}/Muscle_category_{i}.{save_format}")
+    plt.close("all")

@@ -826,7 +826,7 @@ def draw_graph_annotation(annotation_values, x, y, **kwargs):
 
     for index in range(len(peak_indexes)):
 
-        plt.annotate(f"{round(Peak_Value[index])}",
+        plt.annotate(f"{round(Peak_Value[index])}°",
                      xy=(Peak_x[index], Peak_y[index]),
                      bbox=dict(boxstyle="round", fc=color, alpha=0.6),
                      arrowprops=dict(
@@ -1670,8 +1670,8 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
             legend_setup(fig, graph_type, **kwargs)
 
         # traces the axis labels
-        plt.xlabel("<-----Postérieur              Antérieur----->")
-        plt.ylabel("<----- Inférieur            Supérieur ----->")
+        plt.xlabel("<-----Posterior              Anterior----->")
+        plt.ylabel("<----- Inferior            Superior----->")
 
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, **kwargs)

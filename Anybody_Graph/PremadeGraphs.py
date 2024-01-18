@@ -10,6 +10,7 @@ from Anybody_Package.Anybody_Graph.GraphFunctions import COP_graph
 from Anybody_Package.Anybody_Graph.GraphFunctions import muscle_graph
 from Anybody_Package.Anybody_Graph.GraphFunctions import check_result_dictionary_data_structure
 
+from Anybody_Package.Anybody_Graph.Tools import save_all_active_figures
 
 import numpy as np
 
@@ -287,3 +288,115 @@ def graph_by_case_categories(data, case_categories, variable_x, variable_y, figu
 
         # Met le numéro de subplot à la première case de la bonne colomne (utile si une case est vide car il n'y a pas le même nombre de catégories entre les variables)
         subplot_Number = (Category_index + 1) * n_subplot_columns + 1
+
+
+def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs", save_graph=False, save_format="png", composante_on=False, **graph_parameters):
+
+    import os
+    import shutil
+
+    import matplotlib.pyplot as plt
+    folder_full_path = f"./{save_folder_path}/{save_folder_name}"
+
+    if save_graph:
+        if os.path.exists(folder_full_path):
+
+            raise ValueError(f"The folder :\n'{os.path.abspath(folder_full_path)}'\n already exists. Enter a folder that doesn't exist")
+
+        # Creates the folder in which the files are going to be saved
+        os.mkdir(folder_full_path)
+
+        # Closes all figures
+        plt.close("all")
+
+    def my_muscle_categories_graph(data, folder_path, save_graph=False, save_format="png", list_muscles_actifs=[], list_muscles_peu_actif=[], list_muscles_inactifs=[], CaseNames_3_BallAndSocket="", CaseNames_5_BallAndSocket="", composante_on=False, **graph_parameters):
+
+        import os
+        subfolder_name = "By Categories"
+        graph_files_name = "Muscle_category"
+        subfolder_path = f"{folder_path}/{subfolder_name}"
+
+        if composante_on:
+            figsize = [24, 18]
+            # insertion
+            composante = "Total"
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (Ft > 10N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (10 N > Ft > 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (Ft < 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+
+            composante = "Total_AP"
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (Ft > 10N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (10 N > Ft > 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (Ft < 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+
+            composante = "Total_IS"
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (Ft > 10N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (10 N > Ft > 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (Ft < 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+
+            composante = "Total_ML"
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (Ft > 10N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (10 N > Ft > 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "F insertion", f"Projected muscle force insertion {composante} (Ft < 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+
+            # Saves the figures in a sub folder insertion
+            if save_graph:
+                os.mkdir(subfolder_path)
+                save_all_active_figures(subfolder_path, "Insertion", graph_files_name, save_format)
+
+            # origin
+            composante = "Total"
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (Ft > 10N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (10 N > Ft > 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (Ft < 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+
+            composante = "Total_AP"
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (Ft > 10N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (10 N > Ft > 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (Ft < 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+
+            composante = "Total_IS"
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (Ft > 10N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (10 N > Ft > 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (Ft < 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+
+            composante = "Total_ML"
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (Ft > 10N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (10 N > Ft > 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "F origin", f"Projected muscle force origin {composante} (Ft < 5N)", composante_y=[composante], cases_on=CaseNames_3_BallAndSocket, **graph_parameters, same_lim=True, figsize=figsize)
+
+            # Saves the figures in a sub folder origine
+            if save_graph:
+                save_all_active_figures(subfolder_path, "Origine", graph_files_name, save_format)
+                print(f"Categories muscles figures saved in the folder : {os.path.abspath(folder_path)}/{subfolder_name}")
+
+        else:
+            figsize = [24, 14]
+
+            # Ft 9 cas
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "Ft", "Muscle Force (Ft > 10N)", cases_on=CaseNames_3_BallAndSocket, figsize=figsize, ylim=[0, 200], **graph_parameters)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "Ft", "Muscle Force (10 N > Ft > 5N)", cases_on=CaseNames_3_BallAndSocket, figsize=figsize, ylim=[0, 20], **graph_parameters)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "Ft", "Muscle Force (Ft < 5N)", cases_on=CaseNames_3_BallAndSocket, figsize=figsize, ylim=[0, 20], **graph_parameters)
+
+            # sans same_lim
+            # Ft 9 cas
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "Ft", "Muscle Force (Ft > 10N)", cases_on=CaseNames_3_BallAndSocket, figsize=figsize, **graph_parameters)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "Ft", "Muscle Force (10 N > Ft > 5N)", cases_on=CaseNames_3_BallAndSocket, figsize=figsize, **graph_parameters)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "Ft", "Muscle Force (Ft < 5N)", cases_on=CaseNames_3_BallAndSocket, figsize=figsize, **graph_parameters)
+
+            # Ft 25 cas
+            muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "Ft", "Muscle Force (Ft > 10N)", cases_on=CaseNames_5_BallAndSocket, figsize=figsize, ylim=[0, 200], **graph_parameters)
+            muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "Ft", "Muscle Force (10 N > Ft > 5N)", cases_on=CaseNames_5_BallAndSocket, figsize=figsize, ylim=[0, 20], **graph_parameters)
+            muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "Ft", "Muscle Force (Ft < 5N)", cases_on=CaseNames_5_BallAndSocket, figsize=figsize, ylim=[0, 20], **graph_parameters)
+
+            # Saves the figures in a sub folder
+            if save_graph:
+                save_all_active_figures(folder_path, subfolder_name, graph_files_name, save_format)
+                print(f"Categories muscles figures saved in the folder : {os.path.abspath(folder_path)}/{subfolder_name}")
+
+    # def my_muscle_force_by_categories_graph(data, folder_path, save_graph=False, save_format="png", CasesCate, **graph_parameters):
+
+    # Categories de muscles
+    my_muscle_categories_graph(data, folder_full_path, save_graph, composante_on=composante_on, **graph_parameters)
+
+    # Muscle par variables
