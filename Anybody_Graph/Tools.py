@@ -263,5 +263,5 @@ def save_all_active_figures(save_folder_path, folder_name, file_name, save_forma
     # Get all active figures and save them
     for i in plt.get_fignums():
         plt.figure(i)
-        plt.savefig(f"{subfolder_path}/Muscle_category_{i}.{save_format}")
+        plt.savefig(f"{subfolder_path}/Muscle_category_{i}.{save_format}", bbox_inches='tight')
     plt.close("all")
