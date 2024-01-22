@@ -1699,8 +1699,8 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
         graph_grid_setup(fig, last_subplot, **kwargs)
 
         # traces the axis labels
-        plt.xlabel("<-----Postérieur              Antérieur----->")
-        plt.ylabel("<----- Inférieur            Supérieur ----->")
+        plt.xlabel("<-----Posterior              Anterior----->")
+        plt.ylabel("<----- Inferior            Superior----->")
 
         # unsuperpose the annotations if activated
         if graph_annotation_on:

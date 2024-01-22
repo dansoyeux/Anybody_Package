@@ -424,12 +424,12 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
             muscle_graph_by_case_categories(data, CasesCategories_5_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total_IS"], figsize=figsize_5, muscle_part_on=False, same_lim=True, **graph_parameters)
             muscle_graph_by_case_categories(data, CasesCategories_5_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total_ML"], figsize=figsize_5, muscle_part_on=False, same_lim=True, **graph_parameters)
 
-            # F insertion
-            # 9 cas
-            muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
-            muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total_AP"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
-            muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total_IS"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
-            muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total_ML"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
+            # # F insertion
+            # # 9 cas
+            # muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
+            # muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total_AP"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
+            # muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total_IS"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
+            # muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F insertion", composante_y_muscle_combined=["Total_ML"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
 
             # Saves the figures in a sub folder insertion
             if save_graph:
@@ -442,12 +442,12 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
             muscle_graph_by_case_categories(data, CasesCategories_5_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total_IS"], figsize=figsize_5, muscle_part_on=False, same_lim=True, **graph_parameters)
             muscle_graph_by_case_categories(data, CasesCategories_5_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total_ML"], figsize=figsize_5, muscle_part_on=False, same_lim=True, **graph_parameters)
 
-            # F origin
-            # 9 cas
-            muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
-            muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total_AP"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
-            muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total_IS"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
-            muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total_ML"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
+            # # F origin
+            # # 9 cas
+            # muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
+            # muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total_AP"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
+            # muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total_IS"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
+            # muscle_graph_by_case_categories(data, CasesCategories_3_F, muscle_list_by_categories, "Abduction", "F origin", composante_y_muscle_combined=["Total_ML"], figsize=figsize_3, muscle_part_on=False, same_lim=True, **graph_parameters)
 
             # Saves the figures in a sub folder insertion
             if save_graph:
@@ -455,7 +455,6 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
 
         if save_graph:
             print(f"Muscles By categories figures saved in the folder : {os.path.abspath(folder_path)}/{subfolder_name}\n")
-
 
     def my_muscle_moment_arm_graph(data, folder_path, save_graph=False, save_format="png", CaseNames_3_categories_MA=[], CaseNames_5_categories_MA=[], CasesCategories_3_MA=None, CasesCategories_5_MA=None, muscle_list_by_categories=[], list_muscles_actifs=[], list_muscles_peu_actif=[], list_muscles_inactifs=[], **graph_parameters):
 
@@ -493,7 +492,7 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
     my_muscle_categories_graph(data, Ft_dir_path, save_graph, composante_on=composante_on, **graph_parameters)
 
     # Forces par variables
-    my_muscle_force_by_categories_graph(data, Ft_dir_path, save_graph, save_format="png", **graph_parameters)
+    my_muscle_force_by_categories_graph(data, Ft_dir_path, save_graph, composante_on=composante_on, save_format="png", **graph_parameters)
 
     # Moment arm
     my_muscle_moment_arm_graph(data, MA_dir_path, save_graph, save_format="png", **graph_parameters)
