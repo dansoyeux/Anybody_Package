@@ -661,7 +661,6 @@ def get_simulation_line_style(label):
 
 # %% Graph visual functions setup
 
-
 def define_COP_contour(COP_contourInputFileName, InputFileType):
     """
     Function that can be used to read a file containing the coordinates of the contour that is plot by the function COP_graph (COP_contour argument)
