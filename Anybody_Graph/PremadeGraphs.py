@@ -290,7 +290,7 @@ def graph_by_case_categories(data, case_categories, variable_x, variable_y, figu
         subplot_Number = (Category_index + 1) * n_subplot_columns + 1
 
 
-def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs", save_graph=False, save_format="png", composante_on=False, **graph_parameters):
+def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="./", save_folder_name="Saved_graphs", save_graph=False, save_format="png", composante_on=False, **graph_parameters):
 
     import os
 
@@ -314,14 +314,18 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
         # Closes all figures
         plt.close("all")
 
-    def my_muscle_categories_graph(data, folder_path, save_graph=False, save_format="png", list_muscles_actifs=[], list_muscles_peu_actif=[], list_muscles_inactifs=[], CaseNames_3_categories_F="", CaseNames_5_categories_MA="", composante_on=False, **graph_parameters):
+    def my_muscle_categories_graph(data, data_Ball_And_Socket, folder_path, save_graph=False, save_format="png", list_muscles_actifs=[], list_muscles_peu_actif=[], list_muscles_inactifs=[], CaseNames_3="", CaseNames_5="", composante_on=False, **graph_parameters):
 
-        import os
-        subfolder_name = "By Categories"
+        subfolder_name = "Muscle Categories"
         graph_files_name = "Muscle_category"
         subfolder_path = f"{folder_path}/{subfolder_name}"
 
         figsize = [24, 14]
+
+        data["Ball And Socket"] = data_Ball_And_Socket
+
+        CaseNames_3_categories_F = [*CaseNames_3, "Ball And Socket"]
+        CaseNames_5_categories_F = [*CaseNames_5, "Ball And Socket"]
 
         # Ft 9 cas
         muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "Ft", "Muscle Force (Ft > 10N)", cases_on=CaseNames_3_categories_F, figsize=figsize, ylim=[0, 200], **graph_parameters)
@@ -335,9 +339,9 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
         muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "Ft", "Muscle Force (Ft < 5N)", cases_on=CaseNames_3_categories_F, figsize=figsize, **graph_parameters)
 
         # Ft 25 cas
-        muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "Ft", "Muscle Force (Ft > 10N)", cases_on=CaseNames_5_categories_MA, figsize=figsize, ylim=[0, 200], **graph_parameters)
-        muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "Ft", "Muscle Force (10 N > Ft > 5N)", cases_on=CaseNames_5_categories_MA, figsize=figsize, ylim=[0, 20], **graph_parameters)
-        muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "Ft", "Muscle Force (Ft < 5N)", cases_on=CaseNames_5_categories_MA, figsize=figsize, ylim=[0, 20], **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "Ft", "Muscle Force (Ft > 10N)", cases_on=CaseNames_5_categories_F, figsize=figsize, ylim=[0, 200], **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "Ft", "Muscle Force (10 N > Ft > 5N)", cases_on=CaseNames_5_categories_F, figsize=figsize, ylim=[0, 20], **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "Ft", "Muscle Force (Ft < 5N)", cases_on=CaseNames_5_categories_F, figsize=figsize, ylim=[0, 20], **graph_parameters)
 
         # Saves the figures in a sub folder
         if save_graph:
@@ -396,9 +400,9 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
                 save_all_active_figures(subfolder_path, "Origine", graph_files_name, save_format)
 
         if save_graph:
-            print(f"Muscle Force categories figures saved in the folder : {os.path.abspath(folder_path)}/{subfolder_name}\n")
+            print("Muscle Force categories figures saved \n")
 
-    def my_muscle_force_by_categories_graph(data, folder_path, save_graph=False, save_format="png", CasesCategories_3_F=None, CasesCategories_5_F=None, composante_on=False, muscle_list_by_categories=[], **graph_parameters):
+    def my_muscle_force_by_categories_graph(data, data_Ball_And_Socket, folder_path, save_graph=False, save_format="png", CasesCategories_3=None, CasesCategories_5=None, composante_on=False, muscle_list_by_categories=[], **graph_parameters):
 
         figsize_3 = [14, 13]
         figsize_5 = [24, 14]
@@ -406,6 +410,23 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
         subfolder_name = "By Variables"
         graph_files_name = "By_Variable"
         subfolder_path = f"{folder_path}/{subfolder_name}"
+
+        data["Ball And Socket"] = data_Ball_And_Socket
+
+        CasesCategories_3_F = {}
+        CasesCategories_5_F = {}
+
+        # adds Ball And Socket to the case categories
+        for line_name, line in CasesCategories_3.items():
+            CasesCategories_3_F[line_name] = {}
+            for column_name, column in line.items():
+                CasesCategories_3_F[line_name][column_name] = [*column, "Ball And Socket"]
+
+        # adds Ball And Socket to the case categories
+        for line_name, line in CasesCategories_5.items():
+            CasesCategories_5_F[line_name] = {}
+            for column_name, column in line.items():
+                CasesCategories_5_F[line_name][column_name] = [*column, "Ball And Socket"]
 
         # Seulement le total
         muscle_graph_by_case_categories(data, CasesCategories_5_F, muscle_list_by_categories, "Abduction", "Ft", composante_y_muscle_combined=["Total"], figsize=figsize_5, muscle_part_on=False, same_lim=True, **graph_parameters)
@@ -454,46 +475,143 @@ def my_muscle_graphs(data, save_folder_path="./", save_folder_name="Saved_graphs
                 save_all_active_figures(subfolder_path, "Origine", graph_files_name, save_format)
 
         if save_graph:
-            print(f"Muscles By categories figures saved in the folder : {os.path.abspath(folder_path)}/{subfolder_name}\n")
+            print("Muscles Muscle Categories figures saved\n")
 
-    def my_muscle_moment_arm_graph(data, folder_path, save_graph=False, save_format="png", CaseNames_3_categories_MA=[], CaseNames_5_categories_MA=[], CasesCategories_3_MA=None, CasesCategories_5_MA=None, muscle_list_by_categories=[], list_muscles_actifs=[], list_muscles_peu_actif=[], list_muscles_inactifs=[], **graph_parameters):
+    def my_muscle_moment_arm_graph(data, folder_path, save_graph=False, save_format="png", CaseNames_3=[], CaseNames_5=[], CasesCategories_3=None, CasesCategories_5=None, muscle_list_by_categories=[], list_muscles_actifs=[], list_muscles_peu_actif=[], list_muscles_inactifs=[], **graph_parameters):
 
         figsize_3 = [14, 13]
         figsize_5 = [24, 14]
 
-        subfolder_name = "Moment arm"
+        # subfolder_name = "Moment arm"
         graph_files_name = "Moment_arm"
-        subfolder_path = f"{folder_path}/{subfolder_name}"
+        # subfolder_path = f"{folder_path}/{subfolder_name}"
 
         figsize = [24, 14]
 
         # Ft 9 cas
-        muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "MomentArm", "Moment Arm (Ft > 10N)", composante_y=["Mean"], cases_on=CaseNames_3_categories_MA, figsize=figsize, same_lim=True, **graph_parameters)
-        muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "MomentArm", "Moment Arm (10 N > Ft > 5N)", composante_y=["Mean"], cases_on=CaseNames_3_categories_MA, figsize=figsize, same_lim=True, **graph_parameters)
-        muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "MomentArm", "Moment Arm (Ft < 5N)", composante_y=["Mean"], cases_on=CaseNames_3_categories_MA, figsize=figsize, same_lim=True, **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "MomentArm", "Moment Arm (Ft > 10N)", composante_y=["Mean"], cases_on=CaseNames_3, figsize=figsize, same_lim=True, **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "MomentArm", "Moment Arm (10 N > Ft > 5N)", composante_y=["Mean"], cases_on=CaseNames_3, figsize=figsize, same_lim=True, **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "MomentArm", "Moment Arm (Ft < 5N)", composante_y=["Mean"], cases_on=CaseNames_3, figsize=figsize, same_lim=True, **graph_parameters)
 
         # Ft 25 cas
-        muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "MomentArm", "Moment Arm (Ft > 10N)", composante_y=["Mean"], cases_on=CaseNames_5_categories_MA, figsize=figsize, same_lim=True, **graph_parameters)
-        muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "MomentArm", "Moment Arm (10 N > Ft > 5N)", composante_y=["Mean"], cases_on=CaseNames_5_categories_MA, figsize=figsize, same_lim=True, **graph_parameters)
-        muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "MomentArm", "Moment Arm (Ft < 5N)", composante_y=["Mean"], cases_on=CaseNames_5_categories_MA, figsize=figsize, same_lim=True, **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_actifs, [4, 3], "Abduction", "MomentArm", "Moment Arm (Ft > 10N)", composante_y=["Mean"], cases_on=CaseNames_5, figsize=figsize, same_lim=True, **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_peu_actif, [1, 3], "Abduction", "MomentArm", "Moment Arm (10 N > Ft > 5N)", composante_y=["Mean"], cases_on=CaseNames_5, figsize=figsize, same_lim=True, **graph_parameters)
+        muscle_graph_from_list(data, list_muscles_inactifs, [3, 3], "Abduction", "MomentArm", "Moment Arm (Ft < 5N)", composante_y=["Mean"], cases_on=CaseNames_5, figsize=figsize, same_lim=True, **graph_parameters)
+
+        if save_graph:
+            save_all_active_figures(folder_path, "Muscle Categories", graph_files_name, save_format)
+
+        # Seulement le total
+        muscle_graph_by_case_categories(data, CasesCategories_3, muscle_list_by_categories, "Abduction", "MomentArm", composante_y_muscle_combined=["Mean"], figsize=figsize_5, muscle_part_on=False, same_lim=True, **graph_parameters)
+
+        if save_graph:
+            save_all_active_figures(folder_path, "By Variables", graph_files_name, save_format)
+            print("Moment Arms figures saved\n")
+
+    def my_COP_graph(data, folder_path, save_graph=False, save_format="png", CasesCategories_3=None, CasesCategories_5=None, **graph_parameters):
+
+        subfolder_name = "COP"
+        graph_files_name = "COP"
+        # subfolder_path = f"{folder_path}/{subfolder_name}"
+
+        COP_graph_parameters = graph_parameters.copy()
+        COP_graph_parameters["xlim"] = [-15, 15]
+        COP_graph_parameters["ylim"] = [-15, 15]
+        COP_graph_parameters["grid_x_step"] = 5
+
+        figsize_3 = [14, 13]
+        figsize_5 = [24, 14]
+
+        annotation_offset = [0.8, -3.1]
+
+        COP_graph_by_case_categories(data, CasesCategories_5, figure_title="Position du centre de pression", variable="COP", composantes=["AP", "IS"], figsize=figsize_5, annotation_offset=annotation_offset, **COP_graph_parameters)
+        COP_graph_by_case_categories(data, CasesCategories_3, figure_title="Position du centre de pression", variable="COP", composantes=["AP", "IS"], figsize=figsize_3, annotation_offset=annotation_offset, **COP_graph_parameters)
+
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "COP", "COP en AP", composante_y=["AP"], figsize=figsize_5, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "COP", "COP en IS", composante_y=["IS"], figsize=figsize_5, same_lim=True, **graph_parameters)
+
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "COP", "COP en AP", composante_y=["AP"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "COP", "COP en IS", composante_y=["IS"], figsize=figsize_3, same_lim=True, **graph_parameters)
+
+        if save_graph:
+            save_all_active_figures(folder_path, subfolder_name, graph_files_name, save_format)
+            print("COP figures saved\n")
+
+    def my_FContact_graph(data, literature_data, folder_path, save_graph=False, save_format="png", CaseNames_3=None, CaseNames_5=None, CasesCategories_3=None, CasesCategories_5=None, **graph_parameters):
+
+        subfolder_name = "ForceContact"
+        graph_files_name = "ForceContact"
+        subfolder_path = f"{folder_path}/{subfolder_name}"
+
+        figsize_3 = [14, 13]
+        figsize_5 = [24, 14]
+
+        data_Bergmann = data.copy()
+        data_Bergmann["Bergmann 2007"] = literature_data["ForceContact"]["Bergmann 2007"]
+        CaseNames_3_Bergmann = [*CaseNames_3, "Bergmann 2007"]
+
+        CasesCategories_3_Bergmann = {}
+        CasesCategories_5_Bergmann = {}
+
+        # adds Bergmann to the case categories
+        for line_name, line in CasesCategories_3.items():
+            CasesCategories_3_Bergmann[line_name] = {}
+            for column_name, column in line.items():
+                CasesCategories_3_Bergmann[line_name][column_name] = [*column, "Bergmann 2007"]
+
+        # adds Bergmann to the case categories
+        for line_name, line in CasesCategories_5.items():
+            CasesCategories_5_Bergmann[line_name] = {}
+            for column_name, column in line.items():
+                CasesCategories_5_Bergmann[line_name][column_name] = [*column, "Bergmann 2007"]
+
+        # Comparé à bergmann
+        # Graph simple
+        graph(data_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 1}, subplot_title="Total", composante_y=["Total"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 2}, subplot_title="AP", composante_y=["AP"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 3}, subplot_title="IS", composante_y=["IS"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 4}, subplot_title="ML", composante_y=["ML"], **graph_parameters)
+
+        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant Total", composante_y=["Total"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant AP", composante_y=["AP"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant IS", composante_y=["IS"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant ML", composante_y=["ML"], figsize=figsize_3, same_lim=True, **graph_parameters)
 
         if save_graph:
             os.mkdir(subfolder_path)
-            save_all_active_figures(subfolder_path, "By Categories", graph_files_name, save_format)
+            save_all_active_figures(subfolder_path, "Comparaison Bergmann", graph_files_name, save_format)
 
-        # Seulement le total
-        muscle_graph_by_case_categories(data, CasesCategories_5_MA, muscle_list_by_categories, "Abduction", "MomentArm", composante_y_muscle_combined=["Mean"], figsize=figsize_5, muscle_part_on=False, same_lim=True, **graph_parameters)
+        # Repère glene
+        # Graph simple
+        graph(data_Bergmann, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 1}, subplot_title="Total", composante_y=["Total"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 2}, subplot_title="AP", composante_y=["AP"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 3}, subplot_title="IS", composante_y=["IS"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 4}, subplot_title="ML", composante_y=["ML"], **graph_parameters)
+
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant Total", composante_y=["Total"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant AP", composante_y=["AP"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant IS", composante_y=["IS"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant ML", composante_y=["ML"], figsize=figsize_3, same_lim=True, **graph_parameters)
+
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant Total", composante_y=["Total"], figsize=figsize_5, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant AP", composante_y=["AP"], figsize=figsize_5, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant IS", composante_y=["IS"], figsize=figsize_5, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant ML", composante_y=["ML"], figsize=figsize_5, same_lim=True, **graph_parameters)
 
         if save_graph:
-            save_all_active_figures(subfolder_path, "By Variables", graph_files_name, save_format)
-            print(f"Moment Arms figures saved in the folder : {os.path.abspath(folder_path)}/{subfolder_name}\n")
+            save_all_active_figures(subfolder_path, "Repère glene", graph_files_name, save_format)
+            print("ForceContact figures saved\n")
 
     # # Categories de muscles
-    my_muscle_categories_graph(data, Ft_dir_path, save_graph, composante_on=composante_on, **graph_parameters)
+    my_muscle_categories_graph(data, data_Ball_And_Socket, Ft_dir_path, save_graph, composante_on=composante_on, **graph_parameters)
 
     # Forces par variables
-    my_muscle_force_by_categories_graph(data, Ft_dir_path, save_graph, composante_on=composante_on, save_format="png", **graph_parameters)
+    my_muscle_force_by_categories_graph(data, data_Ball_And_Socket, Ft_dir_path, save_graph, composante_on=composante_on, save_format="png", **graph_parameters)
 
     # Moment arm
     my_muscle_moment_arm_graph(data, MA_dir_path, save_graph, save_format="png", **graph_parameters)
 
+    # COP
+    my_COP_graph(data, folder_full_path, save_graph, save_format="png", **graph_parameters)
+
+    my_FContact_graph(data, literature_data, folder_full_path, save_graph, save_format="png", **graph_parameters)
