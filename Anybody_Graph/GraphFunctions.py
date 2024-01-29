@@ -1646,11 +1646,12 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
 
     # Draws a contour only if there is one and sets the axis to be of equal ratio to keep the shape of the contour
     if COP_contour is not None:
+
         plt.plot(COP_contour[:, 0], COP_contour[:, 1], color='tab:blue')
 
         # Sets the aspect ratio between x and y axis to be equal
         # And makes the axis sizes adjustable
-        plt.gca().set_aspect('equal', adjustable="datalim")
+        plt.gca().set_aspect('equal', adjustable="box")
 
     # Selects the data to graph
     x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)

@@ -475,7 +475,7 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="./"
                 save_all_active_figures(subfolder_path, "Origine", graph_files_name, save_format)
 
         if save_graph:
-            print("Muscles Muscle Categories figures saved\n")
+            print("Muscles by Muscle Categories figures saved\n")
 
     def my_muscle_moment_arm_graph(data, folder_path, save_graph=False, save_format="png", CaseNames_3=[], CaseNames_5=[], CasesCategories_3=None, CasesCategories_5=None, muscle_list_by_categories=[], list_muscles_actifs=[], list_muscles_peu_actif=[], list_muscles_inactifs=[], **graph_parameters):
 
@@ -515,17 +515,22 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="./"
         # subfolder_path = f"{folder_path}/{subfolder_name}"
 
         COP_graph_parameters = graph_parameters.copy()
-        COP_graph_parameters["xlim"] = [-15, 15]
-        COP_graph_parameters["ylim"] = [-15, 15]
-        COP_graph_parameters["grid_x_step"] = 5
+        COP_graph_parameters["xlim"] = None
+        COP_graph_parameters["ylim"] = None
+        COP_graph_parameters["grid_x_step"] = None
+        COP_graph_parameters["grid_y_step"] = None
 
         figsize_3 = [14, 13]
         figsize_5 = [24, 14]
 
-        annotation_offset = [0.8, -3.1]
+        COP_graph_parameters["annotation_offset"] = [0.8, -2.1]
+        COP_graph_parameters["annotation_reference_offset"] = [1, 3]
 
-        COP_graph_by_case_categories(data, CasesCategories_5, figure_title="Position du centre de pression", variable="COP", composantes=["AP", "IS"], figsize=figsize_5, annotation_offset=annotation_offset, **COP_graph_parameters)
-        COP_graph_by_case_categories(data, CasesCategories_3, figure_title="Position du centre de pression", variable="COP", composantes=["AP", "IS"], figsize=figsize_3, annotation_offset=annotation_offset, **COP_graph_parameters)
+        COP_graph_by_case_categories(data, CasesCategories_5, figure_title="Position du centre de pression", variable="COP", composantes=["AP", "IS"], figsize=figsize_5, **COP_graph_parameters)
+        COP_graph_by_case_categories(data, CasesCategories_3, figure_title="Position du centre de pression", variable="COP", composantes=["AP", "IS"], figsize=figsize_3, **COP_graph_parameters)
+
+        COP_graph_by_case_categories(data, CasesCategories_5, figure_title="Position du centre de pression", variable="COP", composantes=["AP", "IS"], figsize=figsize_5, **COP_graph_parameters, graph_annotation_on=False)
+        COP_graph_by_case_categories(data, CasesCategories_3, figure_title="Position du centre de pression", variable="COP", composantes=["AP", "IS"], figsize=figsize_3, **COP_graph_parameters, graph_annotation_on=False)
 
         graph_by_case_categories(data, CasesCategories_5, "Abduction", "COP", "COP en AP", composante_y=["AP"], figsize=figsize_5, same_lim=True, **graph_parameters)
         graph_by_case_categories(data, CasesCategories_5, "Abduction", "COP", "COP en IS", composante_y=["IS"], figsize=figsize_5, same_lim=True, **graph_parameters)
@@ -614,4 +619,5 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="./"
     # COP
     my_COP_graph(data, folder_full_path, save_graph, save_format="png", **graph_parameters)
 
+    # ForceContact
     my_FContact_graph(data, literature_data, folder_full_path, save_graph, save_format="png", **graph_parameters)
