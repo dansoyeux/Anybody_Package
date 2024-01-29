@@ -621,3 +621,7 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="./"
 
     # ForceContact
     my_FContact_graph(data, literature_data, folder_full_path, save_graph, save_format="png", **graph_parameters)
+
+    if save_graph:
+        abs_path = os.path.abspath(folder_full_path)
+        print(f"All graph were succesfully saved in:\n{abs_path}\n")
