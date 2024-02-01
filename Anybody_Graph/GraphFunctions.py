@@ -137,6 +137,8 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
         # Defines the COP points function settings
         COP_points_variable = kwargs.get("COP_points_variable", "Abduction")
         COP_points_composante = kwargs.get("COP_points_composante", "Total")
+        COP_first_point_size = kwargs.get("COP_first_point_size", 10)
+        COP_first_point_mew = kwargs.get("COP_first_point_mew", 2.5)
 
         # Step de déplacement angulaire où les points seront tracés par la fonction draw_COP_points
         COP_points_step = kwargs.get("COP_points_step", 15)
@@ -144,10 +146,16 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
         # Liste des angles de déplacement
         COP_points_coordinates = data[COP_points_variable][COP_points_composante]
 
+        # Draws a cross as the first point
+        CaseColor = plt.gca().lines[-1].get_color()
+        plt.plot(x[0], y[0], '+', color=CaseColor, markersize=COP_first_point_size, mew=COP_first_point_mew)
+        
+
         # Dessine le COP de début et d'autres points intermédiaires tous les x° d'angles de déplacement (COP_points_step)
         # Seulement si activé
         if draw_COP_points_on:
-            draw_COP_points(COP_points_coordinates, x, y, COP_points_step)
+            COP_points_size = kwargs.get("COP_points_size", 8)
+            draw_COP_points(COP_points_coordinates, x, y, COP_points_step, CaseColor, COP_points_size)
 
         """
         CODE PERSONNEL POUR TRACER LES POINTS ORIGINE GHREACTIONS
@@ -506,7 +514,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
         axe.set_yticks(np.arange(min_lim, max_lim + grid_y_step, grid_y_step))
 
-    # only executes this function if at least one of these arguments are entered
+    # It refresges the grid if any of these parameters that can change the graduation were entered
     if not any([xlim, ylim, grid_x_step, grid_y_step, same_lim]):
         plt.grid(visible=True)
         return
@@ -833,7 +841,7 @@ def draw_graph_annotation(annotation_values, x, y, **kwargs):
                      color="black")
 
 
-def draw_COP_points(coordinates, x, y, points_step):
+def draw_COP_points(coordinates, x, y, points_step, CaseColor, COP_points_size=8):
     """
     Shows where is the COP at t=0s
     And draws a point where the COP is during the movement
@@ -848,8 +856,6 @@ def draw_COP_points(coordinates, x, y, points_step):
     Le script détect l'angle de début et de fin
 
     """
-
-    CaseColor = plt.gca().lines[-1].get_color()
 
     def find_closest_number(Array, Number):
         """
@@ -886,8 +892,8 @@ def draw_COP_points(coordinates, x, y, points_step):
     xSelection = x[Indexes]
     ySelection = y[Indexes]
 
-    plt.plot(x[0], y[0], '+', color=CaseColor, markersize=10, mew=2.5)
-    plt.plot(xSelection, ySelection, ".", color=CaseColor, markersize=8)
+    # plt.plot(x[0], y[0], '+', color=CaseColor, markersize=10, mew=2.5)
+    plt.plot(xSelection, ySelection, ".", color=CaseColor, markersize=COP_points_size)
 
 # %% Graph functions
 
