@@ -290,8 +290,8 @@ def graph_by_case_categories(data, case_categories, variable_x, variable_y, figu
         subplot_Number = (Category_index + 1) * n_subplot_columns + 1
 
 
-def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="./", save_folder_name="Saved_graphs", save_graph=False, save_format="png", composante_on=False, **graph_parameters):
-
+def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="", save_folder_name="Saved_graphs", save_graph=False, save_format="png", composante_on=False, **graph_parameters):
+    """For now, save_folder_path is a relative path (that's why we add "./" at the beginning )"""
     import os
 
     import matplotlib.pyplot as plt
