@@ -607,7 +607,21 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="", 
             save_all_active_figures(subfolder_path, "Repère glene", graph_files_name, save_format)
             print("ForceContact figures saved\n")
 
-    # # Categories de muscles
+    def my_FDKForceError(data, folder_path, save_graph=False, save_format="png", CasesCategories_3=None, CasesCategories_5=None, **graph_parameters):
+        subfolder_name = "FDKForceTolError"
+        graph_files_name = "FDKForceTolError"
+        # subfolder_path = f"{folder_path}/{subfolder_name}"
+
+        # figsize_3 = [14, 13]
+        # figsize_5 = [24, 14]
+
+        graph(data, "Abduction", "ForceTolError", "FDK Force Tolerence error", cases_on="all", subplot={"dimension": [2, 2], "number": 1}, subplot_title="Total", composante_y=["Total"], **graph_parameters)
+
+        if save_graph:
+            save_all_active_figures(folder_path, subfolder_name, graph_files_name, save_format)
+            print("FDK ForceTolerance figures saved\n")
+
+    # Categories de muscles
     my_muscle_categories_graph(data, data_Ball_And_Socket, Ft_dir_path, save_graph, composante_on=composante_on, **graph_parameters)
 
     # Forces par variables
@@ -621,6 +635,8 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="", 
 
     # ForceContact
     my_FContact_graph(data, literature_data, folder_full_path, save_graph, save_format="png", **graph_parameters)
+
+    my_FDKForceError(data, folder_full_path, save_graph, save_format="png", **graph_parameters)
 
     if save_graph:
         abs_path = os.path.abspath(folder_full_path)

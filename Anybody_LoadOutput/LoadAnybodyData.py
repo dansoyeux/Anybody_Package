@@ -299,18 +299,41 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", OutputDictionary=Tru
 
     # rotates the vector if rotation_matrix_path has been declared
     if rotation_matrix_path:
-        if CleanOutput.ndim == 2:
-            # get the rotation matrix if it exists in the h5Data
-            if rotation_matrix_path in h5Data:
-                rotation_matrix = np.array(h5Data[rotation_matrix_path])
 
+        # get the rotation matrix if it exists in the h5Data
+        if rotation_matrix_path in h5Data:
+            rotation_matrix = np.array(h5Data[rotation_matrix_path])
+
+        else:
+            print(f"The rotation matrix : {rotation_matrix_path} n'existe pas dans le fichier h5 : {FilePath}")
+
+        # If the array stores vectors
+        if CleanOutput.ndim == 2:
+
+            # If the vector is 3D
+            if len(CleanOutput[0]) == 3:
+                # applies the rotation matrix
                 CleanOutput = transform_vector(CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
 
+            # If it is 2D, transforms it in 3D and stores zeros in the last column
+            elif len(CleanOutput[0]) == 2:
+                zeroes_column = np.zeros([len(CleanOutput), 1])
+                # adds a column of zeros as the 3rd vector component
+                CleanOutput = np.append(CleanOutput, zeroes_column, axis=1)
+
+                CleanOutput = transform_vector(CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
             else:
-                print(f"The rotation matrix : {rotation_matrix_path} n'existe pas dans le fichier h5 : {FilePath}")
-        # if the array isn't a vector, it cannot be transformed
+                raise ValueError(f"The variable : '{VariablePath}' must be a vector with a maximum of 3 dimension ({len(len(CleanOutput[0]))} dimensions were entered). \nIt cannot be rotated by using the argument 'rotation_matrix_path' otherwise")
+
+        # if the array isn't a vector but a scalar, it is transformed as if it was a 3D vector with only the x coordinates non zeroes
         else:
-            raise ValueError(f"The variable : '{VariablePath}' isn't a vector, so it cannot be rotated by using the argument 'rotation_matrix_path'")
+
+            vectorized_CleanOutput = np.zeros([len(CleanOutput), 3])
+            # The first component of the 3d vector is the scalar
+            vectorized_CleanOutput[:, 0] = CleanOutput
+
+            # applies the rotation matrix
+            CleanOutput = transform_vector(vectorized_CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
 
     # Mise en forme du dictionnaire output si activé
     if OutputDictionary:

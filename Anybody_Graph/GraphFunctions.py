@@ -1676,8 +1676,8 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
             legend_setup(fig, graph_type, **kwargs)
 
         # traces the axis labels
-        plt.xlabel("<-----Posterior              Anterior----->")
-        plt.ylabel("<----- Inferior            Superior----->")
+        plt.xlabel("<-----Posterior        Anterior----->")
+        plt.ylabel("<----- Inferior        Superior----->")
 
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, **kwargs)
@@ -1704,9 +1704,8 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, last_subplot, **kwargs)
 
-        # traces the axis labels
-        plt.xlabel("<-----Posterior              Anterior----->")
-        plt.ylabel("<----- Inferior            Superior----->")
+        plt.xlabel("<-----Posterior        Anterior----->")
+        plt.ylabel("<----- Inferior        Superior----->")
 
         # unsuperpose the annotations if activated
         if graph_annotation_on:
@@ -2807,8 +2806,9 @@ def COP_graph_old(data, COP_contour=None, variable="COP", figure_title="", compo
                 plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x], data[Simulation][cases_on[0]][variable_y]
                                      [composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
 
-    plt.xlabel("<-----Postérieur              Antérieur----->")
-    plt.ylabel("<----- Inférieur            Supérieur ----->")
+    # traces the axis labels
+    plt.xlabel("<-----Posterior        Anterior----->")
+    plt.ylabel("<----- Inferior        Superior----->")
 
     if subplot is None:
         plt.title(figure_title)
