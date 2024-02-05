@@ -514,6 +514,16 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
         axe.set_yticks(np.arange(min_lim, max_lim + grid_y_step, grid_y_step))
 
+    # Checks xlim= [min_x_value, max_x_value]
+    if xlim:
+        if xlim[0] > xlim[1]:
+            raise ValueError(f"For graph xlim={xlim}, the first limit must be lower than the second one")
+
+    # Checks ylim= [min_y_value, max_y_value]
+    if ylim:
+        if ylim[0] > ylim[1]:
+            raise ValueError(f"For graph ylim={ylim}, the first limit must be lower than the second one")
+
     # It refresges the grid if any of these parameters that can change the graduation were entered
     if not any([xlim, ylim, grid_x_step, grid_y_step, same_lim]):
         plt.grid(visible=True)
@@ -585,10 +595,16 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
             # sets the x axis new limits
             if xlim:
+                # Checks xlim= [min_x_value, max_x_value]
+                if xlim[0] > xlim[1]:
+                    raise ValueError(f"For graph xlim={xlim}, the first limit must be lower than the second one!")
                 axe.set_xlim(xlim[0], xlim[1])
 
             # Sets the y axis new limits
             if ylim:
+                # Checks ylim= [min_y_value, max_y_value]
+                if ylim[0] > ylim[1]:
+                    raise ValueError(f"For graph ylim={ylim}, the first limit must be lower than the second one!")
                 axe.set_ylim(ylim[0], ylim[1])
 
             if grid_x_step:
