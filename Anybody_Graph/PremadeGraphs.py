@@ -515,10 +515,10 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="", 
         # subfolder_path = f"{folder_path}/{subfolder_name}"
 
         COP_graph_parameters = graph_parameters.copy()
-        COP_graph_parameters["xlim"] = None
-        COP_graph_parameters["ylim"] = None
-        COP_graph_parameters["grid_x_step"] = None
-        COP_graph_parameters["grid_y_step"] = None
+        COP_graph_parameters["xlim"] = [-15, 15]
+        COP_graph_parameters["ylim"] = [-20, 20]
+        COP_graph_parameters["grid_x_step"] = 5
+        COP_graph_parameters["grid_y_step"] = 5
 
         figsize_3 = [14, 13]
         figsize_5 = [24, 14]
