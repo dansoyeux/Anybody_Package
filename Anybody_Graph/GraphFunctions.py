@@ -857,18 +857,18 @@ def draw_graph_annotation(annotation_values, x, y, **kwargs):
                      color="black")
 
 
-def draw_COP_points(coordinates, x, y, points_step, CaseColor, COP_points_size=8):
+def draw_COP_points(coordinates, x, y, COP_points_step, CaseColor, COP_points_size=8):
     """
     Shows where is the COP at t=0s
     And draws a point where the COP is during the movement
 
     coordinates : Liste ou array contenant l'angle de déplacement angulaire étudié
 
-    points_step spécifie tous les combien de degré d'abduction un point doit être tracé
+    COP_points_step spécifie tous les combien de degré d'abduction un point doit être tracé
         Type = int
 
 
-    Exemple : points_step = 15 : Le COP sera tracé tous les 15° [15, 30, 45, 60....] environ en trouvant les données correspondant aux angles les plus proches
+    Exemple : COP_points_step = 15 : Le COP sera tracé tous les 15° [15, 30, 45, 60....] environ en trouvant les données correspondant aux angles les plus proches
     Le script détect l'angle de début et de fin
 
     """
@@ -896,7 +896,7 @@ def draw_COP_points(coordinates, x, y, points_step, CaseColor, COP_points_size=8
 
     # Parcours les valeurs d'angles de la valeur minimale à maximale, avec un pas spécifié
     # Ne sélectionne pas la valeur minimale ni la valeur maximale
-    for Angle in range(int(min(coordinates)) + points_step, int(max(coordinates)), points_step):
+    for Angle in range(int(min(coordinates)) + COP_points_step, int(max(coordinates)), COP_points_step):
 
         # Trouve la valeur dans la liste d'angle qui est la plus proche de l'angle voulu et sa position dans la liste
         ClosestNumber, NumberIndex = find_closest_number(coordinates, Angle)
