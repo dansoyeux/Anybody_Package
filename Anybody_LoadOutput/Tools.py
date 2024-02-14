@@ -90,7 +90,7 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
     if Array.ndim == 2 and Array.shape[1] == 1:
         Array = Array.flatten()
 
-    # If the array is a matrix but it has only one column or one line for each timesteps, recizes it to a 2D array
+    # If the array is a matrix but it has only one column or one line for each timesteps, recize it to a 2D array
     if Array.ndim == 3:
         # Only one column
         if Array.shape[1] == 1:
@@ -99,8 +99,6 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
         # Only one line
         elif Array.shape[2] == 1:
             Array = Array[:, :, 0]
-
-
 
     # If the output is a vector (ndim=1) or has only one column, puts the output in total and no components are created
     if Array.ndim == 1 or Array.shape[1] == 1:
