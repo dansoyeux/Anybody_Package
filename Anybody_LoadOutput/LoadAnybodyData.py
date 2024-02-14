@@ -42,7 +42,7 @@ def Loadh5File(FilePath, Failed=False, GHReactionsShape=False, AddConstants=Fals
     try:
         h5Data = h5py2.File(file_full_name, "r")
     except OSError:
-        raise ValueError(f"The file doesn't exist or is damaged and wasn't posible to be opened : \n{FilePath}\nCheck the directory path or the file name or that the h5 file's name finishes with .anydata")
+        raise ValueError(f"The file doesn't exist or is damaged and wasn't posible to be opened : \n{file_full_name}\nCheck the directory path or the file name or that the h5 file's name finishes with .anydata")
 
     h5File = {"FilePath": FilePath, "Failed": Failed, "h5Data": h5Data,
               "GHReactions": GHReactionsShape}
