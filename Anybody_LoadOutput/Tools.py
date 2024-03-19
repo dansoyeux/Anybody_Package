@@ -119,10 +119,10 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
         else:
             Composante = SequenceComposantes[0]
 
-        # Stores the vector without the nan values and keeps the original shape
-        VariableOutput[Composante] = Array[~np.isnan(Array)].reshape(Array.shape) * MultiplyFactor
+        # Stores the vector
+        VariableOutput[Composante] = Array * MultiplyFactor
 
-        np.isfinite
+        # np.isfinite
         VariableOutput["SequenceComposantes"].append(Composante)
 
         # error message
@@ -186,9 +186,8 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
 
         # Parcours le nom des composantes dans l'ordre spécifié
         # Et multiplie par le facteur multiplicatif de la composante
-        # And deletes nan values
         for col, Composante in enumerate(SequenceComposantes):
-            VariableOutput[Composante] = Array[:, col][~np.isnan(Array[:, col])] * MultiplyFactor * Composantes_MultiplyFactor[col]
+            VariableOutput[Composante] = Array[:, col] * MultiplyFactor * Composantes_MultiplyFactor[col]
 
         # Stores the variable component sequence
         VariableOutput["SequenceComposantes"] = [*VariableOutput["SequenceComposantes"], *SequenceComposantes]

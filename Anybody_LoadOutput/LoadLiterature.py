@@ -125,7 +125,6 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
     # Checks that all the variables names entered on the variable data column match the name of the variable name
     variable_x_name_error_index = variable_x_columns[variable_x_columns != variable_x_name].index.values
     variable_y_name_error_index = variable_y_columns[variable_y_columns != variable_y_name].index.values
-    # variable_y_name_error_index = variable_line[(variable_line.loc[variable_x_index] != variable_x_name) & (variable_line != variable_y_name)].index.values
 
     # if error on x
     if not variable_x_name_error_index.size == 0:
@@ -188,6 +187,14 @@ def variable_data_frame_to_dictionary(ExcelFile, variable_dataframe, variable_in
     # Transforms the obtained arrays to a dictionary and doesn't calculate the total because the x array can be different across the y data components
     variable_x_dictionary = array_to_dictionary(variable_x_array, **loaded_variables[variable_x_name], total_on=False)
     variable_y_dictionary = array_to_dictionary(variable_y_array, **loaded_variables[variable_y_name], total_on=False)
+
+    # deletes Nan values in x and y dictionary
+    
+    for composante_x in variable_y_component_sequence:
+        variable_x_dictionary[composante_x] = variable_x_dictionary[composante_x][~np.isnan(variable_x_dictionary[composante_x])]
+    
+    for composante_y in variable_y_component_sequence:
+        variable_y_dictionary[composante_y] = variable_y_dictionary[composante_y][~np.isnan(variable_y_dictionary[composante_y])]
 
     return variable_x_dictionary, variable_y_dictionary, loaded_variables
 
