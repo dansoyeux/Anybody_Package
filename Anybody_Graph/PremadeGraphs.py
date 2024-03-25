@@ -615,7 +615,7 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="", 
         # figsize_3 = [14, 13]
         # figsize_5 = [24, 14]
 
-        graph(data, "Abduction", "ForceTolError", "FDK Force Tolerence error", cases_on="all", subplot={"dimension": [2, 2], "number": 1}, subplot_title="Total", composante_y=["Total"], **graph_parameters)
+        graph(data, "Abduction", "ForceTolError", "FDK Force Tolerence error", cases_on="all", composante_y=["Total"], **graph_parameters)
 
         if save_graph:
             save_all_active_figures(folder_path, subfolder_name, graph_files_name, save_format)
