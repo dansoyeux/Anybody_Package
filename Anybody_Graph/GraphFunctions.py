@@ -492,27 +492,42 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
     """
 
     # sub-modules used to set axes ticks
-    def set_xticks(axe, graph_xlim, grid_x_step):
+    def set_axis_properties(axe, xlim, ylim, grid_x_step, grid_y_step):
         """
-        function to set the xticks according to the grid_x_step argument
+        function to set the x and y axis properties (space between the ticks and the limits of the axis)
         and rounds the ticks to the nearest number dividable by the entered grid step
         """
-        # rounds the lim to the nearest number dividable by the entered grid step
-        min_lim = math.ceil(graph_xlim[0] / grid_x_step) * grid_x_step
-        max_lim = math.ceil(graph_xlim[1] / grid_x_step) * grid_x_step
 
-        axe.set_xticks(np.arange(min_lim, max_lim + grid_x_step, grid_x_step))
+        # gets the automatic x axis limits if no limit have been set manually
+        if not xlim:
+            xlim = axe.get_xlim()
 
-    def set_yticks(axe, graph_ylim, grid_y_step):
-        """
-        function to set the yticks according to the grid_x_step argument
-        and rounds the ticks to the nearest number dividable by the entered grid step
-        """
-        # rounds the lim to the nearest number dividable by the entered grid step
-        min_lim = math.ceil(graph_ylim[0] / grid_y_step) * grid_y_step
-        max_lim = math.ceil(graph_ylim[1] / grid_y_step) * grid_y_step
+        # gets the automatic y axis limits if no limit have been set manually
+        if not ylim:
+            ylim = axe.get_ylim()
 
-        axe.set_yticks(np.arange(min_lim, max_lim + grid_y_step, grid_y_step))
+        # Sets the x axis grid
+        if grid_x_step:
+            # rounds the lim to the nearest number dividable by the entered grid step
+            min_lim = math.floor(xlim[0] / grid_x_step) * grid_x_step
+            max_lim = math.ceil(xlim[1] / grid_x_step) * grid_x_step
+
+            # Sets the ticks
+            axe.set_xticks(np.arange(min_lim, max_lim + grid_x_step, grid_x_step))
+
+        # Sets the y axis grid
+        if grid_y_step:
+
+            # rounds the lim to the nearest number dividable by the entered grid step
+            min_lim = math.floor(ylim[0] / grid_y_step) * grid_y_step
+            max_lim = math.ceil(ylim[1] / grid_y_step) * grid_y_step
+
+            # Sets the ticks
+            axe.set_yticks(np.arange(min_lim, max_lim + grid_y_step, grid_y_step))
+
+        # Reset the axis limits
+        axe.set_xlim(xlim[0], xlim[1])
+        axe.set_ylim(ylim[0], ylim[1])
 
     # Checks xlim= [min_x_value, max_x_value]
     if xlim:
@@ -541,7 +556,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
             if last_subplot:
 
                 # Collects all the axis limits and calculates the extremes
-                # if one of the limits need to be set automatically
+                # if one of the limits hasn't been set manually
                 if xlim is None or ylim is None:
 
                     min_xlim = []
@@ -549,6 +564,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                     min_ylim = []
                     max_ylim = []
 
+                    # Goes through every subplot
                     for axe in ax:
 
                         graph_xlim = axe.get_xlim()
@@ -559,33 +575,26 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                         min_ylim.append(graph_ylim[0])
                         max_ylim.append(graph_ylim[1])
 
-                # sets the x axis new limits
-                if xlim:
-                    graph_xlim = xlim
-                # sets the graph_xlim as the most extremes limits across all the subplots
-                else:
-                    graph_xlim = [min(min_xlim), max(max_xlim)]
-
-                # Sets the y axis new limits
-                if ylim:
-                    graph_ylim = ylim
-                # sets the graph_ylim as the most extremes limits across all the subplots
-                else:
-                    graph_ylim = [min(min_ylim), max(max_ylim)]
-
-                # collects all the graph limits
+                # Sets the graph limits
                 for axe in ax:
 
                     axe.grid(visible=True)
-                    axe.set_xlim(graph_xlim[0], graph_xlim[1])
-                    axe.set_ylim(graph_ylim[0], graph_ylim[1])
 
-                    # Sets the grid steps if needed
-                    if grid_x_step:
-                        set_xticks(axe, graph_xlim, grid_x_step)
+                    # Select the limits to set (the xlim set manually or the extreme values)
+                    if xlim:
+                        graph_xlim = xlim
+                    # sets the graph_xlim as the most extremes limits across all the subplots
+                    else:
+                        graph_xlim = [min(min_xlim), max(max_xlim)]
 
-                    if grid_y_step:
-                        set_yticks(axe, graph_ylim, grid_y_step)
+                    # Select the limits to set (the ylim set manually or the extreme values)
+                    if ylim:
+                        graph_ylim = ylim
+                    # sets the graph_ylim as the most extremes limits across all the subplots
+                    else:
+                        graph_ylim = [min(min_ylim), max(max_ylim)]
+
+                    set_axis_properties(axe, graph_xlim, graph_ylim, grid_x_step, grid_y_step)
 
         # if the limits and step grid are set individually (same_lim == False)
         else:
@@ -593,29 +602,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
             axe = plt.gca()
             plt.grid(visible=True)
 
-            # sets the x axis new limits
-            if xlim:
-                # Checks xlim= [min_x_value, max_x_value]
-                if xlim[0] > xlim[1]:
-                    raise ValueError(f"For graph xlim={xlim}, the first limit must be lower than the second one!")
-                axe.set_xlim(xlim[0], xlim[1])
-
-            # Sets the y axis new limits
-            if ylim:
-                # Checks ylim= [min_y_value, max_y_value]
-                if ylim[0] > ylim[1]:
-                    raise ValueError(f"For graph ylim={ylim}, the first limit must be lower than the second one!")
-                axe.set_ylim(ylim[0], ylim[1])
-
-            if grid_x_step:
-                graph_xlim = axe.get_xlim()
-
-                set_xticks(axe, graph_xlim, grid_x_step)
-
-            if grid_y_step:
-                graph_ylim = axe.get_ylim()
-
-                set_yticks(axe, graph_ylim, grid_y_step)
+            set_axis_properties(axe, xlim, ylim, grid_x_step, grid_y_step)
 
     # if there is no subplot, the axis is one dimensional
     else:
@@ -623,23 +610,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
         axe = ax[0]
 
         plt.grid(visible=True)
-
-        # sets the x axis new limits
-        if xlim:
-            axe.set_xlim(xlim[0], xlim[1])
-
-        # Sets the y axis new limits
-        if ylim:
-            axe.set_ylim(ylim[0], ylim[1])
-
-        if grid_x_step:
-            graph_xlim = axe.get_xlim()
-            set_xticks(axe, graph_xlim, grid_x_step)
-
-        if grid_y_step:
-            graph_ylim = axe.get_ylim()
-
-            set_yticks(axe, graph_ylim, grid_y_step)
+        set_axis_properties(axe, xlim, ylim, grid_x_step, grid_y_step)
 
 
 def get_simulation_description(label):
