@@ -149,7 +149,6 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
         # Draws a cross as the first point
         CaseColor = plt.gca().lines[-1].get_color()
         plt.plot(x[0], y[0], '+', color=CaseColor, markersize=COP_first_point_size, mew=COP_first_point_mew)
-        
 
         # Dessine le COP de début et d'autres points intermédiaires tous les x° d'angles de déplacement (COP_points_step)
         # Seulement si activé
@@ -975,6 +974,10 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     kwargs["variable_y"] = variable_y
     kwargs["variable_x"] = variable_x
 
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+
     graph_annotation_on = kwargs.get("graph_annotation_on", False)
 
     graph_type = "graph"
@@ -1040,8 +1043,10 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
             legend_setup(fig, graph_type, **kwargs)
 
         # Traces the axis labels
-        plt.xlabel(x_description)
-        plt.ylabel(y_description)
+        if xlabel_on:
+            plt.xlabel(x_description)
+        if ylabel_on:
+            plt.ylabel(y_description)
 
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, **kwargs)
@@ -1074,9 +1079,10 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, last_subplot, **kwargs)
 
-        # Traces the axis labels
-        plt.xlabel(x_description)
-        plt.ylabel(y_description)
+        if xlabel_on:
+            plt.xlabel(x_description)
+        if ylabel_on:
+            plt.ylabel(y_description)
 
         # Displays the legend and figure title only if it's the last subplot drawn
         if last_subplot:
@@ -1191,6 +1197,10 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
 
     graph_annotation_on = kwargs.get("graph_annotation_on", False)
 
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+
     # Name of the dictionnary key where the muscles are stored
     # By default it's muscles but in case of an edge muscle it is stored in GHReactions
     if "Edge muscle" in muscle_name:
@@ -1228,8 +1238,10 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
                 legend_setup(fig, graph_type, **kwargs)
 
             # Traces the axis labels
-            plt.xlabel(x_description)
-            plt.ylabel(y_description)
+            if xlabel_on:
+                plt.xlabel(x_description)
+            if ylabel_on:
+                plt.ylabel(y_description)
 
             # Setups the grid and the axes ticks of the graph
             graph_grid_setup(fig, **kwargs)
@@ -1266,8 +1278,10 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
             graph_grid_setup(fig, last_subplot, **kwargs)
 
             # Traces the axis labels
-            plt.xlabel(x_description)
-            plt.ylabel(y_description)
+            if xlabel_on:
+                plt.xlabel(x_description)
+            if ylabel_on:
+                plt.ylabel(y_description)
 
             # Displays the legend and figure title only if it's the last subplot drawn
             if last_subplot:
@@ -1584,6 +1598,10 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # get the legend_on argument that controls if the legend is drawn or not (Default True)
     legend_on = kwargs.get("legend_on", True)
 
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+    
     graph_type = "COP_graph"
 
     # Adds this special argument to the kwargs so that it is taken in account in other functions
@@ -1663,8 +1681,10 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
             legend_setup(fig, graph_type, **kwargs)
 
         # traces the axis labels
-        plt.xlabel("<-----Posterior        Anterior----->")
-        plt.ylabel("<----- Inferior        Superior----->")
+        if xlabel_on:
+            plt.xlabel("<-----Posterior        Anterior----->")
+        if ylabel_on:
+            plt.ylabel("<----- Inferior        Superior----->")
 
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, **kwargs)
@@ -1691,8 +1711,10 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, last_subplot, **kwargs)
 
-        plt.xlabel("<-----Posterior        Anterior----->")
-        plt.ylabel("<----- Inferior        Superior----->")
+        if xlabel_on:
+            plt.xlabel("<-----Posterior        Anterior----->")
+        if ylabel_on:
+            plt.ylabel("<----- Inferior        Superior----->")
 
         # unsuperpose the annotations if activated
         if graph_annotation_on:
@@ -2712,6 +2734,10 @@ def COP_graph_old(data, COP_contour=None, variable="COP", figure_title="", compo
     # get the legend_on argument that controls if the legend is drawn or not (Default True)
     legend_on = kwargs.get("legend_on", True)
 
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+    
     graph_type = "COP_graph"
 
     # Adds this special argument to the kwargs so that it is taken in account in other functions
@@ -2794,8 +2820,10 @@ def COP_graph_old(data, COP_contour=None, variable="COP", figure_title="", compo
                                      [composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
 
     # traces the axis labels
-    plt.xlabel("<-----Posterior        Anterior----->")
-    plt.ylabel("<----- Inferior        Superior----->")
+    if xlabel_on:
+        plt.xlabel("<-----Posterior        Anterior----->")
+    if ylabel_on:
+        plt.ylabel("<----- Inferior        Superior----->")
 
     if subplot is None:
         plt.title(figure_title)
@@ -2946,6 +2974,10 @@ def graph_old(data, variable_x, variable_y, figure_title, cases_on=False, compar
     kwargs["variable_y"] = variable_y
     kwargs["variable_x"] = variable_x
 
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+
     graph_annotation_on = kwargs.get("graph_annotation_on", False)
 
     graph_type = "graph"
@@ -3042,20 +3074,26 @@ def graph_old(data, variable_x, variable_y, figure_title, cases_on=False, compar
     # Axis Labels from the variable description
     if compare:
         if cases_on is False:
-            plt.xlabel(data[ListSimulations[0]][variable_x]["Description"])
-            plt.ylabel(data[ListSimulations[0]][variable_y]["Description"])
+            if xlabel_on:
+                plt.xlabel(data[ListSimulations[0]][variable_x]["Description"])
+            if ylabel_on:
+                plt.ylabel(data[ListSimulations[0]][variable_y]["Description"])
         else:
-            plt.xlabel(data[ListSimulations[0]][cases_on[0]]
-                       [variable_x]["Description"])
-            plt.ylabel(data[ListSimulations[0]][cases_on[0]]
-                       [variable_y]["Description"])
+            if xlabel_on:
+                plt.xlabel(data[ListSimulations[0]][cases_on[0]][variable_x]["Description"])
+            if ylabel_on:
+                plt.ylabel(data[ListSimulations[0]][cases_on[0]][variable_y]["Description"])
     elif compare is False:
         if cases_on is False:
-            plt.xlabel(data[variable_x]["Description"])
-            plt.ylabel(data[variable_y]["Description"])
+            if xlabel_on:
+                plt.xlabel(data[variable_x]["Description"])
+            if ylabel_on:
+                plt.ylabel(data[variable_y]["Description"])
         else:
-            plt.xlabel(data[cases_on[0]][variable_x]["Description"])
-            plt.ylabel(data[cases_on[0]][variable_y]["Description"])
+            if xlabel_on:
+                plt.xlabel(data[cases_on[0]][variable_x]["Description"])
+            if ylabel_on:
+                plt.ylabel(data[cases_on[0]][variable_y]["Description"])
 
     if subplot is None:
         plt.title(figure_title)
@@ -3215,6 +3253,10 @@ def muscle_part_graph_old(data, muscle_name, muscle_part, variable_x, variable_y
     kwargs["variable_y"] = variable_y
     kwargs["variable_x"] = variable_x
 
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+
     graph_annotation_on = kwargs.get("graph_annotation_on", False)
 
     # Name of the dictionnary key where the muscles are stored
@@ -3226,8 +3268,7 @@ def muscle_part_graph_old(data, muscle_name, muscle_part, variable_x, variable_y
 
     # Initialise les informations sur les muscles parts si elle n'a pas été spécifiée (c'est à dire qu'il n'y a qu'une seule musclePart à dessiner)
     if muscle_part_information is False:
-        muscle_part_information = {"LastPart": True,
-                                   "Total Number Muscle Parts": 1}
+        muscle_part_information = {"LastPart": True, "Total Number Muscle Parts": 1}
 
     # Parcours toutes les parties de muscles à tracer
 
@@ -3319,23 +3360,26 @@ def muscle_part_graph_old(data, muscle_name, muscle_part, variable_x, variable_y
         # Axis Labels from the variable description
         if compare:
             if cases_on is False:
-                plt.xlabel(data[ListSimulations[0]][variable_x]["Description"])
-                plt.ylabel(data[ListSimulations[0]][MuscleFolder]
-                           [muscle_name][muscle_part][variable_y]["Description"])
+                if xlabel_on:
+                    plt.xlabel(data[ListSimulations[0]][variable_x]["Description"])
+                if ylabel_on:
+                    plt.ylabel(data[ListSimulations[0]][MuscleFolder][muscle_name][muscle_part][variable_y]["Description"])
             else:
-                plt.xlabel(data[ListSimulations[0]][cases_on[0]]
-                           [variable_x]["Description"])
-                plt.ylabel(data[ListSimulations[0]][cases_on[0]][MuscleFolder]
-                           [muscle_name][muscle_part][variable_y]["Description"])
+                if xlabel_on:
+                    plt.xlabel(data[ListSimulations[0]][cases_on[0]][variable_x]["Description"])
+                if ylabel_on:
+                    plt.ylabel(data[ListSimulations[0]][cases_on[0]][MuscleFolder][muscle_name][muscle_part][variable_y]["Description"])
         elif compare is False:
             if cases_on is False:
-                plt.xlabel(data[variable_x]["Description"])
-                plt.ylabel(data[MuscleFolder][muscle_name]
-                           [muscle_part][variable_y]["Description"])
+                if xlabel_on:
+                    plt.xlabel(data[variable_x]["Description"])
+                if ylabel_on:
+                    plt.ylabel(data[MuscleFolder][muscle_name][muscle_part][variable_y]["Description"])
             else:
-                plt.xlabel(data[cases_on[0]][variable_x]["Description"])
-                plt.ylabel(data[cases_on[0]][MuscleFolder][muscle_name]
-                           [muscle_part][variable_y]["Description"])
+                if xlabel_on:
+                    plt.xlabel(data[cases_on[0]][variable_x]["Description"])
+                if ylabel_on:
+                    plt.ylabel(data[cases_on[0]][MuscleFolder][muscle_name][muscle_part][variable_y]["Description"])
 
         if subplot is None:
             plt.title(figure_title)
