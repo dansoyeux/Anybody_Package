@@ -550,50 +550,49 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
     if len(ax) > 1:
 
         # if the limits are set to be the same for all subplots
-        if same_lim:
-            # Only does this mode when all the graphs are done
-            if last_subplot:
+        # Only does this mode when all the graphs are done
+        if same_lim and last_subplot:
 
-                # Collects all the axis limits and calculates the extremes
-                # if one of the limits hasn't been set manually
-                if xlim is None or ylim is None:
+            # Collects all the axis limits and calculates the extremes
+            # if one of the limits hasn't been set manually
+            if xlim is None or ylim is None:
 
-                    min_xlim = []
-                    max_xlim = []
-                    min_ylim = []
-                    max_ylim = []
+                min_xlim = []
+                max_xlim = []
+                min_ylim = []
+                max_ylim = []
 
-                    # Goes through every subplot
-                    for axe in ax:
-
-                        graph_xlim = axe.get_xlim()
-                        graph_ylim = axe.get_ylim()
-
-                        min_xlim.append(graph_xlim[0])
-                        max_xlim.append(graph_xlim[1])
-                        min_ylim.append(graph_ylim[0])
-                        max_ylim.append(graph_ylim[1])
-
-                # Sets the graph limits
+                # Goes through every subplot
                 for axe in ax:
 
-                    axe.grid(visible=True)
+                    graph_xlim = axe.get_xlim()
+                    graph_ylim = axe.get_ylim()
 
-                    # Select the limits to set (the xlim set manually or the extreme values)
-                    if xlim:
-                        graph_xlim = xlim
-                    # sets the graph_xlim as the most extremes limits across all the subplots
-                    else:
-                        graph_xlim = [min(min_xlim), max(max_xlim)]
+                    min_xlim.append(graph_xlim[0])
+                    max_xlim.append(graph_xlim[1])
+                    min_ylim.append(graph_ylim[0])
+                    max_ylim.append(graph_ylim[1])
 
-                    # Select the limits to set (the ylim set manually or the extreme values)
-                    if ylim:
-                        graph_ylim = ylim
-                    # sets the graph_ylim as the most extremes limits across all the subplots
-                    else:
-                        graph_ylim = [min(min_ylim), max(max_ylim)]
+            # Sets the graph limits
+            for axe in ax:
 
-                    set_axis_properties(axe, graph_xlim, graph_ylim, grid_x_step, grid_y_step)
+                axe.grid(visible=True)
+
+                # Select the limits to set (the xlim set manually or the extreme values)
+                if xlim:
+                    graph_xlim = xlim
+                # sets the graph_xlim as the most extremes limits across all the subplots
+                else:
+                    graph_xlim = [min(min_xlim), max(max_xlim)]
+
+                # Select the limits to set (the ylim set manually or the extreme values)
+                if ylim:
+                    graph_ylim = ylim
+                # sets the graph_ylim as the most extremes limits across all the subplots
+                else:
+                    graph_ylim = [min(min_ylim), max(max_ylim)]
+
+                set_axis_properties(axe, graph_xlim, graph_ylim, grid_x_step, grid_y_step)
 
         # if the limits and step grid are set individually (same_lim == False)
         else:
