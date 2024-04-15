@@ -612,7 +612,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
 def hide_center_subplot_axis_labels(subplot):
     """
-    Function made for figures with multiple graphs that hides the labels of the graphs that only shows the axis labels if the graph is on the left or bottom edge
+    Function made for figures with multiple graphs that hides only shows the xlabels on the graphs on the bottom and the ylabels on the left edge
     subplot = {"dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected}
     """
 
@@ -620,46 +620,51 @@ def hide_center_subplot_axis_labels(subplot):
     ncol = subplot["dimension"][1]
     n_subplot = nlin * ncol
 
-    # If only one line, deletes only the y axes labels
-    if nlin == 1:
-        subplot_index_not_edge = np.arange(2, n_subplot + 1)
+    # # If only one line, deletes only the y axes labels
+    # if nlin == 1:
+    #     subplot_index_not_edge = np.arange(2, n_subplot + 1)
 
-        # Deactivates the y axis labels for every subplot that are not on the edges
-        for index_not_edge in subplot_index_not_edge:
+    #     # Deactivates the y axis labels for every subplot that are not on the edges
+    #     for index_not_edge in subplot_index_not_edge:
 
-            ax = plt.subplot(nlin, ncol, index_not_edge)
+    #         ax = plt.subplot(nlin, ncol, index_not_edge)
 
-            ax.set(ylabel=None)
-    # If only one column, deactivates the x axis labels
-    elif ncol == 1:
-        subplot_index_not_edge = np.arange(2, n_subplot + 1)
+    #         ax.set(ylabel=None)
+    # # If only one column, deactivates the x axis labels
+    # elif ncol == 1:
+    #     subplot_index_not_edge = np.arange(2, n_subplot + 1)
 
-        # Deactivates the x axis labels for every subplot that are not on the edges
-        for index_not_edge in subplot_index_not_edge:
+    #     # Deactivates the x axis labels for every subplot that are not on the edges
+    #     for index_not_edge in subplot_index_not_edge:
 
-            ax = plt.subplot(nlin, ncol, index_not_edge)
+    #         ax = plt.subplot(nlin, ncol, index_not_edge)
 
-            ax.set(xlabel=None)
-    else:
+    #         ax.set(xlabel=None)
+    # else:
 
-        # index of the subplots that are on the left and bottom edge
-        subplot_index_edge = []
+    subplot_left_edge_index = np.arange(1, n_subplot + 1, ncol).tolist()
+    subplot_bottom_edge_index = np.arange(n_subplot - ncol + 1, n_subplot + 1).tolist()
 
-        subplot_left_edge_index = np.arange(1, n_subplot + 1, ncol).tolist()
-        subplot_bottom_edge_index = np.arange(n_subplot - ncol + 1, n_subplot + 1).tolist()
+    # Selects the subplots that are not on the bottom edge
+    subplot_index_not_bottom_edge = [index for index in range(1, n_subplot + 1) if index not in subplot_bottom_edge_index]
 
-        subplot_index_edge = subplot_left_edge_index + subplot_bottom_edge_index
+    # Selects the subplots that are not on the left edge
+    subplot_index_not_left_edge = [index for index in range(1, n_subplot + 1) if index not in subplot_left_edge_index]
 
-        # Selects the subplots that are not on the bottom edge or on the left edge
-        subplot_index_not_edge = [index for index in range(1, n_subplot + 1) if index not in subplot_index_edge]
+    # Deactivates the x axis labels for every subplot that are not on the bottom edges
+    for index_not_edge in subplot_index_not_bottom_edge:
 
-        # Deactivates the x and y axis labels for every subplot that are not on the edges
-        for index_not_edge in subplot_index_not_edge:
+        ax = plt.subplot(nlin, ncol, index_not_edge)
 
-            ax = plt.subplot(nlin, ncol, index_not_edge)
+        ax.set(xlabel=None)
 
-            ax.set(xlabel=None)
-            ax.set(ylabel=None)
+    # Deactivates the y axis labels for every subplot that are not on the left edge
+    for index_not_edge in subplot_index_not_left_edge:
+
+        ax = plt.subplot(nlin, ncol, index_not_edge)
+
+        ax.set(ylabel=None)
+
 
     plt.tight_layout()
 
