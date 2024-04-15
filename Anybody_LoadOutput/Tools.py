@@ -46,7 +46,7 @@ def transform_vector(vector, rotation_matrix, translation_vect=None, inverse_tra
     return transformed_vector
 
 
-def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, offset=False, vect_dir=False, total_on=True, **kwargs):
+def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', MultiplyFactor=1, Composantes_Inverse_Direction=False, first_value=False, offset=False, vect_dir=False, total_on=True, **kwargs):
     """
     Met en forme un array 2D (nstep,ndim) sous la forme d'un dictionnaire :
         "Description" : Description qui sera utilisée par les graphiques
@@ -64,19 +64,31 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
                                       : Composantes_Inverse_Direction = [False, True, True]
                                       Default (inversion not activated) False
 
-       offset : list, values are a float or False
+       offset : list, values are floats
+              : Offsets each components of the array by a value
+              : The list contains the offset for each component of the Array (in the sequence order)
+              : [offset_x, offset_y, offset_z] for SequenceComposantes = ['x','y','z']
+              : The offset must be in the units wanted after applying the multiplyfactor
+                  (if we want the offset to be 1 millimiter for a measure that was first in meters then converted in millimeter, the offset to enter is 1 millimiter)
+              : the dimension of this list is equal to the number of components this Array has.
+              : only total : len(first_value) = 1
+              : one component : len(first_value) = 1
+              : n components : len(first_value) = n
+
+       first_value : list, values are a float or False
               : activates the fact that all data are offset so that the first value of each component is a certain value
-              : the target value takes into account the MultiplyFactor
-              : put False so the component is not offset
+              : the target value must be in the units wanted after applying the multiplyfactor
+                  (if we want the first value to be 1 millimiter for a measure that was first in meters then converted in millimeter, the first value to enter is 1 millimiter)
+              : put False so the component is not offseted
               : each member of the list is the value the first value of a component must be offset to (in the sequence order)
               : [first_value_x, first_value_y, first_value_z] for SequenceComposantes = ['x','y','z']
               : the dimension of this list is equal to the number of components this Array has.
-              : only total : len(offset) = 1
-              : one component : len(offset) = 1
-              : n components : len(offset) = n
+              : only total : len(first_value) = 1
+              : one component : len(first_value) = 1
+              : n components : len(first_value) = n
 
               : Example : A value originally in meter, needs to be converted to mm and also offset to 1mm as the first value
-                        : offset = [1]
+                        : first_value = [1]
 
         vect_dir : bool : activates the fact that the output array is divided by its norm to get the direction of a vector
                         : (only available for vectors)
@@ -85,6 +97,9 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
     VariableOutput = {}
     VariableOutput["Description"] = VariableDescription
     VariableOutput["SequenceComposantes"] = []
+
+    if offset and first_value:
+        raise ValueError("Cannot activate both the argument 'offset' and 'first_value' at the same time")
 
     # Makes 1 column 2D array into 1D array so that every data with only one component have consistent shape
     if Array.ndim == 2 and Array.shape[1] == 1:
@@ -103,15 +118,21 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
     # If the output is a vector (ndim=1) or has only one column, puts the output in total and no components are created
     if Array.ndim == 1 or Array.shape[1] == 1:
 
-        # In the case we want to offset all the values so that they all start by 0
-        if offset:
+        # In the case we want to offset all the values so that they all start by a specific value
+        if first_value:
 
             # the offset is the first value of the vector array minus the offset of this component
             # the offset is divided by the multiply factor to take in account the target coordinates units
-            offset = Array[0] - offset[0] / MultiplyFactor
+            first_value_offset = Array[0] - first_value[0] / MultiplyFactor
 
-            # Offsets the column
-            Array = Array - offset
+            # Offsets the vector
+            Array = Array - first_value_offset
+
+        # In the case we want to add offset the data by a certain value
+        elif offset:
+
+            # Offsets the vector and takes into account the multiply factor
+            Array = Array + offset[0] / MultiplyFactor
 
         # Name the component "Total" if no component name were entered
         if SequenceComposantes == "":
@@ -132,20 +153,29 @@ def array_to_dictionary(Array, VariableDescription='', SequenceComposantes='', M
     # If the output is 2D
     elif Array.ndim == 2:
 
-        # In the case we want to offset all the values so that they all start by the value in the offset
+        # In the case we want to add offset the data by a certain value
         if offset:
+            # Goes through each column
+            for col_index in range(Array.shape[1]):
+                component_offset = offset[col_index]
+
+                # Offsets the column and takes into account the multiply factor
+                Array[:, col_index] = Array[:, col_index] + component_offset / MultiplyFactor
+
+        # In the case we want to offset all the values so that they all start by a specific value
+        elif first_value:
             # Goes through each column
             for col_index in range(Array.shape[1]):
 
                 # The component is not offset if we put False
-                if offset[col_index] is False:
-                    current_offset = 0
+                if first_value[col_index] is False:
+                    current_first_value_offset = 0
                 else:
-                    current_offset = offset[col_index]
+                    current_first_value_offset = first_value[col_index]
 
                 # the offset for this component is the first value of each column minus the offset of this component
                 # the offset is divided by the multiply factor to take in account the target coordinates units
-                component_offset = Array[0, col_index] - current_offset / MultiplyFactor
+                component_offset = Array[0, col_index] - current_first_value_offset / MultiplyFactor
 
                 # Offsets the column
                 Array[:, col_index] = Array[:, col_index] - component_offset
