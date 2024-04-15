@@ -620,28 +620,6 @@ def hide_center_subplot_axis_labels(subplot):
     ncol = subplot["dimension"][1]
     n_subplot = nlin * ncol
 
-    # # If only one line, deletes only the y axes labels
-    # if nlin == 1:
-    #     subplot_index_not_edge = np.arange(2, n_subplot + 1)
-
-    #     # Deactivates the y axis labels for every subplot that are not on the edges
-    #     for index_not_edge in subplot_index_not_edge:
-
-    #         ax = plt.subplot(nlin, ncol, index_not_edge)
-
-    #         ax.set(ylabel=None)
-    # # If only one column, deactivates the x axis labels
-    # elif ncol == 1:
-    #     subplot_index_not_edge = np.arange(2, n_subplot + 1)
-
-    #     # Deactivates the x axis labels for every subplot that are not on the edges
-    #     for index_not_edge in subplot_index_not_edge:
-
-    #         ax = plt.subplot(nlin, ncol, index_not_edge)
-
-    #         ax.set(xlabel=None)
-    # else:
-
     subplot_left_edge_index = np.arange(1, n_subplot + 1, ncol).tolist()
     subplot_bottom_edge_index = np.arange(n_subplot - ncol + 1, n_subplot + 1).tolist()
 
@@ -665,7 +643,7 @@ def hide_center_subplot_axis_labels(subplot):
 
         ax.set(ylabel=None)
 
-
+    # Reajusts the size of every subplot
     plt.tight_layout()
 
 
