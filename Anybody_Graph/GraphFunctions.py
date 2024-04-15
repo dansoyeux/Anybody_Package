@@ -18,7 +18,6 @@ from Anybody_Package.Anybody_Graph.Tools import unsuperpose_plot_annotations
 
 # %% Plot Variables setup
 
-
 def define_simulations_line_style(SimulationsLineStyleDictionary):
     """
     Fonction qui crée la variable globale SimulationsLineStyle qui sera utilisée par la fonction get_simulation_line_style
@@ -192,7 +191,7 @@ def subplot_setup(subplot, figsize=None, add_graph=False):
     """
 
     Setup a subplot of dimension :
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
 
 
         subplot["dimension"] = [nrows, ncolumns]
@@ -611,6 +610,60 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
         set_axis_properties(axe, xlim, ylim, grid_x_step, grid_y_step)
 
 
+def hide_center_subplot_axis_labels(subplot):
+    """
+    Function made for figures with multiple graphs that hides the labels of the graphs that only shows the axis labels if the graph is on the left or bottom edge
+    subplot = {"dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected}
+    """
+
+    nlin = subplot["dimension"][0]
+    ncol = subplot["dimension"][1]
+    n_subplot = nlin * ncol
+
+    # If only one line, deletes only the y axes labels
+    if nlin == 1:
+        subplot_index_not_edge = np.arange(2, n_subplot + 1)
+
+        # Deactivates the y axis labels for every subplot that are not on the edges
+        for index_not_edge in subplot_index_not_edge:
+
+            ax = plt.subplot(nlin, ncol, index_not_edge)
+
+            ax.set(ylabel=None)
+    # If only one column, deactivates the x axis labels
+    elif ncol == 1:
+        subplot_index_not_edge = np.arange(2, n_subplot + 1)
+
+        # Deactivates the x axis labels for every subplot that are not on the edges
+        for index_not_edge in subplot_index_not_edge:
+
+            ax = plt.subplot(nlin, ncol, index_not_edge)
+
+            ax.set(xlabel=None)
+    else:
+
+        # index of the subplots that are on the left and bottom edge
+        subplot_index_edge = []
+
+        subplot_left_edge_index = np.arange(1, n_subplot + 1, ncol).tolist()
+        subplot_bottom_edge_index = np.arange(n_subplot - ncol + 1, n_subplot + 1).tolist()
+
+        subplot_index_edge = subplot_left_edge_index + subplot_bottom_edge_index
+
+        # Selects the subplots that are not on the bottom edge or on the left edge
+        subplot_index_not_edge = [index for index in range(1, n_subplot + 1) if index not in subplot_index_edge]
+
+        # Deactivates the x and y axis labels for every subplot that are not on the edges
+        for index_not_edge in subplot_index_not_edge:
+
+            ax = plt.subplot(nlin, ncol, index_not_edge)
+
+            ax.set(xlabel=None)
+            ax.set(ylabel=None)
+
+    plt.tight_layout()
+
+
 def get_simulation_description(label):
     """
     Transforms the case name into it's description (From the simulation_description global list)
@@ -919,7 +972,7 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
 
 
         subplot["dimension"] = [nrows, ncolumns]
@@ -976,6 +1029,8 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     # Arguments that controls if the axis labels are on or not
     xlabel_on = kwargs.get("xlabel_on", True)
     ylabel_on = kwargs.get("ylabel_on", True)
+
+    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
 
     graph_annotation_on = kwargs.get("graph_annotation_on", False)
 
@@ -1096,6 +1151,10 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
             if legend_on:
                 legend_setup(fig, graph_type, **kwargs)
 
+            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+            if hide_center_axis_labels:
+                hide_center_subplot_axis_labels(subplot)
+
 
 def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, figure_title="", composante_x="Total", composante_y=["Total"], compare=False, subplot=None, subplot_title=False, cases_on=False, muscle_part_information=False, fig=None, compared_case="", **kwargs):
     """
@@ -1143,7 +1202,7 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
 
 
         subplot["dimension"] = [nrows, ncolumns]
@@ -1199,6 +1258,8 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
     # Arguments that controls if the axis labels are on or not
     xlabel_on = kwargs.get("xlabel_on", True)
     ylabel_on = kwargs.get("ylabel_on", True)
+
+    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
 
     # Name of the dictionnary key where the muscles are stored
     # By default it's muscles but in case of an edge muscle it is stored in GHReactions
@@ -1295,6 +1356,10 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
 
                     legend_setup(fig, graph_type, **kwargs)
 
+                # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+                if hide_center_axis_labels:
+                    hide_center_subplot_axis_labels(subplot)
+
 
 def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], muscle_part_on=False, subplot=None, subplot_title=False, **kwargs):
     """
@@ -1341,7 +1406,7 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
 
 
         subplot["dimension"] = [nrows, ncolumns]
@@ -1541,7 +1606,7 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
 
 
         subplot["dimension"] = [nrows, ncolumns]
@@ -1600,7 +1665,9 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # Arguments that controls if the axis labels are on or not
     xlabel_on = kwargs.get("xlabel_on", True)
     ylabel_on = kwargs.get("ylabel_on", True)
-    
+
+    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
+
     graph_type = "COP_graph"
 
     # Adds this special argument to the kwargs so that it is taken in account in other functions
@@ -1733,6 +1800,10 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
             if legend_on:
 
                 legend_setup(fig, graph_type, **kwargs)
+
+            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+            if hide_center_axis_labels:
+                hide_center_subplot_axis_labels(subplot)
 
 
 # %% select data to plot
@@ -2641,1011 +2712,6 @@ def muscle_graph_select_data_to_plot_literature(data, composante_x, composante_y
     y_description = y_data["Description"]
 
     return x_description, y_description
-
-
-# %% old graph functions without flatten for compare 10 november
-
-
-def COP_graph_old(data, COP_contour=None, variable="COP", figure_title="", composantes=["x", "y"], cases_on=False, subplot=None, compare=False, subplot_title=False, draw_COP_points_on=True, **kwargs):
-    """
-
-    Fait le graphique de la position d'un centre de pression et trace un contour (contour d'un implant ou de la surface de contact par exemple)
-    data doit avoir une variable appelée "COP"
-    COP doit avoir la séquence : "SequenceComposantes": ["AP", "IS", "ML"]
-    Trace la composante antéropostérieure (AP) en abscisse (Antérieur = positif) et inférosupérieure (IS) en ordonnée (Supérieur = Positif)
-
-    draw_GH_reactions_nodes= ARGUMENT PERSONNEL POUR TRACER EN PLUS DES POINT SUR LE CONTOUR, PEUT ÊTRE SUPPRIMÉ
-
-    COP_contour : numpy.array contenant les coordonnées x, y du contour à tracer (Peut être créé par la fonction define_COP_contour si on veut lire un fichier contenant ces coordonnées)
-               : Dimension (npoints,3 or 2)
-                 Column 1 : x
-                 Column 2 : y
-                 Column 3 : z (not used by the COP_graph function)
-
-    variable : string : The name of the variable to draw
-    (Default "COP")
-
-    composantes : list : ["composante_x", "composante_y"]
-                : Composantes de la variable à tracer
-                (Default ["x", "y"])
-
-    data : le dictionnaire contenant les data à tracer
-         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
-         : Soit un jeu de plusieurs datas (compare = True)
-
-    graph_annotation_on : bool : Contrôle l'affichage ou non des angles de pic de COP (Vrai par défaut)
-
-    draw_COP_points_on : bool : active ou non le traçage des points sur le COP
-
-    compare : = True si on veut comparer plusieurs données
-              Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
-
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
-
-
-        subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
-
-
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
-
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
-
-              Number = 3 corresponds to subplot [1,0]
-
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
-
-    **kwargs : contient d'autres paramètres comme
-             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
-             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
-                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
-             legend_on : bool : argument contrôlant l'affichage de la légende
-                       : True (par défaut) la légende s'affiche
-                       : False La légende ne s'affiche pas'
-                       : Argument utile seulement si on trace dans la dernière case d'un subplot ou dans un subplot 1x1 (il n'a pas d'effet autrement)
-             LegendLocation = dictionary, controls where the legend is drawn outside the figure
-
-                           location string of matplotlib 'upper right', 'center left'...
-
-                           Default value : lower center (below the figure)
-
-    """
-
-    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
-    custom_label = kwargs.get("label", None)
-
-    # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
-    add_graph = kwargs.get("add_graph", False)
-
-    # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    legend_on = kwargs.get("legend_on", True)
-
-    # Arguments that controls if the axis labels are on or not
-    xlabel_on = kwargs.get("xlabel_on", True)
-    ylabel_on = kwargs.get("ylabel_on", True)
-    
-    graph_type = "COP_graph"
-
-    # Adds this special argument to the kwargs so that it is taken in account in other functions
-    kwargs["draw_COP_points_on"] = draw_COP_points_on
-
-    # Takes the components of the variable and the name of the variable
-    composante_x = composantes[0]
-    composante_y = composantes[1]
-    variable_x = variable
-    variable_y = variable
-
-    # Stores the name of the x variable and y variable in the kwargs
-    kwargs["variable_y"] = variable_y
-    kwargs["variable_x"] = variable_x
-
-    graph_annotation_on = kwargs.get("graph_annotation_on", True)
-    # Overwrites the old value in case it was set to True by default
-    # Because here value by default is true not false like other graph functions
-    kwargs["graph_annotation_on"] = graph_annotation_on
-
-    # Verifications for when simulationCases are used
-    if cases_on:
-        # Active tous les cas présents dans data
-        if cases_on == "all":
-            cases_on = list(data.keys())
-
-        # Vérifie que Cases est toujours une liste si 'all' n'est pas utilisé
-        elif not type(cases_on) is list:
-            raise ValueError(
-                "cases_on doit être une liste si 'all' n'est pas utilisé")
-            return
-
-        # Vérifie qu'on n'active pas plusieurs cas tout en comparant
-        if len(cases_on) > 1 and compare:
-            raise ValueError(
-                "On ne peut pas comparer plusieurs simulations et plusieurs cas en même temps")
-            return
-
-    # Gets the figure size
-    figsize = kwargs.get("figsize", None)
-
-    fig = subplot_setup(subplot, figsize, add_graph)
-
-    # Draws a contour only if there is one and sets the axis to be of equal ratio to keep the shape of the contour
-    if COP_contour is not None:
-        plt.plot(COP_contour[:, 0], COP_contour[:, 1], color='tab:blue')
-
-        # Sets the aspect ratio between x and y axis to be equal
-        # And makes the axis sizes adjustable
-        plt.gca().set_aspect('equal', adjustable="datalim")
-
-    if compare is False:
-
-        if cases_on is False:
-            label = None
-            plot_graph_functions(data, data[variable_x][composante_x], data[variable_y][composante_y],
-                                 graph_type, label=label, custom_label=custom_label, **kwargs)
-
-        # If the graph used is CasesGraph
-        else:
-            for Case in cases_on:
-                label = Case
-                plot_graph_functions(data[Case], data[Case][variable_x][composante_x], data[Case][variable_y][composante_y], graph_type,
-                                     label=label, custom_label=custom_label, **kwargs)
-
-    elif compare:
-
-        ListSimulations = list(data.keys())
-
-        for Simulation in ListSimulations:
-            label = Simulation
-
-            if cases_on is False:
-                plot_graph_functions(data[Simulation], data[Simulation][variable_x][composante_x], data[Simulation][variable_y][composante_y],
-                                     graph_type, label=label, custom_label=custom_label, **kwargs)
-
-            # When we compare, we compare only one case between several simulations
-            elif len(cases_on) == 1:
-                plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x], data[Simulation][cases_on[0]][variable_y]
-                                     [composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-    # traces the axis labels
-    if xlabel_on:
-        plt.xlabel("<-----Posterior        Anterior----->")
-    if ylabel_on:
-        plt.ylabel("<----- Inferior        Superior----->")
-
-    if subplot is None:
-        plt.title(figure_title)
-
-        # unsuperpose the annotations if activated
-        if graph_annotation_on:
-
-            # Calls the function that will move the annotations to avoid superposition
-            unsuperpose_plot_annotations(**kwargs)
-
-        # shows the legend if activated
-        if legend_on:
-            legend_setup(fig, graph_type, **kwargs)
-
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, **kwargs)
-
-    # Dans le cas d'un subplot
-    else:
-
-        # If a subplot title is entered, draws it
-        if subplot_title:
-            plt.title(subplot_title)
-
-        # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
-        # This statement has the priority over the test on the number of dimension
-        if "last_subplot" in subplot:
-            last_subplot = subplot["last_subplot"]
-
-        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-            last_subplot = True
-        # Case where no legend and figure title will be drawn
-        else:
-            last_subplot = False
-
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, last_subplot, **kwargs)
-
-        # unsuperpose the annotations if activated
-        if graph_annotation_on:
-
-            # Calls the function that will move the annotations to avoid superposition
-            unsuperpose_plot_annotations(**kwargs)
-        # Displays the legend and figure title only if it's the last subplot drawn
-        if last_subplot:
-
-            # Trace le titre de la figure
-            plt.suptitle(figure_title)
-
-            # Ajuste les distances entre les subplots quand ils sont tous tracés
-            plt.tight_layout()
-
-            # shows the legend if activated
-            if legend_on:
-
-                legend_setup(fig, graph_type, **kwargs)
-
-
-def graph_old(data, variable_x, variable_y, figure_title, cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], subplot=None, subplot_title=False, **kwargs):
-    """
-    Fonction générale qui gère les graphiques
-
-
-    data : le dictionnaire contenant les data à tracer
-         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
-         : Soit un jeu de plusieurs datas (compare = True)
-
-    variable_x : Le nom de la variable placée en x sur le graphique
-    variable_y : le nom de la variable placée en y sur le graphique
-
-    composante_y :
-                  : type : liste de chaines de charactère
-                  : Liste contenant les nom des composantes de la variable à tracer
-                  : Par défaut : On trace la composante "Total" donc composante_y = ["Total"]
-
-                : Activer plusieurs composantes :
-                Exemple : composante_y = ["composante 1","composante 2","composante 3","Total"....]
-                          Si on veut activer x et y entrer : composante_y = ["x","y"]
-
-                : Activer une seule composante :
-                Exemple : Si on veut activer y entrer : composante_y = ["y"]
-
-
-                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
-                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
-
-    Composantes_x : Le nom de la composante de la variable en abscisse
-                  : composante_x est une chaîne de charactère contenant le nom de la composante de la variable
-                  : Par défaut : "Total"
-                  : Si on veut activer y entrer : Composantes_x = "y"
-
-    compare : = True si on veut comparer plusieurs données
-              Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
-
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
-
-
-        subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
-
-
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
-
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
-
-              Number = 3 corresponds to subplot [1,0]
-
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
-
-    **kwargs : contient d'autres paramètres comme
-             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
-             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
-                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
-             legend_on : bool : argument contrôlant l'affichage de la légende
-                       : True (par défaut) la légende s'affiche
-                       : False La légende ne s'affiche pas'
-             LegendLocation = dictionary, controls where the legend is drawn outside the figure
-
-                           location string of matplotlib 'upper right', 'center left'...
-
-                           Default value : lower center (below the figure)
-    """
-
-    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
-    custom_label = kwargs.get("label", None)
-
-    # Get the add_graph variable. Puts it to false by default if it's not declared in the kwargs
-    add_graph = kwargs.get("add_graph", False)
-
-    # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    legend_on = kwargs.get("legend_on", True)
-
-    # Stores the name of the x variable and y variable in the kwargs
-    kwargs["variable_y"] = variable_y
-    kwargs["variable_x"] = variable_x
-
-    # Arguments that controls if the axis labels are on or not
-    xlabel_on = kwargs.get("xlabel_on", True)
-    ylabel_on = kwargs.get("ylabel_on", True)
-
-    graph_annotation_on = kwargs.get("graph_annotation_on", False)
-
-    graph_type = "graph"
-
-    # Verifications for when simulationCases are used
-    if cases_on:
-        # If "all", all cases are selected to be drawn
-        if cases_on == "all":
-            cases_on = list(data.keys())
-
-        elif type(cases_on) is str:
-            raise ValueError(
-                "cases_on doit être une liste si 'all' n'est pas utilisé")
-            return
-
-        # Vérifie qu'on n'active pas plusieurs cas tout en comparant
-        if len(cases_on) > 1 and compare:
-            raise ValueError(
-                "On ne peut pas comparer plusieurs simulations et plusieurs cas en même temps")
-            return
-
-        # Vérifie qu'on ne dessine pas plusieurs variables tout en dessinant plusieurs cas
-        if len(cases_on) > 1 and len(composante_y) > 1:
-            raise ValueError(
-                "On ne peut pas dessiner plusieurs cas et plusieurs composantes en même temps")
-            return
-
-    # Vérification qu'on ne dessine pas plusieurs variables tout en comparant
-    if compare and len(composante_y) > 1:
-        raise ValueError(
-            "On ne peut pas comparer plusieurs simulations et dessiner plusieurs composantes")
-        return
-
-    # Gets the figure size
-    figsize = kwargs.get("figsize", None)
-
-    fig = subplot_setup(subplot, figsize, add_graph)
-
-    # S'il n'y a qu'une composante à tracer
-    if len(composante_y) == 1:
-
-        # Prend la valeur de la composante comme elle est seule
-        composante_y = composante_y[0]
-
-        if compare is False:
-
-            if cases_on is False:
-                label = None
-                plot_graph_functions(data, data[variable_x][composante_x],
-                                     data[variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-            # If the graph used is CasesGraph
-            else:
-                for Case in cases_on:
-                    label = Case
-
-                    plot_graph_functions(data[Case], data[Case][variable_x][composante_x], data[Case]
-                                         [variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-        elif compare:
-
-            ListSimulations = list(data.keys())
-
-            for Simulation in ListSimulations:
-                # Definds the color of this simulation depending on its name
-                label = Simulation
-
-                if cases_on is False:
-                    plot_graph_functions(data[Simulation], data[Simulation][variable_x][composante_x], data[Simulation]
-                                         [variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-                # When we compare, we compare only one case between several simulations
-                elif len(cases_on) == 1:
-                    plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x],
-                                         data[Simulation][cases_on[0]][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-    # Si plusieurs composantes sont activées
-    else:
-
-        # On ne peut comparer que si on active la même donnée, donc seulement une seule composante
-        if compare is False:
-            for Composante in composante_y:
-                label = Composante
-
-                if cases_on is False:
-                    plot_graph_functions(data, data[variable_x][composante_x], data[variable_y]
-                                         [Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-                # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
-                elif len(cases_on) == 1:
-                    plot_graph_functions(data, data[cases_on[0]][variable_x][composante_x], data[cases_on[0]]
-                                         [variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-    # Axis Labels from the variable description
-    if compare:
-        if cases_on is False:
-            if xlabel_on:
-                plt.xlabel(data[ListSimulations[0]][variable_x]["Description"])
-            if ylabel_on:
-                plt.ylabel(data[ListSimulations[0]][variable_y]["Description"])
-        else:
-            if xlabel_on:
-                plt.xlabel(data[ListSimulations[0]][cases_on[0]][variable_x]["Description"])
-            if ylabel_on:
-                plt.ylabel(data[ListSimulations[0]][cases_on[0]][variable_y]["Description"])
-    elif compare is False:
-        if cases_on is False:
-            if xlabel_on:
-                plt.xlabel(data[variable_x]["Description"])
-            if ylabel_on:
-                plt.ylabel(data[variable_y]["Description"])
-        else:
-            if xlabel_on:
-                plt.xlabel(data[cases_on[0]][variable_x]["Description"])
-            if ylabel_on:
-                plt.ylabel(data[cases_on[0]][variable_y]["Description"])
-
-    if subplot is None:
-        plt.title(figure_title)
-
-        # unsuperpose the annotations if activated
-        if graph_annotation_on:
-
-            # Calls the function that will move the annotations to avoid superposition
-            unsuperpose_plot_annotations(**kwargs)
-
-        # shows the legend if activated
-        if legend_on:
-            legend_setup(fig, graph_type, **kwargs)
-
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, **kwargs)
-
-    # Dans le cas d'un subplot
-    else:
-
-        # If a subplot title is entered, draws it (subplot_title isn't a bool)
-        if subplot_title:
-            plt.title(subplot_title)
-
-        # unsuperpose the annotations if activated
-        if graph_annotation_on:
-
-            # Calls the function that will move the annotations to avoid superposition
-            unsuperpose_plot_annotations(**kwargs)
-
-        # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
-        # This statement has the priority over the test on the number of dimension
-        if "last_subplot" in subplot:
-            last_subplot = subplot["last_subplot"]
-
-        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-            last_subplot = True
-        # Case where no legend and figure title will be drawn
-        else:
-            last_subplot = False
-
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, last_subplot, **kwargs)
-
-        # Displays the legend and figure title only if it's the last subplot drawn
-        if last_subplot:
-
-            # Trace le titre de la figure
-            plt.suptitle(figure_title)
-
-            # Ajuste les distances entre les subplots quand ils sont tous tracés
-            plt.tight_layout()
-
-            # shows the legend if activated
-            if legend_on:
-                legend_setup(fig, graph_type, **kwargs)
-
-
-def muscle_part_graph_old(data, muscle_name, muscle_part, variable_x, variable_y, figure_title, composante_x="Total", composante_y=["Total"], compare=False, subplot=None, subplot_title=False, cases_on=False, muscle_part_information=False, fig=None, **kwargs):
-    """
-    Fonction qui gère trace la variable d'une seule fibre musculaire
-
-    lastPart = statement pour dire qu'on dessine la dernière musclepart pour ne tracer la légende qu'à ce moment là
-
-
-    data : le dictionnaire contenant les data à tracer
-         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
-         : Soit un jeu de plusieurs datas (compare = True)
-
-    variable_x : Le nom de la variable placée en x sur le graphique
-    variable_y : le nom de la variable placée en y sur le graphique
-
-    composante_y :
-                  : type : liste de chaines de charactère
-                  : Liste contenant les nom des composantes de la variable à tracer
-                  : Par défaut : On trace la composante "Total" donc composante_y = ["Total"]
-
-                : Activer plusieurs composantes :
-                Exemple : composante_y = ["composante 1","composante 2","composante 3","Total"....]
-                          Si on veut activer x et y entrer : composante_y = ["x","y"]
-
-                : Activer une seule composante :
-                Exemple : Si on veut activer y entrer : composante_y = ["y"]
-
-                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
-                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
-
-    Composantes_x : Le nom de la composante de la variable en abscisse
-                  : composante_x est une chaîne de charactère contenant le nom de la composante de la variable
-                  : Par défaut : "Total"
-                  : Si on veut activer y entrer : Composantes_x = "y"
-
-    muscle_part_on  : Liste contenant les numéros des parties à tracer
-                  : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
-                  : "allparts" toutes les parties on sans le total
-                  : "all" toutes les parties avec le total
-
-                  : Défault = False : trace la variable totale du muscle entier
-                  : muscle_part_on = liste des numéros de la partie du muscle à tracer
-
-
-    compare : = True si on veut comparer plusieurs données
-              Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
-
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
-
-
-        subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
-
-
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
-
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
-
-              Number = 3 corresponds to subplot [1,0]
-
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
-
-    **kwargs : contient d'autres paramètres comme
-             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
-             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
-                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
-             legend_on : bool : argument contrôlant l'affichage de la légende
-                       : True (par défaut) la légende s'affiche
-                       : False La légende ne s'affiche pas'
-            LegendLocation = dictionary, controls where the legend is drawn outside the figure
-
-                          location string of matplotlib 'upper right', 'center left'...
-
-                          Default value : lower center (below the figure
-    """
-
-    # get the customlabel if a label arguent is declared, puts None otherwise as a default value
-    custom_label = kwargs.get("label", None)
-
-    # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    legend_on = kwargs.get("legend_on", True)
-
-    graph_type = "muscle_graph"
-
-    # Stores the name of the x variable and y variable in the kwargs
-    kwargs["variable_y"] = variable_y
-    kwargs["variable_x"] = variable_x
-
-    # Arguments that controls if the axis labels are on or not
-    xlabel_on = kwargs.get("xlabel_on", True)
-    ylabel_on = kwargs.get("ylabel_on", True)
-
-    graph_annotation_on = kwargs.get("graph_annotation_on", False)
-
-    # Name of the dictionnary key where the muscles are stored
-    # By default it's muscles but in case of an edge muscle it is stored in GHReactions
-    if "Edge muscle" in muscle_name:
-        MuscleFolder = "GHReactions"
-    else:
-        MuscleFolder = "Muscles"
-
-    # Initialise les informations sur les muscles parts si elle n'a pas été spécifiée (c'est à dire qu'il n'y a qu'une seule musclePart à dessiner)
-    if muscle_part_information is False:
-        muscle_part_information = {"LastPart": True, "Total Number Muscle Parts": 1}
-
-    # Parcours toutes les parties de muscles à tracer
-
-    # S'il n'y a qu'une composante à tracer
-    if len(composante_y) == 1:
-
-        # Prend la valeur de la composante comme elle est seule
-        composante_y = composante_y[0]
-
-        if compare is False:
-
-            if cases_on is False:
-
-                # Si plus d'une muscle part est tracée, on met une legende avec le nom de la musclepart
-                if muscle_part_information["Total Number Muscle Parts"] > 1:
-                    label = muscle_part
-
-                # Si seulement une muscle part est activée et qu'on ne compare pas, on ne met pas de légende
-                else:
-                    label = None
-
-                plot_graph_functions(data, data[variable_x][composante_x], data[MuscleFolder][muscle_name]
-                                     [muscle_part][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-            else:
-                # On ne peut tracer qu'une seule donnée, donc on doit avoir soit un seul Case de sélectionné et n>=1 muscle parts
-                # Ou on peut avoir plusieurs Case de sélectionnés mais une seule muscle part à tracer
-                if len(cases_on) == 1 or muscle_part_information["Total Number Muscle Parts"] == 1:
-
-                    for Case in cases_on:
-
-                        # La légende est le nom du case si il n'y a qu'une seule muscle part à tracer et plus d'un Case sélectionné
-                        if len(cases_on) > 1 and muscle_part_information["Total Number Muscle Parts"] == 1:
-                            label = Case
-
-                        # La légende est le nom de la muscle part s'il n'y a qu'un seul case et plusieurs Muscle part à tracer
-                        elif len(cases_on) == 1 and muscle_part_information["Total Number Muscle Parts"] > 1:
-                            label = muscle_part
-
-                        # Si les deux sont 1, on ne met pas de légende
-                        else:
-                            label = None
-
-                        plot_graph_functions(data[Case], data[Case][variable_x][composante_x], data[Case][MuscleFolder][muscle_name]
-                                             [muscle_part][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-        elif compare:
-
-            # Si on a plusieurs simulations, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
-            if muscle_part_information["Total Number Muscle Parts"] == 1:
-                ListSimulations = list(data.keys())
-
-                for Simulation in ListSimulations:
-                    label = Simulation
-
-                    if cases_on is False:
-                        plot_graph_functions(data[Simulation], data[Simulation][variable_x][composante_x], data[Simulation][MuscleFolder]
-                                             [muscle_name][muscle_part][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-                    # When we compare, we compare only one case between several simulations
-                    elif len(cases_on) == 1:
-                        plot_graph_functions(data[Simulation][cases_on[0]], data[Simulation][cases_on[0]][variable_x][composante_x], data[Simulation][cases_on[0]]
-                                             [MuscleFolder][muscle_name][muscle_part][variable_y][composante_y], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-    # Si plusieurs composantes sont activées
-    else:
-
-        # Si on a plusieurs composantes, on ne peut afficher qu'une seule donnée sur le graphique, donc qu'une seule muscle part
-        if muscle_part_information["Total Number Muscle Parts"] == 1:
-
-            # On ne peut comparer plusieurs simulations que si on active la même donnée, on ne peut pas afficher plusieurs composantes avec plusieurs simulations
-            if compare is False:
-
-                for Composante in composante_y:
-                    label = Composante
-
-                    if cases_on is False:
-                        plot_graph_functions(data, data[variable_x][composante_x], data[MuscleFolder][muscle_name]
-                                             [muscle_part][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-                    # On peut tracer plusieurs composantes seulement si un seul cas de simulation est activé
-                    elif len(cases_on) == 1:
-                        plot_graph_functions(data, data[cases_on[0]][variable_x][composante_x], data[cases_on[0]][MuscleFolder]
-                                             [muscle_name][muscle_part][variable_y][Composante], graph_type, label=label, custom_label=custom_label, **kwargs)
-
-    # Si on trace la dernière muscle part, trace les axes, la légende, les titres etc...
-    if muscle_part_information["LastPart"]:
-
-        # Axis Labels from the variable description
-        if compare:
-            if cases_on is False:
-                if xlabel_on:
-                    plt.xlabel(data[ListSimulations[0]][variable_x]["Description"])
-                if ylabel_on:
-                    plt.ylabel(data[ListSimulations[0]][MuscleFolder][muscle_name][muscle_part][variable_y]["Description"])
-            else:
-                if xlabel_on:
-                    plt.xlabel(data[ListSimulations[0]][cases_on[0]][variable_x]["Description"])
-                if ylabel_on:
-                    plt.ylabel(data[ListSimulations[0]][cases_on[0]][MuscleFolder][muscle_name][muscle_part][variable_y]["Description"])
-        elif compare is False:
-            if cases_on is False:
-                if xlabel_on:
-                    plt.xlabel(data[variable_x]["Description"])
-                if ylabel_on:
-                    plt.ylabel(data[MuscleFolder][muscle_name][muscle_part][variable_y]["Description"])
-            else:
-                if xlabel_on:
-                    plt.xlabel(data[cases_on[0]][variable_x]["Description"])
-                if ylabel_on:
-                    plt.ylabel(data[cases_on[0]][MuscleFolder][muscle_name][muscle_part][variable_y]["Description"])
-
-        if subplot is None:
-            plt.title(figure_title)
-
-            # unsuperpose the annotations if activated
-            if graph_annotation_on:
-
-                # Calls the function that will move the annotations to avoid superposition
-                unsuperpose_plot_annotations(**kwargs)
-
-            # shows the legend if activated
-            if legend_on:
-                legend_setup(fig, graph_type, **kwargs)
-
-            # Setups the grid and the axes ticks of the graph
-            graph_grid_setup(fig, **kwargs)
-
-        # Dans le cas d'un subplot
-        else:
-
-            # If a subplot title is entered, draws it (subplot_title isn't a bool)
-            if not type(subplot_title) is bool:
-                plt.title(subplot_title)
-
-            # If a subplot title is entered, draws it (subplot_title isn't a bool)
-            if not type(subplot_title) is bool:
-                plt.title(subplot_title)
-
-            # unsuperpose the annotations if activated
-            if graph_annotation_on:
-
-                # Calls the function that will move the annotations to avoid superposition
-                unsuperpose_plot_annotations(**kwargs)
-
-            # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
-            # This statement has the priority over the test on the number of dimension
-            if "last_subplot" in subplot:
-                last_subplot = subplot["last_subplot"]
-            # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-            elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-                last_subplot = True
-            # Case where no legend and figure title will be drawn
-            else:
-                last_subplot = False
-
-            # Setups the grid and the axes ticks of the graph
-            graph_grid_setup(fig, last_subplot, **kwargs)
-
-            # Displays the legend and figure title only if it's the last subplot drawn
-            if last_subplot:
-                # Trace le titre de la figure
-                plt.suptitle(figure_title)
-
-                # Ajuste les distances entre les subplots quand ils sont tous tracés
-                plt.tight_layout()
-
-                # shows the legend if activated
-                if legend_on:
-
-                    legend_setup(fig, graph_type, **kwargs)
-
-
-def muscle_graph_old(data, muscle_name, variable_x, variable_y, figure_title, cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], muscle_part_on=False, subplot=None, subplot_title=False, **kwargs):
-    """
-    Draws all the parts of a Muscle that were selected
-
-
-    data : le dictionnaire contenant les data à tracer
-         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
-         : Soit un jeu de plusieurs datas (compare = True)
-
-    variable_x : Le nom de la variable placée en x sur le graphique
-    variable_y : le nom de la variable placée en y sur le graphique
-
-    composante_y :
-                  : type : liste de chaines de charactère
-                  : Liste contenant les nom des composantes de la variable à tracer
-                  : Par défaut : On trace la composante "Total" donc composante_y = ["Total"]
-
-                : Activer plusieurs composantes :
-                Exemple : composante_y = ["composante 1","composante 2","composante 3","Total"....]
-                          Si on veut activer x et y entrer : composante_y = ["x","y"]
-
-                : Activer une seule composante :
-                Exemple : Si on veut activer y entrer : composante_y = ["y"]
-
-
-                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
-                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
-
-    Composantes_x : Le nom de la composante de la variable en abscisse
-                  : composante_x est une chaîne de charactère contenant le nom de la composante de la variable
-                  : Par défaut : "Total"
-                  : Si on veut activer y entrer : Composantes_x = "y"
-
-    muscle_part_on  : Liste contenant les numéros des parties à tracer
-                  : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
-                  : "allparts" toutes les parties on sans le total
-                  : "all" toutes les parties avec le total
-
-                  : Défault = False : trace la variable totale du muscle entier
-                  : muscle_part_on = numéro de la partie du muscle à tracer
-
-
-    compare : = True si on veut comparer plusieurs données
-              Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
-
-    subplot = {"Dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
-
-
-        subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
-
-
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
-
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
-
-              Number = 3 corresponds to subplot [1,0]
-
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
-
-    **kwargs : contient d'autres paramètres comme
-             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
-             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
-                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
-             legend_on : bool : argument contrôlant l'affichage de la légende
-                       : True (par défaut) la légende s'affiche
-                       : False La légende ne s'affiche pas'
-             LegendLocation = dictionary, controls where the legend is drawn outside the figure
-
-                           location string of matplotlib 'upper right', 'center left'...
-
-                           Default value : lower center (below the figure)
-
-    """
-
-    # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
-    add_graph = kwargs.get("add_graph", False)
-
-    # Verifications for when simulationCases are used
-    if cases_on:
-        # Active tous les cas présents dans data
-        if cases_on == "all":
-            cases_on = list(data.keys())
-
-        # Vérifie que Cases est toujours une liste si 'all' n'est pas utilisé
-        elif not type(cases_on) is list:
-            raise ValueError(
-                "cases_on doit être une liste si 'all' n'est pas utilisé")
-            return
-
-        # Vérifie qu'on n'active pas plusieurs cas tout en comparant
-        if len(cases_on) > 1 and compare:
-            raise ValueError(
-                "On ne peut pas comparer plusieurs simulations et plusieurs cas en même temps")
-            return
-
-        # Vérifie qu'on ne dessine pas plusieurs variables tout en dessinant plusieurs cas
-        if len(cases_on) > 1 and len(composante_y) > 1:
-            raise ValueError(
-                "On ne peut pas dessiner plusieurs cas et plusieurs composantes en même temps")
-            return
-
-    # Name of the dictionnary key where the muscles are stored
-    # By default it's muscles but in case of an edge muscle it is stored in GHReactions
-    if "Edge Muscle" in muscle_name:
-        MuscleFolder = "GHReactions"
-    else:
-        MuscleFolder = "Muscles"
-
-    # Construit la liste des parties de muscle à tracer
-
-    # Sans cas de simulation selon le cas (avec/sans des cas, avec/sans comparaison)
-    if cases_on is False:
-        if compare is False:
-            muscle_parts_list = list(data[MuscleFolder][muscle_name].keys())
-        else:
-            ListSimulations = list(data.keys())
-            muscle_parts_list = list(data[ListSimulations[0]]
-                                     [MuscleFolder][muscle_name].keys())
-
-    # Dans les cas où on a des cas de simulation
-    else:
-        if compare is False:
-            muscle_parts_list = list(
-                data[cases_on[0]][MuscleFolder][muscle_name].keys())
-        else:
-            ListSimulations = list(data.keys())
-            muscle_parts_list = list(
-                data[ListSimulations[0]][cases_on[0]][MuscleFolder][muscle_name].keys())
-
-    # Si toutes les parties sont activées, fais une liste avec le nom de toutes les parties sauf le muscle total
-    # n'enlève pas la partie totale si le muscle n'a pas de partie
-    if muscle_part_on == "allparts" and (not len(muscle_parts_list) == 1):
-
-        # Enlève le muscle total de la liste
-        muscle_parts_list.remove(muscle_name)
-
-    # Dans le cas où on a entré une liste des numéros des parties
-    elif isinstance(muscle_part_on, list):
-
-        # Recrée les noms des parties à tracer en parcourant les numéros entrés
-        Listmuscle_parts_list = [
-            f"{muscle_name} {muscle_partNumber}" for muscle_partNumber in muscle_part_on]
-
-        # Stores the new value of muscleparts to draw
-        muscle_parts_list = Listmuscle_parts_list
-
-    # Si on ne veut tracer qu'un seul muscle
-    elif muscle_part_on is False:
-        muscle_parts_list = [muscle_name]
-
-    # Vérification qu'on ne dessine pas plusieurs parties de muscles tout en comparant
-    if compare and len(muscle_parts_list) > 1:
-        raise ValueError(
-            "On ne peut pas comparer plusieurs simulations et dessiner plusieurs parties de muscles en même temps")
-        return
-
-    # Vérification qu'on ne dessine pas plusieurs parties de muscles tout en dessinant plusieurs composantes
-    if compare and len(composante_y) > 1:
-        raise ValueError(
-            "On ne peut pas dessiner plusieurs composantes et dessiner plusieurs parties de muscles en même temps")
-        return
-    # Vérifie qu'on ne dessine pas plusieurs parties de muscles tout comparant plusieurs cas de simulation
-    if type(cases_on) is list:
-        if len(cases_on) > 1 and len(muscle_parts_list) > 1:
-            raise ValueError(
-                "On ne peut pas dessiner plusieurs cas de simulation et dessiner plusieurs parties de muscles en même temps")
-            return
-
-    # Gets the figure size
-    figsize = kwargs.get("figsize", None)
-
-    # subplot is setup here to be able to draw every part of a muscle on the same figure
-    fig = subplot_setup(subplot, figsize, add_graph)
-
-    # Initialisation du dictionnaire contenant les informations sur le nombre de muscles parts qui seront tracées
-    muscle_part_information = {}
-
-    # Nombre de muscle parts qui seront tracées sur le même graphique
-    muscle_part_information["Total Number Muscle Parts"] = len(muscle_parts_list)
-
-    # Parcours les parties de muscles à tracer
-    for muscle_part in muscle_parts_list:
-
-        # Si on trace la dernière partie de muscle pour ne tracer la légende et les axes qu'à ce moment là
-        if muscle_part == muscle_parts_list[-1]:
-            muscle_part_information["LastPart"] = True
-        else:
-            muscle_part_information["LastPart"] = False
-
-        muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, figure_title, composante_x,
-                          composante_y, compare, subplot, subplot_title, cases_on, muscle_part_information, fig=fig, **kwargs)
 
 
 # %% CODE POUR TESTER TOUTES LES COMBINAISONS ET LES MESSAGES D'ERREUR
