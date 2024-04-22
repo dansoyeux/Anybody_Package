@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def get_result_dictionary_data_structure(data):
+def get_result_dictionary_data_structure(result_dictionary):
     """
     returns a deepnest counter that indicates the data structure of the result dictionary entered
     and indicates if the source of the data is Anybody or from the literature
@@ -24,18 +24,18 @@ def get_result_dictionary_data_structure(data):
     variables_deepness_counter = 0
 
     # searches for the entry "Loaded Variables" to know the data structure
-    while "Loaded Variables" not in list(data.keys()) and variables_deepness_counter < 3:
+    while "Loaded Variables" not in list(result_dictionary.keys()) and variables_deepness_counter < 3:
         # increases the ccuonter
         variables_deepness_counter += 1
 
         # goes one step deeper in the result dictionary
-        data = data[list(data.keys())[0]]
+        result_dictionary = result_dictionary[list(result_dictionary.keys())[0]]
 
     if variables_deepness_counter > 2:
         raise ValueError("The result dictionary used doesn't have a correct data structure. The variables are {variables_deepness_counter} levels deep while 2 is the maximum!")
 
     # Gets the source of the data (anybody or the literature)
-    data_source = data["Loaded Variables"]["Data Source"]
+    data_source = result_dictionary["Loaded Variables"]["Data Source"]
 
     return variables_deepness_counter, data_source
 
@@ -453,28 +453,67 @@ def load_results_from_file(save_directory_path, save_file_name):
     return result_dictionary
 
 
-def save_result_dictionary_variables(dictionary_variables, xlsxwriter, sheet_name):
+def get_case_result_dictionary_variables(case_result_dictionary):
+    """
+    Returns the names of the variables and muscles variables of a case result dictionary
+    """
+
+    variables_deepness_counter, data_source = get_result_dictionary_data_structure(case_result_dictionary)
+
+    if not variables_deepness_counter == 0:
+        raise ValueError("the 'get_case_result_dictionary_variables' is only used for flat result dictionary (no simulation cases)")
+
+    variables_list = list(case_result_dictionary.keys())
+
+    # Removes entries that are not variables
+    if "Muscles" in variables_list:
+        variables_list.remove("Muscles")
+    if "Loaded Variables" in variables_list:
+        variables_list.remove("Loaded Variables")
+    if "Model informations" in variables_list:
+        variables_list.remove("Model informations")
+
+    first_muscle = list(case_result_dictionary["Muscles"].keys())[0]
+
+    muscle_variables_list = list(case_result_dictionary["Muscles"][first_muscle][first_muscle].keys())
+
+    return variables_list, muscle_variables_list
+
+
+def save_result_case_result_dictionary(case_result_dictionary, xlsxwriter, sheet_name):
 
     import pandas as pd
 
-    variables = list(dictionary_variables["Loaded Variables"]["Variables"].keys())
-    muscle_variable_list = list(dictionary_variables["Loaded Variables"]["MuscleVariables"].keys())
-    muscle_list = list(dictionary_variables["Muscles"].keys())
+    workbook = xlsxwriter.book
 
+    # Format of the merged cells
+    merge_format = workbook.add_format()
+    merge_format.set_align('left')
+    merge_format.set_align('vcenter')
+
+    variables_list, muscle_variables_list = get_case_result_dictionary_variables(case_result_dictionary)
+    muscle_list = list(case_result_dictionary["Muscles"].keys())
+
+    # builds a dictionary filled with each column of a data frame
     case_data = {}
 
-    for variable in variables:
-        for composante in dictionary_variables[variable]["SequenceComposantes"]:
+    # Normal variables
+    for variable in variables_list:
+        for composante in case_result_dictionary[variable]["SequenceComposantes"]:
 
-            # adds an empty data at the end because muscle variables have one more line
-            case_data[f"{variable}_{composante}"] = [variable] + [composante] + dictionary_variables[variable][composante].tolist() + [""]
+            # adds an empty data at the beginning because muscle variables have one more line
+            # the two first lines will be merged later
+            case_data[f"{variable}_{composante}"] = [""] + [variable] + [composante] + case_result_dictionary[variable][composante].tolist()
 
-    for muscle_name in muscle_list:
+    # number of columns that contain normal variables (used to merge later)
+    len_normal_variables = len(case_data)
 
-        muscle_data = dictionary_variables["Muscles"][muscle_name][muscle_name]
-
-        for index, muscle_variable in enumerate(muscle_variable_list):
+    # Muscle variables
+    for index, muscle_variable in enumerate(muscle_variables_list):
+        for muscle_name in muscle_list:
+            muscle_data = case_result_dictionary["Muscles"][muscle_name][muscle_name]
             for composante in muscle_data[muscle_variable]["SequenceComposantes"]:
+
                 case_data[f"{muscle_name}_{muscle_variable}_{composante}"] = [muscle_name] + [muscle_variable] + [composante] + muscle_data[muscle_variable][composante].tolist()
 
     # convert to dataframe and do the same for muscles
@@ -485,10 +524,17 @@ def save_result_dictionary_variables(dictionary_variables, xlsxwriter, sheet_nam
     # for each sheet, ajusts the length of all the columns
     ajust_xlswriter_column_length(xlsxwriter, df, sheet_name)
 
+    # Merges the first two rows of normal variables to avoid having empty cells
+    worksheet = xlsxwriter.sheets[sheet_name]
+    for col in range(0, len_normal_variables):
+        worksheet.merge_range(0, col, 1, col, df.iloc[1, col], merge_format)
+
 
 def result_dictionary_to_excel(result_dictionary, excel_file_name):
     """
     Function that saves a result dictionary into an excel file
+
+    Uses the package : xlsxwriter
     """
     import pandas as pd
 
@@ -500,7 +546,7 @@ def result_dictionary_to_excel(result_dictionary, excel_file_name):
     # no simulation cases
     if variables_deepness_counter == 0:
         sheet_name = "Sheet"
-        save_result_dictionary_variables(result_dictionary, xlsxwriter, sheet_name)
+        save_result_case_result_dictionary(result_dictionary, xlsxwriter, sheet_name)
 
     # simulation cases
     elif variables_deepness_counter == 1:
@@ -510,7 +556,7 @@ def result_dictionary_to_excel(result_dictionary, excel_file_name):
             result_case = result_dictionary[case]
             sheet_name = case
 
-            save_result_dictionary_variables(result_case, xlsxwriter, sheet_name)
+            save_result_case_result_dictionary(result_case, xlsxwriter, sheet_name)
 
     # one sheet per simulation per simulation case
     elif variables_deepness_counter == 2:
@@ -519,7 +565,7 @@ def result_dictionary_to_excel(result_dictionary, excel_file_name):
                 result_case = result_dictionary[simulation][case]
                 sheet_name = f"{simulation}_{case}"
 
-                save_result_dictionary_variables(result_case, xlsxwriter, sheet_name)
+                save_result_case_result_dictionary(result_case, xlsxwriter, sheet_name)
 
     # Close the Pandas Excel writer and output the Excel file.
     xlsxwriter.close()
@@ -528,7 +574,6 @@ def result_dictionary_to_excel(result_dictionary, excel_file_name):
 def ajust_xlswriter_column_length(xlsxwriter, df, sheet_name):
 
     # get the XlsxWriter workbook and worksheet objects
-    # workbook = xlsxwriter.book
     worksheet = xlsxwriter.sheets[sheet_name]
 
     # adjust the column widths based on the content
