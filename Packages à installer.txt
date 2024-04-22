@@ -1,0 +1,11 @@
+-------------------------------
+Readh5 :
+
+Modules nécessaires normalement installés de base : PyCharm, matplotlib, numpy
+À installer : pickle, pandas, xlsxwriter
+
+-------------------------------
+Graphiques : 
+Modules nécessaires normalement installés de base : spicy, numpy, math
+
+À installer : meshlab_pickedpoints (https://pypi.org/project/meshlab-pickedpoints/), adjustText (https://github.com/Phlya/adjustText)

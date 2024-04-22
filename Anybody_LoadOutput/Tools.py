@@ -1,6 +1,45 @@
 import numpy as np
 
 
+def get_result_dictionary_data_structure(data):
+    """
+    returns a deepnest counter that indicates the data structure of the result dictionary entered
+    and indicates if the source of the data is Anybody or from the literature
+    --------------------------------------------------------------------------
+    return
+    variables_deepness_counter : (int) counter that counts how deep the variables are stored which indicates the data structure
+    0 : no simulation cases
+    1 : simulation cases
+    2 : compared simulation cases
+    3+ : error
+
+    data_source : (str) The data source ("Anybody" or "Literature")
+    """
+
+    # counter that counts how deep the variables are stored which indicates the data structure
+    # 0 : no simulation cases
+    # 1 : simulation cases
+    # 2 : compared simulation cases
+    # 3 : error
+    variables_deepness_counter = 0
+
+    # searches for the entry "Loaded Variables" to know the data structure
+    while "Loaded Variables" not in list(data.keys()) and variables_deepness_counter < 3:
+        # increases the ccuonter
+        variables_deepness_counter += 1
+
+        # goes one step deeper in the result dictionary
+        data = data[list(data.keys())[0]]
+
+    if variables_deepness_counter > 2:
+        raise ValueError("The result dictionary used doesn't have a correct data structure. The variables are {variables_deepness_counter} levels deep while 2 is the maximum!")
+
+    # Gets the source of the data (anybody or the literature)
+    data_source = data["Loaded Variables"]["Data Source"]
+
+    return variables_deepness_counter, data_source
+
+
 def transform_vector(vector, rotation_matrix, translation_vect=None, inverse_transform=False):
     """
     Transforme un vecteur avec une matrice de rotation pour chaque pas de temps et le bouge d'un certain vecteur pour chaque pas de temps
@@ -412,3 +451,87 @@ def load_results_from_file(save_directory_path, save_file_name):
         file.close()
 
     return result_dictionary
+
+
+def save_result_dictionary_variables(dictionary_variables, xlsxwriter, sheet_name):
+
+    import pandas as pd
+
+    variables = list(dictionary_variables["Loaded Variables"]["Variables"].keys())
+    muscle_variable_list = list(dictionary_variables["Loaded Variables"]["MuscleVariables"].keys())
+    muscle_list = list(dictionary_variables["Muscles"].keys())
+
+    case_data = {}
+
+    for variable in variables:
+        for composante in dictionary_variables[variable]["SequenceComposantes"]:
+
+            # adds an empty data at the end because muscle variables have one more line
+            case_data[f"{variable}_{composante}"] = [variable] + [composante] + dictionary_variables[variable][composante].tolist() + [""]
+
+    for muscle_name in muscle_list:
+
+        muscle_data = dictionary_variables["Muscles"][muscle_name][muscle_name]
+
+        for index, muscle_variable in enumerate(muscle_variable_list):
+            for composante in muscle_data[muscle_variable]["SequenceComposantes"]:
+                case_data[f"{muscle_name}_{muscle_variable}_{composante}"] = [muscle_name] + [muscle_variable] + [composante] + muscle_data[muscle_variable][composante].tolist()
+
+    # convert to dataframe and do the same for muscles
+    df = pd.DataFrame.from_dict(case_data)
+
+    df.to_excel(xlsxwriter, index=False, header=False, sheet_name=sheet_name)
+
+    # for each sheet, ajusts the length of all the columns
+    ajust_xlswriter_column_length(xlsxwriter, df, sheet_name)
+
+
+def result_dictionary_to_excel(result_dictionary, excel_file_name):
+    """
+    Function that saves a result dictionary into an excel file
+    """
+    import pandas as pd
+
+    # gets the result dictionary data structure
+    variables_deepness_counter, data_source = get_result_dictionary_data_structure(result_dictionary)
+
+    xlsxwriter = pd.ExcelWriter(f'{excel_file_name}.xlsx', engine='xlsxwriter')
+
+    # no simulation cases
+    if variables_deepness_counter == 0:
+        sheet_name = "Sheet"
+        save_result_dictionary_variables(result_dictionary, xlsxwriter, sheet_name)
+
+    # simulation cases
+    elif variables_deepness_counter == 1:
+
+        # One excel sheet per simulation case
+        for case in result_dictionary:
+            result_case = result_dictionary[case]
+            sheet_name = case
+
+            save_result_dictionary_variables(result_case, xlsxwriter, sheet_name)
+
+    # one sheet per simulation per simulation case
+    elif variables_deepness_counter == 2:
+        for simulation in result_dictionary:
+            for case in result_dictionary[simulation]:
+                result_case = result_dictionary[simulation][case]
+                sheet_name = f"{simulation}_{case}"
+
+                save_result_dictionary_variables(result_case, xlsxwriter, sheet_name)
+
+    # Close the Pandas Excel writer and output the Excel file.
+    xlsxwriter.close()
+
+
+def ajust_xlswriter_column_length(xlsxwriter, df, sheet_name):
+
+    # get the XlsxWriter workbook and worksheet objects
+    # workbook = xlsxwriter.book
+    worksheet = xlsxwriter.sheets[sheet_name]
+
+    # adjust the column widths based on the content
+    for i, col in enumerate(df.columns):
+        width = max(df[col].apply(lambda x: len(str(x))).max(), len(col))
+        worksheet.set_column(i, i, width)
