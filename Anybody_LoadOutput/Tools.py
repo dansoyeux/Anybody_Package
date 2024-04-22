@@ -40,6 +40,64 @@ def get_result_dictionary_data_structure(result_dictionary):
     return variables_deepness_counter, data_source
 
 
+def get_result_dictionary_variables_informations(result_dictionary):
+    """
+    Returns the names of the variables and muscles variables, their component sequence and description
+
+    ----------------------------------------------
+    return
+        muscle_variables_informations = {"muscle_variable_1_name": {"SequenceComposantes": [......], "Description": "DESCRIPTION"}}
+        variables_informations = {"variable_1_name": {"SequenceComposantes": [......], "Description": "DESCRIPTION"}}
+    """
+
+    variables_informations = {}
+    muscle_variables_informations = {}
+
+    # gets the result dictionary structure
+    variables_deepness_counter, data_source = get_result_dictionary_data_structure(result_dictionary)
+
+    if variables_deepness_counter == 0:
+        case_result_dictionary = result_dictionary
+
+    # Simulation cases
+    elif variables_deepness_counter == 1:
+        first_case = list(result_dictionary.keys())[0]
+        case_result_dictionary = result_dictionary[first_case]
+
+    # Compared simulation cases
+    elif variables_deepness_counter == 2:
+        first_simulation = list(result_dictionary.keys())[0]
+        first_case = list(result_dictionary[first_simulation].keys())[0]
+        case_result_dictionary = result_dictionary[first_simulation][first_case]
+
+    # List of entries normal variables
+    variables_list = list(case_result_dictionary.keys())
+
+    # Removes entries that are not variables
+    if "Muscles" in variables_list:
+        variables_list.remove("Muscles")
+    if "Loaded Variables" in variables_list:
+        variables_list.remove("Loaded Variables")
+    if "Model informations" in variables_list:
+        variables_list.remove("Model informations")
+
+    # gets the variables description and component sequence
+    for variable in variables_list:
+        variables_informations[variable] = {"SequenceComposantes": case_result_dictionary[variable]["SequenceComposantes"],
+                                            "Description": case_result_dictionary[variable]["Description"]}
+
+    first_muscle = list(case_result_dictionary["Muscles"].keys())[0]
+
+    muscle_variables_list = list(case_result_dictionary["Muscles"][first_muscle][first_muscle].keys())
+
+    # gets the variables description and component sequence
+    for muscle_variable in muscle_variables_list:
+        muscle_variables_informations[muscle_variable] = {"SequenceComposantes": case_result_dictionary["Muscles"][first_muscle][first_muscle][muscle_variable]["SequenceComposantes"],
+                                                          "Description": case_result_dictionary["Muscles"][first_muscle][first_muscle][muscle_variable]["Description"]}
+
+    return variables_informations, muscle_variables_informations
+
+
 def transform_vector(vector, rotation_matrix, translation_vect=None, inverse_transform=False):
     """
     Transforme un vecteur avec une matrice de rotation pour chaque pas de temps et le bouge d'un certain vecteur pour chaque pas de temps
@@ -453,34 +511,7 @@ def load_results_from_file(save_directory_path, save_file_name):
     return result_dictionary
 
 
-def get_case_result_dictionary_variables(case_result_dictionary):
-    """
-    Returns the names of the variables and muscles variables of a case result dictionary
-    """
-
-    variables_deepness_counter, data_source = get_result_dictionary_data_structure(case_result_dictionary)
-
-    if not variables_deepness_counter == 0:
-        raise ValueError("the 'get_case_result_dictionary_variables' is only used for flat result dictionary (no simulation cases)")
-
-    variables_list = list(case_result_dictionary.keys())
-
-    # Removes entries that are not variables
-    if "Muscles" in variables_list:
-        variables_list.remove("Muscles")
-    if "Loaded Variables" in variables_list:
-        variables_list.remove("Loaded Variables")
-    if "Model informations" in variables_list:
-        variables_list.remove("Model informations")
-
-    first_muscle = list(case_result_dictionary["Muscles"].keys())[0]
-
-    muscle_variables_list = list(case_result_dictionary["Muscles"][first_muscle][first_muscle].keys())
-
-    return variables_list, muscle_variables_list
-
-
-def save_result_case_result_dictionary(case_result_dictionary, xlsxwriter, sheet_name):
+def save_result_variable_to_sheet(result_dictionary, variable_name, SequenceComposantes, description, xlsxwriter, muscle_variable=False):
 
     import pandas as pd
 
@@ -491,30 +522,54 @@ def save_result_case_result_dictionary(case_result_dictionary, xlsxwriter, sheet
     merge_format.set_align('left')
     merge_format.set_align('vcenter')
 
-    variables_list, muscle_variables_list = get_case_result_dictionary_variables(case_result_dictionary)
-    muscle_list = list(case_result_dictionary["Muscles"].keys())
+    muscle_list = list(result_dictionary["Muscles"].keys())
 
-    # builds a dictionary filled with each column of a data frame
-    case_data = {}
+    # builds a dictionary filled with each column of a data frame containing the values of the current variable
+    variable_data = {}
 
-    # Normal variables
-    for variable in variables_list:
-        for composante in case_result_dictionary[variable]["SequenceComposantes"]:
+    variables_deepness_counter, data_source = get_result_dictionary_data_structure(result_dictionary)
 
-            # adds an empty data at the beginning because muscle variables have one more line
-            # the two first lines will be merged later
-            case_data[f"{variable}_{composante}"] = [""] + [variable] + [composante] + case_result_dictionary[variable][composante].tolist()
+    # sheet named depending on the type of variable
+    if muscle_variable:
+        sheet_name = f"Muscle.{variable_name}"
+    else:
+        sheet_name = variable_name
 
-    # number of columns that contain normal variables (used to merge later)
-    len_normal_variables = len(case_data)
 
-    # Muscle variables
-    for index, muscle_variable in enumerate(muscle_variables_list):
-        for muscle_name in muscle_list:
-            muscle_data = case_result_dictionary["Muscles"][muscle_name][muscle_name]
-            for composante in muscle_data[muscle_variable]["SequenceComposantes"]:
 
-                case_data[f"{muscle_name}_{muscle_variable}_{composante}"] = [muscle_name] + [muscle_variable] + [composante] + muscle_data[muscle_variable][composante].tolist()
+    # if variables_deepness_counter == 0:
+        
+
+
+
+
+    """voir quelle structure mettre pour les muscles : 
+        je pense : variable dans un tab, ensuite liste chaque muscles et met ce cas pour ce muscle"""
+
+    """à la toute fin, créer une colomne avec la description de la variable"""
+
+
+
+    # # Normal variables
+    # for variable in variables_informations:
+    #     for composante in variables_informations[variable]["SequenceComposantes"]:
+
+    #         # The first column contain
+            
+    #         # adds an empty data at the beginning because muscle variables have one more line
+    #         # the two first lines will be merged later
+    #         case_data[f"{variable}_{composante}"] = [""] + [variable] + [composante] + case_result_dictionary[variable][composante].tolist()
+
+    # # number of columns that contain normal variables (used to merge later)
+    # len_normal_variables = len(case_data)
+
+    # # Muscle variables
+    # for muscle_variable in muscle_variables_informations:
+    #     for muscle_name in muscle_list:
+    #         muscle_data = case_result_dictionary["Muscles"][muscle_name][muscle_name]
+    #         for composante in muscle_variables_informations[muscle_variable]["SequenceComposantes"]:
+
+    #             case_data[f"{muscle_name}_{muscle_variable}_{composante}"] = [muscle_name] + [muscle_variable] + [composante] + muscle_data[muscle_variable][composante].tolist()
 
     # convert to dataframe and do the same for muscles
     df = pd.DataFrame.from_dict(case_data)
@@ -538,34 +593,32 @@ def result_dictionary_to_excel(result_dictionary, excel_file_name):
     """
     import pandas as pd
 
-    # gets the result dictionary data structure
-    variables_deepness_counter, data_source = get_result_dictionary_data_structure(result_dictionary)
+    
 
     xlsxwriter = pd.ExcelWriter(f'{excel_file_name}.xlsx', engine='xlsxwriter')
 
-    # no simulation cases
-    if variables_deepness_counter == 0:
-        sheet_name = "Sheet"
-        save_result_case_result_dictionary(result_dictionary, xlsxwriter, sheet_name)
+    # gets the variables informations
+    variables_informations, muscle_variables_informations = get_result_dictionary_variables_informations(result_dictionary)
 
-    # simulation cases
-    elif variables_deepness_counter == 1:
 
-        # One excel sheet per simulation case
-        for case in result_dictionary:
-            result_case = result_dictionary[case]
-            sheet_name = case
+    # get variables
+    # parcourir les variables
+    
+    # faire un tab par variable
+    # mettre la description de la variable
+    # changer le get variables pour que marche avec n'importe quelle profondeur
 
-            save_result_case_result_dictionary(result_case, xlsxwriter, sheet_name)
+    for variable in variables_informations:
+        description = variables_informations[variable]["Description"]
+        SequenceComposantes = variables_informations[variable]["SequenceComposantes"]
+        save_result_variable_to_sheet(result_dictionary, variable, SequenceComposantes, description, xlsxwriter, muscle_variable=False)
 
-    # one sheet per simulation per simulation case
-    elif variables_deepness_counter == 2:
-        for simulation in result_dictionary:
-            for case in result_dictionary[simulation]:
-                result_case = result_dictionary[simulation][case]
-                sheet_name = f"{simulation}_{case}"
+    # for muscle variables
+    for muscle_variable in muscle_variables_informations:
+        description = muscle_variables_informations[variable]["Description"]
+        SequenceComposantes = muscle_variables_informations[variable]["SequenceComposantes"]
+        save_result_variable_to_sheet(result_dictionary, muscle_variable, SequenceComposantes, description, xlsxwriter, muscle_variable=True)
 
-                save_result_case_result_dictionary(result_case, xlsxwriter, sheet_name)
 
     # Close the Pandas Excel writer and output the Excel file.
     xlsxwriter.close()
