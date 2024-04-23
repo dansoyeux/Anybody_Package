@@ -716,3 +716,5 @@ def result_dictionary_to_excel(result_dictionary, excel_file_name):
 
     # Close the Pandas Excel writer and output the Excel file.
     xlsxwriter.close()
+
+    print(f"Results exported to the excel file : {excel_file_name}.xlsx")

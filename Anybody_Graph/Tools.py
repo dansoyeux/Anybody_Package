@@ -265,3 +265,5 @@ def save_all_active_figures(save_folder_path, folder_name, file_name, save_forma
         plt.figure(i)
         plt.savefig(f"{subfolder_path}/{file_name}_{i}.{save_format}", bbox_inches='tight')
     plt.close("all")
+
+    print(f"Figure saved in the folder : {save_folder_path}/{folder_name}")
