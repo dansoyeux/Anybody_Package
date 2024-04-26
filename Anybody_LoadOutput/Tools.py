@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def get_result_dictionary_data_structure(result_dictionary):
     """
     returns a deepnest counter that indicates the data structure of the result dictionary entered
@@ -515,6 +514,9 @@ def save_result_variable_to_sheet(result_dictionary, variable_name, SequenceComp
 
     import pandas as pd
 
+    # gets the result dictionary structure
+    variables_deepness_counter, data_source = get_result_dictionary_data_structure(result_dictionary)
+
     workbook = xlsxwriter.book
 
     # Format of the description titles
@@ -529,8 +531,6 @@ def save_result_variable_to_sheet(result_dictionary, variable_name, SequenceComp
 
     # builds a dictionary filled with each column of a data frame containing the values of the current variable
     variable_data = {}
-
-    variables_deepness_counter, data_source = get_result_dictionary_data_structure(result_dictionary)
 
     # sheet named depending on the type of variable
     if muscle_variable:
@@ -687,10 +687,100 @@ def save_result_variable_to_sheet(result_dictionary, variable_name, SequenceComp
 
     # autofits the columns
     worksheet.autofit()
+    # Sets the column width to a certain amount for the variable informations
     worksheet.set_column(0, 0, 26)
 
 
-def result_dictionary_to_excel(result_dictionary, excel_file_name):
+def get_model_informations(result_dictionary: dict, variables_deepness_counter: int) -> dict:
+    """
+    Creates a dictionary containing pandas.Series of the model informations
+
+    result_dictionary : dict : result_dictionary
+
+    variables_deepness_counter : int : int that indicates the type of the result dictionary (result from the functin get_result_dictionary_data_structure)
+
+
+    return
+    -------
+    model_informations = dict contains pandas.Series that store the model informations
+                       = {line, category of information 1, informations of the category 1, empty line,
+                          category of information 2, informations of the category 2
+                          ....
+                          }
+
+    """
+    import pandas as pd
+
+    def get_case_model_informations(case_result_dictionary: dict) -> pd.DataFrame:
+        """
+        gets the model information of a result dictionary without simulation cases
+
+        case_result_dictionary : dict result dictionary without simulation cases
+
+        returns
+        -----------
+        case_model_informations_df : pd.DataFrame Store model informations
+
+        """
+        import pandas as pd
+
+        result_model_informations = case_result_dictionary["Model informations"]
+
+        case_model_informations = {}
+
+        for category_name, informations_category in result_model_informations.items():
+            # adds an empty entry to make an empty line before the category name
+
+            for information_name, information in informations_category.items():
+                case_model_informations[information_name] = pd.Series([information_name, information])
+
+        case_model_informations_df = pd.DataFrame(case_model_informations).T
+
+        return case_model_informations_df
+
+    # Goes through each cases and simulations and add them to the model informations dictionary
+    model_informations_df = pd.DataFrame()
+
+    # for a single case result dictionary
+    if variables_deepness_counter == 0:
+
+        model_informations_df = get_case_model_informations(result_dictionary)
+
+    # Result with simulation cases
+    elif variables_deepness_counter == 1:
+
+        for case_name in result_dictionary:
+            case_model_informations = get_case_model_informations(result_dictionary[case_name])
+
+            # adds case names and simulation names to the dataframe
+            case_names_df = pd.DataFrame({"case_name": ["Case", case_name]}).T
+            case_model_informations = pd.concat([case_names_df, case_model_informations])
+            case_model_informations[f"empty_{case_name}"] = ""
+
+            # adds the current case informations to the previous ones
+            model_informations_df = pd.concat([model_informations_df, case_model_informations], axis=1)
+
+    # Result with compared simulation cases
+    elif variables_deepness_counter == 2:
+
+        for simulation_name, simulation_results in result_dictionary.items():
+
+            for case_name in simulation_results:
+                case_model_informations = get_case_model_informations(result_dictionary[simulation_name][case_name])
+
+                # adds case names and simulation names to the dataframe
+                case_names_df = pd.DataFrame({"simulation_name": ["Simulation", simulation_name],
+                                              "case_name": ["Case", case_name]}).T
+                case_model_informations = pd.concat([case_names_df, case_model_informations])
+                case_model_informations[f"empty_{case_name}{simulation_name}"] = ""
+
+                # adds the current case informations to the previous ones
+                model_informations_df = pd.concat([model_informations_df, case_model_informations], axis=1)
+
+    return model_informations_df
+
+
+def result_dictionary_to_excel(result_dictionary: dict, excel_file_name: str):
     """
     Function that saves a result dictionary into an excel file
 
@@ -699,6 +789,17 @@ def result_dictionary_to_excel(result_dictionary, excel_file_name):
     import pandas as pd
 
     xlsxwriter = pd.ExcelWriter(f'{excel_file_name}.xlsx', engine='xlsxwriter')
+
+    variables_deepness_counter, data_source = get_result_dictionary_data_structure(result_dictionary)
+
+    # model informations
+    model_informations_df = get_model_informations(result_dictionary, variables_deepness_counter)
+
+    # model_informations_df = pd.DataFrame(model_informations).T
+    model_informations_df.to_excel(xlsxwriter, index=False, header=False, sheet_name="Model informations")
+    worksheet = xlsxwriter.sheets["Model informations"]
+    worksheet.set_tab_color("red")
+    worksheet.autofit()
 
     # gets the variables informations
     variables_informations, muscle_variables_informations = get_result_dictionary_variables_informations(result_dictionary)
