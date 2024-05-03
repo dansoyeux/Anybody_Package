@@ -439,19 +439,22 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
             # Then places a box under the legend
             offset_legend = matplotlib.text.OffsetFrom(leg, (0.0, 0))
 
+            import matplotlib
+
+            fontsize = matplotlib.rcParams.get('legend.fontsize')
+
             # Create annotation. Top right corner located -20 pixels below the offset point
             # (lower right corner of legend).
             graph_annotation_legend_box = plt.annotate("XX", xy=(0, 0),
-                                                       xycoords='figure fraction', xytext=(5, -20), textcoords=offset_legend,
+                                                       xycoords='figure fraction', xytext=(5, -25), textcoords=offset_legend,
                                                        horizontalalignment='left', verticalalignment='bottom',
-                                                       bbox=props)
+                                                       bbox=props, fontsize=fontsize)
 
-            offset_legend_box = matplotlib.text.OffsetFrom(
-                graph_annotation_legend_box, (1.5, 0))
+            offset_legend_box = matplotlib.text.OffsetFrom(graph_annotation_legend_box, (1.5, 0))
 
             plt.annotate(legend_string, xy=(0, 0),
                          xycoords='figure fraction', xytext=(0, 0), textcoords=offset_legend_box,
-                         horizontalalignment='left', verticalalignment='bottom')
+                         horizontalalignment='left', verticalalignment='bottom', fontsize=fontsize)
 
     # If no legend was created and there are graph annotations on the graph
     elif len(labels) == 1 and graph_annotation_on:
