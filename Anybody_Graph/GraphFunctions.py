@@ -21,7 +21,7 @@ from Anybody_Package.Anybody_LoadOutput.Tools import get_result_dictionary_data_
 
 def define_simulations_line_style(SimulationsLineStyleDictionary):
     """
-    Fonction qui crée la variable globale SimulationsLineStyle qui sera utilisée par la fonction get_simulation_line_style
+    Fonction qui crée la variable globale simulations_line_style qui sera utilisée par la fonction get_simulation_line_style
     Fonction à appeler avant d'utiliser la fonction plot
 
     SimulationsLineStyleDictionary = {"Case 1": {"color": "COLORNAME", "marker": "MARKERNAME", "markersize": NUMBER, "linestyle": "LINESTYLE", "linewidth": NUMBER},
@@ -29,8 +29,8 @@ def define_simulations_line_style(SimulationsLineStyleDictionary):
                             }
     If one of the settings isn't declared, it will be set to the default value (None)
     """
-    global SimulationsLineStyle
-    SimulationsLineStyle = SimulationsLineStyleDictionary.copy()
+    global simulations_line_style
+    simulations_line_style = SimulationsLineStyleDictionary.copy()
 
 
 def define_simulation_description(SimulationDescriptionDictionary):
@@ -108,9 +108,12 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
         graph_label = label
 
     # defines the color and the style of the line depending on the label name, from the global dictionary SimulationsLineStyleDictionary
-    simulation_style_dictionary = get_simulation_line_style(graph_label)
+    if 'simulations_line_style' in globals():
+        simulation_line_style_dictionary = get_simulation_line_style(graph_label)
+    else:
+        simulation_line_style_dictionary = {}
 
-    plt.plot(x, y, label=graph_label, **simulation_style_dictionary)
+    plt.plot(x, y, label=graph_label, **simulation_line_style_dictionary)
 
     # Draws peak angles
     if graph_annotation_on:
@@ -257,23 +260,17 @@ def define_simulation_label(labels):
 
     SimulationDescription = ["Case or Simulation Name","Legend text","Case or Simulation Name","Legend text"]
 
-    Uses the function : "get_simulation_description" to change the case name to it's description'
     """
 
-    # in case no simulation description were defined, the labels stay the same
-    if "simulation_description" not in globals():
-        case_labels = labels
-
-    else:
-        case_labels = []
-        # Parcours les label du graphique
-        for label in labels:
-            # Si ce label est dans la liste Simulation description, remplace ce label par sa description
-            if label in simulation_description:
-                case_labels.append(get_simulation_description(label))
-            # Si ce label n'a pas de description, garde ce label
-            else:
-                case_labels.append(label)
+    case_labels = []
+    # Parcours les label du graphique
+    for label in labels:
+        # Si ce label est dans la liste Simulation description, remplace ce label par sa description
+        if label in simulation_description:
+            case_labels.append(simulation_description[label])
+        # Si ce label n'a pas de description, garde ce label
+        else:
+            case_labels.append(label)
 
     return case_labels
 
@@ -409,12 +406,15 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
         # Number of columns in the legend to not exceed the max number of labels per column
         ncol = int(np.ceil((len(labels)) / LabelsPerColumn))
 
-        # Changes the names of the case to their description
-        Simulationlabels = define_simulation_label(labels)
+        # Changes the names of the case to their description if a simulation_description dictionary was defined
+        # in case no simulation description were defined, the labels stay the same
+        if "simulation_description" in globals():
+            Simulationlabels = define_simulation_label(labels)
+        else:
+            Simulationlabels = labels
 
         # Places one legend for the whole subplot
-        leg = fig.legend(lines, Simulationlabels, bbox_to_anchor=(
-            Loc_x, Loc_y), loc=Anchor_loc, ncol=ncol)
+        leg = fig.legend(lines, Simulationlabels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc, ncol=ncol)
 
         if graph_annotation_on:
             # Creates the legend of the annotation boxes under the legend of the graoh
@@ -635,45 +635,31 @@ def hide_center_subplot_axis_labels(subplot):
     plt.tight_layout()
 
 
-def get_simulation_description(label):
-    """
-    Transforms the case name into it's description (From the simulation_description global list)
-    SimulationDescriptionDictionary must be a global list declared at the beginning of the code :
-        global SimulationDescriptionDictionary
-        SimulationDescriptionDictionary = {"Simulation1 Name": "Simulation1 description",
-                                           "Simulation2 Name": "Simulation2 description"...}
-    """
-
-    case_description = simulation_description[label]
-
-    return case_description
-
-
 def get_simulation_line_style(label):
     """
     Defines the style of the line data in a graph depending on it's name
-    SimulationsLineStyle must have be set with the define_simulations_line_style function
+    simulations_line_style must have be set with the define_simulations_line_style function
 
 
     These line style are defined in a global dictionnary :
-        global SimulationsLineStyle
-        SimulationsLineStyle = {"Case 1": {"color": "COLORNAME", "marker": "MARKERNAME", "markersize": NUMBER, "linestyle": "LINESTYLE", "linewidth": NUMBER},
+        global simulations_line_style
+        simulations_line_style = {"Case 1": {"color": "COLORNAME", "marker": "MARKERNAME", "markersize": NUMBER, "linestyle": "LINESTYLE", "linewidth": NUMBER},
                                 "Case 2": {"color": "COLORNAME", "marker": "MARKERNAME", "markersize": NUMBER, "linestyle": "LINESTYLE", "linewidth": NUMBER}
                                 }
         If one of the settings isn't declared, it will be set to the default value (None)
 
     """
 
-    simulation_style_dictionary = {}
+    simulation_line_style_dictionary = {}
 
     # Only select a custom color if there is a label
     if label is not None:
         # Selects the color from the colormap if the graph_label is in SimulationColors
-        if label in SimulationsLineStyle:
+        if label in simulations_line_style:
 
-            simulation_style_dictionary = SimulationsLineStyle[label]
+            simulation_line_style_dictionary = simulations_line_style[label]
 
-    return simulation_style_dictionary
+    return simulation_line_style_dictionary
 
 
 # %% Graph visual functions setup
