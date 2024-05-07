@@ -281,15 +281,20 @@ def define_simulation_label(labels):
     Uses the function : "get_simulation_description" to change the case name to it's description'
     """
 
-    case_labels = []
-    # Parcours les label du graphique
-    for label in labels:
-        # Si ce label est dans la liste Simulation description, remplace ce label par sa description
-        if label in simulation_description:
-            case_labels.append(get_simulation_description(label))
-        # Si ce label n'a pas de description, garde ce label
-        else:
-            case_labels.append(label)
+    # in case no simulation description were defined, the labels stay the same
+    if "simulation_description" not in globals():
+        case_labels = labels
+
+    else:
+        case_labels = []
+        # Parcours les label du graphique
+        for label in labels:
+            # Si ce label est dans la liste Simulation description, remplace ce label par sa description
+            if label in simulation_description:
+                case_labels.append(get_simulation_description(label))
+            # Si ce label n'a pas de description, garde ce label
+            else:
+                case_labels.append(label)
 
     return case_labels
 
