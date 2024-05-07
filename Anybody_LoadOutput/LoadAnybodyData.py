@@ -9,12 +9,9 @@ from Anybody_Package.Anybody_LoadOutput.Tools import CleanFailedSimulationSteps
 # POUR L'INSTANT, LOAD LES VARIABLES DES H5, LOAD PAS LES VARIABLES DES FICHIERS TEXTES
 
 
-def Loadh5File(FilePath, Failed=False, GHReactionsShape=False, AddConstants=False):
+def Loadh5File(FilePath, Failed=False, AddConstants=False):
     """
     Wraps every information about the h5 file in one dictionary
-
-
-    GHReactionsShape is custom arguments in my simulation
 
     NOTE : IN THIS SCRIPT, THE H5 FILE IS NOT CLOSED WHICH CAN AFFECT PERFORMANCE A LOT IF A LOT OF h5 ARE LOADED
         : IF THE LoadResultsh5 function is used, the h5 FILE IS CLOSED AT THE END
@@ -44,8 +41,7 @@ def Loadh5File(FilePath, Failed=False, GHReactionsShape=False, AddConstants=Fals
     except OSError:
         raise ValueError(f"The file doesn't exist or is damaged and wasn't posible to be opened : \n{file_full_name}\nCheck the directory path or the file name or that the h5 file's name finishes with .anydata")
 
-    h5File = {"FilePath": FilePath, "Failed": Failed, "h5Data": h5Data,
-              "GHReactions": GHReactionsShape}
+    h5File = {"FilePath": FilePath, "Failed": Failed, "h5Data": h5Data}
 
     return h5File
 
@@ -817,60 +813,3 @@ def combine_muscle_parts(MuscleOutput, MuscleName, MuscleVariableDictionary):
     MuscleOutput[MuscleName] = combined_MuscleOutput
 
     return MuscleOutput
-
-
-def LoadGHReactions(GHReactionsShape, h5File, MuscleVariableDictionary, RotG, PosG):
-    """
-    Loads the GHReactions informations :
-    The EdgeMuscles and the CavityNodes Position in the local glenoid implant reference frame
-
-    GHReactionsShape can be "Circle" or "Edge" depending on the type of the GHReactions used
-    """
-    CavityEdgeNode = {}
-
-    # Initialise Muscle array as a (0,5) np.array
-    EdgeMuscleDictionary = np.empty((0, 5), int)
-
-    if GHReactionsShape == "Circle":
-        EdgeMuscleDir = 'Output.Seg.Scapula.GlenImplantPos.GHReactionCenterNode.CavityEdgeNode'
-    elif GHReactionsShape == "Edge":
-        EdgeMuscleDir = 'Output.Seg.Scapula.GlenImplantPos.CavityEdgeNode'
-
-    # Total number of edge muscles
-    NumberEdgeMuscles = 8
-    # Creates a MuscleArray to load the EdgeMuscles
-    EdgeMuscleDictionary = {"Edge Muscle": ["Output.Jnt.MyGHReactions", "EdgeMuscle", "", NumberEdgeMuscles]}
-
-    # Goes through every edgemuscles number
-    for EdgeMuscleNumber in range(1, NumberEdgeMuscles + 1):
-
-        # Gets the position of the EdgeMuscles insertion points in mm
-        Pos = LoadAnyVariable(h5File, f"{EdgeMuscleDir}{EdgeMuscleNumber}.r", MultiplyFactor=1000, OutputDictionary=False)
-
-        # Transforms the global position to the local coordinate system of the glenoid implant
-        # Only takes the position at the first step because it is a constant
-
-        PosLocal = transform_vector(Pos, RotG, PosG, inverse_transform=True)
-
-        # Stores the local coordinate of this EdgeNode
-        CavityEdgeNode["Cavity EdgeNode " + str(EdgeMuscleNumber)] = PosLocal[0, :]
-
-    # Loads the Muscles variables
-    GHReactions = LoadMuscleDictionary(h5File, EdgeMuscleDictionary, MuscleVariableDictionary, FileType="h5")
-
-    # Adds the shape of the GHReaction
-    GHReactions["Shape"] = GHReactionsShape
-
-    # Adds the position of the edgenodes
-    GHReactions["Cavity Nodes Position"] = CavityEdgeNode
-
-    # Loads the strength of the muscle
-    GHReactionsConstants = {"AnybodyFileOutPath": "Main.Study.FileOut",
-                            "Informations": ["EdgeMuscleStrength"]
-                            }
-    # Loads the constants
-    GHReactionsConstants = LoadAnyFileOut(h5File["FilePath"], GHReactionsConstants, LoadConstantsOnly=True)
-
-    GHReactions = {**GHReactions, **GHReactionsConstants}
-
-    return GHReactions

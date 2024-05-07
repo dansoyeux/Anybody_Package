@@ -156,27 +156,6 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
             COP_points_size = kwargs.get("COP_points_size", 8)
             draw_COP_points(COP_points_coordinates, x, y, COP_points_step, CaseColor, COP_points_size)
 
-        """
-        CODE PERSONNEL POUR TRACER LES POINTS ORIGINE GHREACTIONS
-        """
-        draw_GH_reactions_nodes = kwargs.get("draw_GH_reactions_nodes", False)
-        # If reactions nodes drawing is activated and if this in this case, there are GHReactions nodes in the current data
-        if draw_GH_reactions_nodes and ("GHReactions" in list(data.keys())):
-            CavityEdgeNodes = list(
-                data["GHReactions"]["Cavity Nodes Position"].keys())
-            NodePosx = np.array([])
-            NodePosy = np.array([])
-
-            # Gets the position of the CavityEdgenodes
-            for Node in CavityEdgeNodes:
-                NodePosx = np.append(
-                    NodePosx, data["GHReactions"]["Cavity Nodes Position"][Node][0])
-                NodePosy = np.append(
-                    NodePosy, data["GHReactions"]["Cavity Nodes Position"][Node][1])
-
-            # Draws the Cavity nodes on the COP graph
-            plt.scatter(NodePosx, NodePosy, color=plt.gca().lines[-1].get_color(), marker='o', s=40)
-
     # Draws errorbar if activated
     if errorbar:
         errorevery = kwargs.get("errorevery", 1)
@@ -1254,11 +1233,7 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
     hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
 
     # Name of the dictionnary key where the muscles are stored
-    # By default it's muscles but in case of an edge muscle it is stored in GHReactions
-    if "Edge muscle" in muscle_name:
-        MuscleFolder = "GHReactions"
-    else:
-        MuscleFolder = "Muscles"
+    MuscleFolder = "Muscles"
 
     # Initialise les informations sur les muscles parts si elle n'a pas été spécifiée (c'est à dire qu'il n'y a qu'une seule musclePart à dessiner)
     if muscle_part_information is False:
