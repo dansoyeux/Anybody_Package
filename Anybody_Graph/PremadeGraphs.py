@@ -572,15 +572,15 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="", 
 
         # Comparé à bergmann
         # Graph simple
-        graph(data_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 1}, subplot_title="Total", composante_y=["Total"], **graph_parameters)
-        graph(data_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 2}, subplot_title="AP", composante_y=["AP"], **graph_parameters)
-        graph(data_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 3}, subplot_title="IS", composante_y=["IS"], **graph_parameters)
-        graph(data_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 4}, subplot_title="ML", composante_y=["ML"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ContactForce humerus", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 1}, subplot_title="Total", composante_y=["Total"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ContactForce humerus", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 2}, subplot_title="AP", composante_y=["AP"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ContactForce humerus", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 3}, subplot_title="IS", composante_y=["IS"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ContactForce humerus", "Contact force on the humeral implant", cases_on=CaseNames_3_Bergmann, subplot={"dimension": [2, 2], "number": 4}, subplot_title="ML", composante_y=["ML"], **graph_parameters)
 
-        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant Total", composante_y=["Total"], figsize=figsize_3, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant AP", composante_y=["AP"], figsize=figsize_3, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant IS", composante_y=["IS"], figsize=figsize_3, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ForceContact", "Contact force on the humeral implant ML", composante_y=["ML"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ContactForce humerus", "Contact force on the humeral implant Total", composante_y=["Total"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ContactForce humerus", "Contact force on the humeral implant AP", composante_y=["AP"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ContactForce humerus", "Contact force on the humeral implant IS", composante_y=["IS"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data_Bergmann, CasesCategories_3_Bergmann, "Abduction", "ContactForce humerus", "Contact force on the humeral implant ML", composante_y=["ML"], figsize=figsize_3, same_lim=True, **graph_parameters)
 
         if save_graph:
             os.mkdir(subfolder_path)
@@ -588,20 +588,20 @@ def my_graphs(data, data_Ball_And_Socket, literature_data, save_folder_path="", 
 
         # Repère glene
         # Graph simple
-        graph(data_Bergmann, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 1}, subplot_title="Total", composante_y=["Total"], **graph_parameters)
-        graph(data_Bergmann, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 2}, subplot_title="AP", composante_y=["AP"], **graph_parameters)
-        graph(data_Bergmann, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 3}, subplot_title="IS", composante_y=["IS"], **graph_parameters)
-        graph(data_Bergmann, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 4}, subplot_title="ML", composante_y=["ML"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 1}, subplot_title="Total", composante_y=["Total"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 2}, subplot_title="AP", composante_y=["AP"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 3}, subplot_title="IS", composante_y=["IS"], **graph_parameters)
+        graph(data_Bergmann, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant", cases_on=CaseNames_3, subplot={"dimension": [2, 2], "number": 4}, subplot_title="ML", composante_y=["ML"], **graph_parameters)
 
-        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant Total", composante_y=["Total"], figsize=figsize_3, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant AP", composante_y=["AP"], figsize=figsize_3, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant IS", composante_y=["IS"], figsize=figsize_3, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant ML", composante_y=["ML"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant Total", composante_y=["Total"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant AP", composante_y=["AP"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant IS", composante_y=["IS"], figsize=figsize_3, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_3, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant ML", composante_y=["ML"], figsize=figsize_3, same_lim=True, **graph_parameters)
 
-        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant Total", composante_y=["Total"], figsize=figsize_5, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant AP", composante_y=["AP"], figsize=figsize_5, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant IS", composante_y=["IS"], figsize=figsize_5, same_lim=True, **graph_parameters)
-        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ForceContact GlenImplant", "Contact force on the glenoid implant ML", composante_y=["ML"], figsize=figsize_5, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant Total", composante_y=["Total"], figsize=figsize_5, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant AP", composante_y=["AP"], figsize=figsize_5, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant IS", composante_y=["IS"], figsize=figsize_5, same_lim=True, **graph_parameters)
+        graph_by_case_categories(data, CasesCategories_5, "Abduction", "ContactForce glenoid", "Contact force on the glenoid implant ML", composante_y=["ML"], figsize=figsize_5, same_lim=True, **graph_parameters)
 
         if save_graph:
             save_all_active_figures(subfolder_path, "Repère glene", graph_files_name, save_format)
