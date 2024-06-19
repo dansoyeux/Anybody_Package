@@ -294,13 +294,15 @@ def clear_legend_duplicates(lines, labels):
     return lines_no_duplicates, labels_no_duplicates
 
 
-def legend_setup(fig, graph_type, legend_position='lower center', graph_annotation_on=False, **kwargs):
+def legend_setup(fig, graph_type, legend_position='lower center', graph_annotation_on=False, legend_label_per_column=None, **kwargs):
     """
     Setups the legend of a figure, depending on if a subplot is activated or not
     If a subplot is activated, puts only one legend with every labels on it
     Sets the color of the lines depending on the name of the case
 
     Sets the legend with multiple columns depending on the number of labels
+
+    legend_label_per_column : (int) Maximum number of labels per column in the legend
 
     legend_position = str, controls where the legend is drawn outside the figure
 
@@ -312,6 +314,9 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
     """
     # list des localisation implémentées
     location_list = ["lower center", "center left"]
+
+    # Default number of columns depending on the location name
+    legend_label_per_column_default = [5, 100]
 
     # get the axes
     ax = fig.axes
@@ -327,9 +332,6 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
         # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
         Loc_y = 0
 
-        # Maximum number of labels per column in the legend
-        LabelsPerColumn = 5
-
     elif legend_position == 'center left':
         # Location of the origin point of the legend box
         Anchor_loc = 'center right'
@@ -341,7 +343,8 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
         Loc_y = 0.5
 
         # Maximum number of labels per column in the legend
-        LabelsPerColumn = 100
+        legend_label_per_column = 100
+
     else:
         raise ValueError(
             f"La localisation legend_position={legend_position} n'est pas implémentée dans la fonction graph.legend_setup. \nLes localisations implémentées sont :\n{location_list}")
@@ -400,11 +403,16 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
         # removes duplicates labels
         lines, labels = clear_legend_duplicates(lines, labels)
 
+    # Number of columns in the legend
+    # if not declared, takes the default values depending on the location
+    if not legend_label_per_column:
+        legend_label_per_column = legend_label_per_column_default[location_list.index(legend_position)]
+
     # Only draws the legend if there are multiple labels in the figure
     if len(labels) > 1:
 
         # Number of columns in the legend to not exceed the max number of labels per column
-        ncol = int(np.ceil((len(labels)) / LabelsPerColumn))
+        ncol = int(np.ceil((len(labels)) / legend_label_per_column))
 
         # Changes the names of the case to their description if a simulation_description dictionary was defined
         # in case no simulation description were defined, the labels stay the same
