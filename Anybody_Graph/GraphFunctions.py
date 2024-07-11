@@ -493,12 +493,29 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
         """
 
         # gets the automatic x axis limits if no limit have been set manually
-        if not xlim:
-            xlim = axe.get_xlim()
+        if xlim is None:
+            xlim_axis = axe.get_xlim()
+        else:
+            xlim_axis = [xlim[0], xlim[1]]
 
         # gets the automatic y axis limits if no limit have been set manually
-        if not ylim:
-            ylim = axe.get_ylim()
+        if ylim is None:
+            ylim_axis = axe.get_ylim()
+        else:
+            ylim_axis = [ylim[0], ylim[1]]
+
+        # If one of the limits entered is None, replaces it with the limit that was autamatically chosen by matplotlib
+        if xlim_axis[0] is None:
+            xlim_axis[0] = axe.get_xlim()[0]
+
+        if xlim_axis[1] is None:
+            xlim_axis[1] = axe.get_xlim()[1]
+
+        if ylim_axis[0] is None:
+            ylim_axis[0] = axe.get_ylim()[0]
+
+        if ylim_axis[1] is None:
+            ylim_axis[1] = axe.get_ylim()[1]
 
         # Sets the x axis grid
         if grid_x_step:
@@ -520,20 +537,20 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
             axe.set_yticks(np.arange(min_lim, max_lim + grid_y_step, grid_y_step))
 
         # Reset the axis limits
-        axe.set_xlim(xlim[0], xlim[1])
-        axe.set_ylim(ylim[0], ylim[1])
+        axe.set_xlim(xlim_axis[0], xlim_axis[1])
+        axe.set_ylim(ylim_axis[0], ylim_axis[1])
 
-    # Checks xlim= [min_x_value, max_x_value]
-    if xlim:
+    # Checks xlim= [min_x_value, max_x_value], doesn't check if None has been set as a limit
+    if xlim and None not in xlim:
         if xlim[0] > xlim[1]:
             raise ValueError(f"For graph xlim={xlim}, the first limit must be lower than the second one")
 
     # Checks ylim= [min_y_value, max_y_value]
-    if ylim:
+    if ylim and None not in ylim:
         if ylim[0] > ylim[1]:
             raise ValueError(f"For graph ylim={ylim}, the first limit must be lower than the second one")
 
-    # It refresges the grid if any of these parameters that can change the graduation were entered
+    # It refreshes the grid if any of these parameters that can change the graduation were entered
     if not any([xlim, ylim, grid_x_step, grid_y_step, same_lim]):
         plt.grid(visible=True)
         return
@@ -590,7 +607,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                 set_axis_properties(axe, graph_xlim, graph_ylim, grid_x_step, grid_y_step)
 
         # if the limits and step grid are set individually (same_lim == False)
-        else:
+        elif not same_lim:
             # if the limit is set only for the active axis
             axe = plt.gca()
             plt.grid(visible=True)
