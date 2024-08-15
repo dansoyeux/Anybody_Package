@@ -148,7 +148,7 @@ def LoadAnyFileOut(FileOutPath, ConstantsDictionary, FileType="txt", LoadConstan
     return FileOut
 
 
-def LoadAnyVariable(h5File, VariablePath="", MusclePath="", OutputDictionary=True, select_muscle_RefFrame_output="", rotation_matrix_path="", inverse_rotation=False, select_matrix_line=False, select_matrix_column=False, **kwargs):
+def LoadAnyVariable(h5File, VariableName="", VariablePath="", MusclePath="", OutputDictionary=True, select_muscle_RefFrame_output="", rotation_matrix_path="", inverse_rotation=False, select_matrix_line=False, select_matrix_column=False, **kwargs):
     """
     Uses the Anypytool function to load a model variable from an .anydata.h5 file by using the anybody variable path in the study with . instead of /
 
@@ -231,122 +231,38 @@ def LoadAnyVariable(h5File, VariablePath="", MusclePath="", OutputDictionary=Tru
                 raise ValueError(f"The variable : {VariablePath} \nisn't a matrix, the option select_matrix_line cannot be used")
 
         # Selects a particular column of the variable to create a vector
-        if select_matrix_column is not False:
+        elif select_matrix_column is not False:
             if Output.ndim == 3:
                 Output = Output[:, :, select_matrix_column]
             else:
                 raise ValueError(f"The variable : {VariablePath} \nisn't a matrix, the option select_matrix_column cannot be used")
 
         # Selects a certain line of a variable in a muscle RefFrameOutput
-        if select_muscle_RefFrame_output:
+        elif select_muscle_RefFrame_output and MusclePath:
 
-            # checks that the variable to charge is a muscle variable
-            if not MusclePath:
-                raise ValueError(f"The variable : {VariablePath} \nmust be a muscle variable to activate the loading option : 'select_muscle_RefFrame_output'")
+            Output, n_selected_RefFrames = get_muscle_RefFrame_output(h5Data, Output, VariablePath, MusclePath, select_muscle_RefFrame_output)
 
-            # The variable must be a matrix in the RefFrameOutput
-            if not Output.ndim == 3 or "RefFrameOutput" not in VariablePath:
-                raise ValueError(f"The variable : {VariablePath} must be a matrix in the RefFrameOutput folder of a muscle to use the loading option 'select_muscle_RefFrame_output'")
+            # In case multiple RefFrames were selected, creates a dictionary containing each RefFrame in a key
+            if n_selected_RefFrames > 1:
+                VariableOutput = {}
+                VariableOutput["n_selected_RefFrames"] = n_selected_RefFrames
 
-            # The origin is always the first member of RefFrameArray
-            if select_muscle_RefFrame_output == "origin":
+                for RefFrame_number in range(1, n_selected_RefFrames + 1):
+                    VariableOutput[f"{VariableName} {RefFrame_number}"] = process_selected_variable_output(h5Data, Output[RefFrame_number - 1], Failed, VariablePath, FilePath, rotation_matrix_path, inverse_rotation, OutputDictionary, **kwargs)
 
-                # Selects the first ref frame output line
-                Output = Output[:, 0, :]
-            # for the insertion the position depends on the number of via points
+                return VariableOutput
 
-            elif select_muscle_RefFrame_output == "insertion":
-                # Counts the number of via points in this directory
-                # tests if there is only one via point
-                if f"{MusclePath}.Via" in h5Data:
-                    # there is one via point so the insertion is at position 2 (3rd line)
-                    RefFrameOutput_position = 2
+            # Avoid processing the variable when no RefFrame were selected in the current muscle
+            elif n_selected_RefFrames == 0:
+                VariableOutput = {"n_selected_RefFrames": n_selected_RefFrames}
+                return VariableOutput
 
-                # increase the number after Via (Via1, Via2) and counts the max number of via points
-                else:
-                    via_points_counter = 0
-                    while f"{MusclePath}.Via{via_points_counter + 1}" in h5Data:
-                        via_points_counter += 1
-
-                    # if no via points, the position is the second row (1)
-                    if via_points_counter == 0:
-                        RefFrameOutput_position = 1
-                    else:
-                        RefFrameOutput_position = 1 + via_points_counter
-
-                # Selects the wanted ref frame output line
-                Output = Output[:, RefFrameOutput_position, :]
-            else:
-                raise ValueError(f"for the Muscle variable {VariablePath}\n'select_muscle_RefFrame_output' '{select_muscle_RefFrame_output}' not suported\nOnly'insertion' and 'origin' are supported")
+        VariableOutput = process_selected_variable_output(h5Data, Output, Failed, VariablePath, FilePath, rotation_matrix_path, inverse_rotation, OutputDictionary, **kwargs)
 
     # Si la variable n'existe pas, ne la cherche pas, met un message d'erreur et remplit la variable avec des 0
     else:
         print(f"La variable : {VariablePath} \nn'existe pas dans le fichier h5 : {FilePath}")
         Output = np.zeros(len(h5Data["Output.Abscissa.t"]))
-
-    # If Failed is the number of the first step that failed, deletes these failed steps
-    if Failed is not False:
-
-        CleanOutput = CleanFailedSimulationSteps(Output, Failed)
-
-    # When none of the steps failed
-    else:
-        CleanOutput = Output
-
-    # rotates the vector if rotation_matrix_path has been declared
-    if rotation_matrix_path:
-
-        # get the rotation matrix if it exists in the h5Data
-        if rotation_matrix_path in h5Data:
-            rotation_matrix = np.array(h5Data[rotation_matrix_path])
-
-        else:
-            print(f"The rotation matrix : {rotation_matrix_path} n'existe pas dans le fichier h5 : {FilePath}")
-
-        # If the array stores vectors
-        if CleanOutput.ndim == 2:
-
-            # If the vector is 3D
-            if len(CleanOutput[0]) == 3:
-                # applies the rotation matrix
-                CleanOutput = transform_vector(CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
-
-            # If it is 2D, transforms it in 3D and stores zeros in the last column
-            elif len(CleanOutput[0]) == 2:
-                zeroes_column = np.zeros([len(CleanOutput), 1])
-                # adds a column of zeros as the 3rd vector component
-                CleanOutput = np.append(CleanOutput, zeroes_column, axis=1)
-
-                CleanOutput = transform_vector(CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
-            else:
-                raise ValueError(f"The variable : '{VariablePath}' must be a vector with a maximum of 3 dimension ({len(len(CleanOutput[0]))} dimensions were entered). \nIt cannot be rotated by using the argument 'rotation_matrix_path' otherwise")
-
-        # if the array isn't a vector but a scalar, it is transformed as if it was a 3D vector with only the x coordinates non zeroes
-        else:
-
-            vectorized_CleanOutput = np.zeros([len(CleanOutput), 3])
-            # The first component of the 3d vector is the scalar
-            vectorized_CleanOutput[:, 0] = CleanOutput
-
-            # applies the rotation matrix
-            CleanOutput = transform_vector(vectorized_CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
-
-    # Mise en forme du dictionnaire output si activé
-    if OutputDictionary:
-
-        # If the output is a vector (ndim=1) or has only one column
-        # vect_dir cannot be activated
-        if CleanOutput.ndim == 1 or CleanOutput.shape[1] == 1:
-            if kwargs.get("vect_dir", False):
-                raise ValueError(f"The variable '{VariablePath}' is a 1D value not a vector, so the argument 'vect_dir' cannot be used to calculate the director vector")
-
-        # Converts the array to a Dictionary
-        VariableOutput = array_to_dictionary(CleanOutput, **kwargs)
-
-    # Variable output est un array si OutputDictionary est False
-    else:
-        MultiplyFactor = kwargs.get("MultiplyFactor", 1)
-        VariableOutput = CleanOutput * MultiplyFactor
 
     return VariableOutput
 
@@ -427,14 +343,20 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                 del variable_loading_options["AnybodyVariableName"]
 
                 # Loads the muscle variable and stores it in a Dictionary
-                MuscleOutput[MuscleName][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
+                AnyVariable_data = LoadAnyVariable(h5File, VariableName, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
 
-        # # Loads the muscle variables from a AnyFileOut file
-        # else:
-        #     for VariableName in VariableNames:
-        #         MuscleVariablePath = MuscleFolderPath + "." + AnybodyMuscleName + "." + AnybodyVariableNames[index]
-        #         MuscleOutput[VariableName] = LoadAnyFileOutVariable(
-        #             h5File, FileType, MuscleVariablePath)
+                # If multiple refFrames were selected, unpack them into the muscle directory to create a muscle variable per refframe
+                if "n_selected_RefFrames" in AnyVariable_data:
+                    del AnyVariable_data["n_selected_RefFrames"]
+                    MuscleOutput[MuscleName] = {**MuscleOutput[MuscleName], **AnyVariable_data}
+
+                    # Copies the information of the current muscle variable to new RefFrames variables names to the VariableDictionary
+                    for RefFrame_MuscleVariable in AnyVariable_data:
+                        if RefFrame_MuscleVariable not in MuscleVariableDictionary:
+                            MuscleVariableDictionary[RefFrame_MuscleVariable] = MuscleVariableDictionary[VariableName].copy()
+
+                else:
+                    MuscleOutput[MuscleName][VariableName] = AnyVariable_data
 
     # if only one muscle part is loaded
     # Will load it and name it as the MuscleName without a number
@@ -472,19 +394,21 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                 variable_loading_options = MuscleVariableDictionary[VariableName].copy()
                 del variable_loading_options["AnybodyVariableName"]
 
-                # Loads the muscle part variables
-                MuscleOutput[MusclePart][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
+                # Loads the muscle variable and stores it in a Dictionary
+                AnyVariable_data = LoadAnyVariable(h5File, VariableName, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
 
-        # # Loads the muscle variables from a AnyFileOut file
-        # else:
-        #     # For every variable, loads the data of every part of the muscle
-        #     for VariableName in VariableNames:
+                # If multiple refFrames were selected, unpack them into the muscle directory to create a muscle variable per refframe
+                if "n_selected_RefFrames" in AnyVariable_data:
+                    del AnyVariable_data["n_selected_RefFrames"]
+                    MuscleOutput[MusclePart] = {**MuscleOutput[MusclePart], **AnyVariable_data}
 
-        #         MuscleVariablePath = MuscleFolderPath + "." + AnybodyMusclePart + "." + AnybodyVariableNames[index]
+                    # Copies the information of the current muscle variable to new RefFrames variables names to the VariableDictionary
+                    for RefFrame_MuscleVariable in AnyVariable_data:
+                        if RefFrame_MuscleVariable not in MuscleVariableDictionary:
+                            MuscleVariableDictionary[RefFrame_MuscleVariable] = MuscleVariableDictionary[VariableName].copy()
 
-        #         # Loads the muscle part variables
-        #         MuscleOutput[MusclePart][VariableName] = LoadAnyFileOutVariable(
-        #             h5File, FileType, MuscleVariablePath)
+                else:
+                    MuscleOutput[MusclePart][VariableName] = AnyVariable_data
 
     # if multiple muscle parts are selected
     elif len(AnybodyPartNumbers) == 2:
@@ -534,19 +458,21 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                     variable_loading_options = MuscleVariableDictionary[VariableName].copy()
                     del variable_loading_options["AnybodyVariableName"]
 
-                    # Loads the muscle part variables
-                    MuscleOutput[MusclePart][VariableName] = LoadAnyVariable(h5File, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
+                    # Loads the muscle variable and stores it in a Dictionary
+                    AnyVariable_data = LoadAnyVariable(h5File, VariableName, MuscleVariablePath, MusclePath=MusclePath, **variable_loading_options)
 
-            # # Loads the muscle variables from a AnyFileOut file
-            # else:
-            #     # For every variable, loads the data of every part of the muscle
-            #     for VariableName in VariableNames:
+                    # If multiple refFrames were selected, unpack them into the muscle directory to create a muscle variable per refframe
+                    if "n_selected_RefFrames" in AnyVariable_data:
+                        del AnyVariable_data["n_selected_RefFrames"]
+                        MuscleOutput[MusclePart] = {**MuscleOutput[MusclePart], **AnyVariable_data}
 
-            #         MuscleVariablePath = MuscleFolderPath + "." + AnybodyMusclePart + "." + AnybodyVariableNames[index]
+                        # Copies the information of the current muscle variable to new RefFrames variables names to the VariableDictionary
+                        for RefFrame_MuscleVariable in AnyVariable_data:
+                            if RefFrame_MuscleVariable not in MuscleVariableDictionary:
+                                MuscleVariableDictionary[RefFrame_MuscleVariable] = MuscleVariableDictionary[VariableName].copy()
 
-            #         # Loads the muscle part variables
-            #         MuscleOutput[MusclePart][VariableName] = LoadAnyFileOutVariable(
-            #             h5File, FileType, MuscleVariablePath)
+                    else:
+                        MuscleOutput[MusclePart][VariableName] = AnyVariable_data
 
     return MuscleOutput
 
@@ -748,9 +674,11 @@ def combine_muscle_parts(MuscleOutput, MuscleName, MuscleVariableDictionary):
 
     first_muscle_part_name = list(MuscleOutput.keys())[0]
 
-    nstep = len(MuscleOutput[first_muscle_part_name][list(MuscleVariableDictionary.keys())[0]]["Total"])
+    first_muscle_variable = list(MuscleOutput[first_muscle_part_name].keys())[0]
 
-    for Variable_Name in MuscleVariableDictionary:
+    nstep = len(MuscleOutput[first_muscle_part_name][first_muscle_variable]["Total"])
+
+    for Variable_Name in MuscleOutput[first_muscle_part_name]:
 
         # only variable dictionary can be combined, not matrices. So by default this variable won't get combined
         if isinstance(MuscleOutput[first_muscle_part_name][Variable_Name], np.ndarray):
@@ -813,3 +741,189 @@ def combine_muscle_parts(MuscleOutput, MuscleName, MuscleVariableDictionary):
     MuscleOutput[MuscleName] = combined_MuscleOutput
 
     return MuscleOutput
+
+
+def apply_rotation_matrix_to_AnyVariable(h5Data, CleanOutput, VariablePath, FilePath, rotation_matrix_path, inverse_rotation):
+    """
+    Function that applies a rotation matrix contained in a AnybodyVariable to the loaded Anybody variable
+    """
+
+    # get the rotation matrix if it exists in the h5Data
+    if rotation_matrix_path in h5Data:
+        rotation_matrix = np.array(h5Data[rotation_matrix_path])
+
+    else:
+        print(f"The rotation matrix : {rotation_matrix_path} n'existe pas dans le fichier h5 : {FilePath}")
+
+    # If the array stores vectors
+    if CleanOutput.ndim == 2:
+
+        # If the vector is 3D
+        if len(CleanOutput[0]) == 3:
+            # applies the rotation matrix
+            CleanOutput = transform_vector(CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
+
+        # If it is 2D, transforms it in 3D and stores zeros in the last column
+        elif len(CleanOutput[0]) == 2:
+            zeroes_column = np.zeros([len(CleanOutput), 1])
+            # adds a column of zeros as the 3rd vector component
+            CleanOutput = np.append(CleanOutput, zeroes_column, axis=1)
+
+            CleanOutput = transform_vector(CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
+        else:
+            raise ValueError(f"The variable : '{VariablePath}' must be a vector with a maximum of 3 dimension ({len(len(CleanOutput[0]))} dimensions were entered). \nIt cannot be rotated by using the argument 'rotation_matrix_path' otherwise")
+
+    # if the array isn't a vector but a scalar, it is transformed as if it was a 3D vector with only the x coordinates non zeroes
+    else:
+
+        vectorized_CleanOutput = np.zeros([len(CleanOutput), 3])
+        # The first component of the 3d vector is the scalar
+        vectorized_CleanOutput[:, 0] = CleanOutput
+
+        # applies the rotation matrix
+        CleanOutput = transform_vector(vectorized_CleanOutput, rotation_matrix, inverse_transform=inverse_rotation)
+
+    return CleanOutput
+
+
+def get_muscle_RefFrame_output(h5Data, Output, VariablePath, MusclePath, select_muscle_RefFrame_output):
+    """
+    Function that selects forces from the array RefFrameOutput from of a muscle
+    RefFrameOutput stores in order, muscle forces in the reference frame of the muscle : origin, viapoints (if exist), insertion, wrapping sufraces (if exist)
+
+    select_muscle_RefFrame_output : str choses which information to charge :
+                                  : "origin" or "via" or "insertion" or "surface"
+                                  : in case of via points or surfaces, multiple points can exist, the output returned will be the one of all via points or all wrapping surfaces
+
+    return
+    ------------------------------------
+    RefFrameOutput : list : contains all the Output data of the selected RefFrameOutput
+
+    via_points_counter : int : number of selected RefFrames Output
+
+    If multiple RefFrames were selected (woth "via" or "surface") the output will be a list containing the lists of outputs in order
+
+    """
+
+    RefFrameOutput = []
+    n_selected_RefFrames = 0
+
+    # checks that the variable to charge is a muscle variable
+    if not MusclePath:
+        raise ValueError(f"The variable : {VariablePath} \nmust be a muscle variable to activate the loading option : 'select_muscle_RefFrame_output'")
+
+    # The variable must be a matrix in the RefFrameOutput
+    if not Output.ndim == 3 or "RefFrameOutput" not in VariablePath:
+        raise ValueError(f"The variable : {VariablePath} must be a matrix in the RefFrameOutput folder of a muscle to use the loading option 'select_muscle_RefFrame_output'")
+
+    # The origin is always the first member of RefFrameArray
+    if select_muscle_RefFrame_output == "origin":
+
+        # Selects the first ref frame output line
+        RefFrameOutput = Output[:, 0, :]
+        n_selected_RefFrames = 1
+
+    # for the insertion the position depends on the number of via points
+
+    # if the selected output selected isn't the origin, we need to count the number of viapoints to know where the insertions are
+    elif select_muscle_RefFrame_output in ["insertion", "via", "surface"]:
+
+        # Counts the number of via points in this directory
+        # tests if there is only one via point
+        if f"{MusclePath}.Via" in h5Data:
+            # there is one via point so the insertion is at position 2 (3rd line)
+            RefFrameOutput_position = 2
+            via_points_counter = 1
+
+        # increase the number after Via (Via1, Via2) and counts the max number of via points
+        else:
+            via_points_counter = 0
+            while f"{MusclePath}.Via{via_points_counter + 1}" in h5Data:
+                via_points_counter += 1
+
+        # Selects the output depending on the RefFrame selected
+        if select_muscle_RefFrame_output == "insertion":
+            # if no via points, the position is the second row (1)
+            if via_points_counter == 0:
+                RefFrameOutput_position = 1
+            else:
+                RefFrameOutput_position = 1 + via_points_counter
+
+            # Selects the wanted ref frame output line
+            RefFrameOutput = Output[:, RefFrameOutput_position, :]
+            n_selected_RefFrames = 1
+
+        elif select_muscle_RefFrame_output == "via":
+
+            n_selected_RefFrames = via_points_counter
+
+            if via_points_counter > 0:
+                via_position_list = list(range(1, via_points_counter + 1))
+
+                RefFrameOutput = np.empty((via_points_counter, len(Output), len(Output[0][0])))
+
+                for index, via_position in enumerate(via_position_list):
+                    RefFrameOutput[index, :, :] = Output[:, via_position, :]
+
+                if via_points_counter == 1:
+                    RefFrameOutput = RefFrameOutput[0]
+
+        elif select_muscle_RefFrame_output == "surface":
+
+            surfaces_counter = len(Output[0]) - via_points_counter - 2
+
+            if surfaces_counter > 0:
+                surfaces_position_list = list(range(surfaces_counter + 1, len(Output[0])))
+                n_selected_RefFrames = surfaces_counter
+
+                RefFrameOutput = np.empty((surfaces_counter, len(Output), len(Output[0][0])))
+
+                for index, surface_position in enumerate(surfaces_position_list):
+                    RefFrameOutput[index, :, :] = Output[:, surface_position, :]
+
+                if surfaces_counter == 1:
+                    RefFrameOutput = RefFrameOutput[0]
+
+    else:
+        raise ValueError(f"for the Muscle variable {VariablePath}\n'select_muscle_RefFrame_output' '{select_muscle_RefFrame_output}' not suported\nOnly'insertion' and 'origin' are supported")
+
+    return RefFrameOutput, n_selected_RefFrames
+
+
+def process_selected_variable_output(h5Data, Output, Failed, VariablePath, FilePath, rotation_matrix_path, inverse_rotation, OutputDictionary, **kwargs):
+    """
+    Function that takes the Output array and processes it :
+    Deletes failed steps
+    Applies rotation matrices
+    Transforms the output into a ResultDictionary
+
+    return
+    --------------------------------------------
+    VariableOutput : dict : contains the variable in form of a restut dictionary
+    """
+    # Cleans the output from failed failed steps
+    CleanOutput = CleanFailedSimulationSteps(Output, Failed)
+
+    # rotates the vector if rotation_matrix_path has been declared
+    if rotation_matrix_path:
+
+        CleanOutput = apply_rotation_matrix_to_AnyVariable(h5Data, CleanOutput, VariablePath, FilePath, rotation_matrix_path, inverse_rotation)
+
+    # Mise en forme du dictionnaire output si activé
+    if OutputDictionary:
+
+        # If the output is a vector (ndim=1) or has only one column
+        # vect_dir cannot be activated
+        if CleanOutput.ndim == 1 or CleanOutput.shape[1] == 1:
+            if kwargs.get("vect_dir", False):
+                raise ValueError(f"The variable '{VariablePath}' is a 1D value not a vector, so the argument 'vect_dir' cannot be used to calculate the director vector")
+
+        # Converts the array to a Dictionary
+        VariableOutput = array_to_dictionary(CleanOutput, **kwargs)
+
+    # Variable output est un array si OutputDictionary est False
+    else:
+        MultiplyFactor = kwargs.get("MultiplyFactor", 1)
+        VariableOutput = CleanOutput * MultiplyFactor
+
+    return VariableOutput
