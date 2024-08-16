@@ -306,10 +306,6 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                 Si le muscle comporte une seule partie, stocke 1
     """
 
-    """
-    FAIRE LE LOAD DEPUIS AnyFileOutFile
-    """
-
     MuscleOutput = {}
 
     # Names to give in the Dictionary
@@ -545,6 +541,9 @@ def LoadMuscleDictionary(h5File, MuscleDictionary, MuscleVariableDictionary, Fil
                                                                       }
 
     """
+
+    # Checks the arguments of MuscleVariableDictionary for errors
+    check_MuscleVariableDictionary(MuscleVariableDictionary)
 
     Muscles = {}
     # Parcours le dictionnaire
@@ -918,3 +917,17 @@ def process_selected_variable_output(h5Data, Output, Failed, VariablePath, FileP
         VariableOutput = CleanOutput * MultiplyFactor
 
     return VariableOutput
+
+
+def check_MuscleVariableDictionary(MuscleVariableDictionary):
+    """
+    Checks MuscleVariableDictionary arguments and warns if errors
+
+    In particular: trying to combine muscle parts when recovering the forces on viapoints and wrapping surfaces
+    """
+
+    # Error if trying to combine muscle parts while selecting RefFrame lines of wrapping surfaces or via points
+    for muscle_variable, muscle_variable_info in MuscleVariableDictionary.items():
+        if "select_muscle_RefFrame_output" in muscle_variable_info and "combine_muscle_part_operations" in muscle_variable_info:
+            if muscle_variable_info["select_muscle_RefFrame_output"] == "via" or muscle_variable_info["select_muscle_RefFrame_output"] == "surface":
+                raise ValueError(f"For the muscle variable '{muscle_variable}' entered in the MuscleVariableDictionary :\nThe argument 'combine_muscle_part_operations' cannot be entered if via point or wrapping surfaces are selected with the argument 'select_muscle_RefFrame_output'")
