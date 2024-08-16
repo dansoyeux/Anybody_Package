@@ -313,7 +313,7 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
     MuscleOutput = {}
 
     # Names to give in the Dictionary
-    VariableNames = list(MuscleVariableDictionary.keys())
+    VariableNames = list(MuscleVariableDictionary.keys()).copy()
 
     # If the muscle is in one part
     if AnybodyPartNumbers == []:
@@ -349,11 +349,6 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                 if "n_selected_RefFrames" in AnyVariable_data:
                     del AnyVariable_data["n_selected_RefFrames"]
                     MuscleOutput[MuscleName] = {**MuscleOutput[MuscleName], **AnyVariable_data}
-
-                    # Copies the information of the current muscle variable to new RefFrames variables names to the VariableDictionary
-                    for RefFrame_MuscleVariable in AnyVariable_data:
-                        if RefFrame_MuscleVariable not in MuscleVariableDictionary:
-                            MuscleVariableDictionary[RefFrame_MuscleVariable] = MuscleVariableDictionary[VariableName].copy()
 
                 else:
                     MuscleOutput[MuscleName][VariableName] = AnyVariable_data
@@ -401,11 +396,6 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                 if "n_selected_RefFrames" in AnyVariable_data:
                     del AnyVariable_data["n_selected_RefFrames"]
                     MuscleOutput[MusclePart] = {**MuscleOutput[MusclePart], **AnyVariable_data}
-
-                    # Copies the information of the current muscle variable to new RefFrames variables names to the VariableDictionary
-                    for RefFrame_MuscleVariable in AnyVariable_data:
-                        if RefFrame_MuscleVariable not in MuscleVariableDictionary:
-                            MuscleVariableDictionary[RefFrame_MuscleVariable] = MuscleVariableDictionary[VariableName].copy()
 
                 else:
                     MuscleOutput[MusclePart][VariableName] = AnyVariable_data
@@ -465,11 +455,6 @@ def LoadMuscle(h5File, AnybodyMuscleName, MuscleName, PartString, AnybodyPartNum
                     if "n_selected_RefFrames" in AnyVariable_data:
                         del AnyVariable_data["n_selected_RefFrames"]
                         MuscleOutput[MusclePart] = {**MuscleOutput[MusclePart], **AnyVariable_data}
-
-                        # Copies the information of the current muscle variable to new RefFrames variables names to the VariableDictionary
-                        for RefFrame_MuscleVariable in AnyVariable_data:
-                            if RefFrame_MuscleVariable not in MuscleVariableDictionary:
-                                MuscleVariableDictionary[RefFrame_MuscleVariable] = MuscleVariableDictionary[VariableName].copy()
 
                     else:
                         MuscleOutput[MusclePart][VariableName] = AnyVariable_data
@@ -678,65 +663,69 @@ def combine_muscle_parts(MuscleOutput, MuscleName, MuscleVariableDictionary):
 
     nstep = len(MuscleOutput[first_muscle_part_name][first_muscle_variable]["Total"])
 
-    for Variable_Name in MuscleOutput[first_muscle_part_name]:
+    for Variable_Name in MuscleVariableDictionary:
 
-        # only variable dictionary can be combined, not matrices. So by default this variable won't get combined
-        if isinstance(MuscleOutput[first_muscle_part_name][Variable_Name], np.ndarray):
-            if "combine_muscle_part_operations" in MuscleVariableDictionary[Variable_Name]:
-                raise ValueError(f"The muscle variable '{Variable_Name}' is a matrix, it cannot be combined. 'combine_muscle_part_operations' shouldn't be used for this variable.")
-            else:
-                continue
+        # Combines by total by default unless via point or surface selection. In this case don't combine because surfaces and between muscle parts can not match
+        select_muscle_RefFrame_output = MuscleVariableDictionary[Variable_Name].get("select_muscle_RefFrame_output", None)
+        if not select_muscle_RefFrame_output == "via" and not select_muscle_RefFrame_output == "surface":
 
-        # Gets the seqence and the descriptions of the variable
-        Sequence_Composantes = MuscleOutput[first_muscle_part_name][Variable_Name]["SequenceComposantes"]
-        Variable_description = MuscleOutput[first_muscle_part_name][Variable_Name]["Description"]
-
-        # Gets the combine muscle operation list
-        operations = MuscleVariableDictionary[Variable_Name].get("combine_muscle_part_operations", ["total"])
-
-        # Stores the description of the combined muscle variable
-        combined_MuscleOutput[Variable_Name] = {"SequenceComposantes": [], "Description": Variable_description}
-
-        for Composante in Sequence_Composantes:
-            composantes_value = np.zeros([nstep, len(MuscleOutput)])
-
-            # gets every value of this variable between every muscle_part
-            for muscle_part_index, muscle_part in enumerate(MuscleOutput):
-                composantes_value[:, muscle_part_index] = MuscleOutput[muscle_part][Variable_Name][Composante]
-
-            # if len(operations) == 1:
-            for operation in operations:
-
-                # if the Total is the component that is combined, the name of the combined component is the name of the operation
-                if Composante == "Total":
-                    combined_composante_name = operation.capitalize()
-                # For only one operation, the names of the combined_component are the same then the original
-                elif len(operations) == 1:
-                    combined_composante_name = Composante
-                # for several operations, the name of the combined components names (that are not the total) will be "Operation_"+"Composante_Name"
+            # only variable dictionary can be combined, not matrices. So by default this variable won't get combined
+            if isinstance(MuscleOutput[first_muscle_part_name][Variable_Name], np.ndarray):
+                if "combine_muscle_part_operations" in MuscleVariableDictionary[Variable_Name]:
+                    raise ValueError(f"The muscle variable '{Variable_Name}' is a matrix, it cannot be combined. 'combine_muscle_part_operations' shouldn't be used for this variable.")
                 else:
-                    combined_composante_name = operation.capitalize() + "_" + Composante
+                    continue
 
-                # Adds the combined_composante_name to the sequence of components
-                combined_MuscleOutput[Variable_Name]["SequenceComposantes"].append(combined_composante_name)
+            # Gets the seqence and the descriptions of the variable
+            Sequence_Composantes = MuscleOutput[first_muscle_part_name][Variable_Name]["SequenceComposantes"]
+            Variable_description = MuscleOutput[first_muscle_part_name][Variable_Name]["Description"]
 
-                # For muscles with multiple parts
-                if number_of_parts > 1:
-                    if "total" == operation:
-                        combined_MuscleOutput[Variable_Name][combined_composante_name] = np.sum(composantes_value, axis=1)
+            # Gets the combine muscle operation list
+            operations = MuscleVariableDictionary[Variable_Name].get("combine_muscle_part_operations", ["total"])
 
-                    elif "max" == operation:
-                        combined_MuscleOutput[Variable_Name][combined_composante_name] = np.max(composantes_value, axis=1)
+            # Stores the description of the combined muscle variable
+            combined_MuscleOutput[Variable_Name] = {"SequenceComposantes": [], "Description": Variable_description}
 
-                    elif "min" == operation:
-                        combined_MuscleOutput[Variable_Name][combined_composante_name] = np.min(composantes_value, axis=1)
+            for Composante in Sequence_Composantes:
+                composantes_value = np.zeros([nstep, len(MuscleOutput)])
 
-                    elif "mean" == operation:
-                        combined_MuscleOutput[Variable_Name][combined_composante_name] = np.mean(composantes_value, axis=1)
+                # gets every value of this variable between every muscle_part
+                for muscle_part_index, muscle_part in enumerate(MuscleOutput):
+                    composantes_value[:, muscle_part_index] = MuscleOutput[muscle_part][Variable_Name][Composante]
 
-                # for muscles with only one muscle part, doesn't do the calculations but copies the variables components to create the same structure as a muscle with multiple parts that was combined
-                else:
-                    combined_MuscleOutput[Variable_Name][combined_composante_name] = composantes_value.flatten()
+                # if len(operations) == 1:
+                for operation in operations:
+
+                    # if the Total is the component that is combined, the name of the combined component is the name of the operation
+                    if Composante == "Total":
+                        combined_composante_name = operation.capitalize()
+                    # For only one operation, the names of the combined_component are the same then the original
+                    elif len(operations) == 1:
+                        combined_composante_name = Composante
+                    # for several operations, the name of the combined components names (that are not the total) will be "Operation_"+"Composante_Name"
+                    else:
+                        combined_composante_name = operation.capitalize() + "_" + Composante
+
+                    # Adds the combined_composante_name to the sequence of components
+                    combined_MuscleOutput[Variable_Name]["SequenceComposantes"].append(combined_composante_name)
+
+                    # For muscles with multiple parts
+                    if number_of_parts > 1:
+                        if "total" == operation:
+                            combined_MuscleOutput[Variable_Name][combined_composante_name] = np.sum(composantes_value, axis=1)
+
+                        elif "max" == operation:
+                            combined_MuscleOutput[Variable_Name][combined_composante_name] = np.max(composantes_value, axis=1)
+
+                        elif "min" == operation:
+                            combined_MuscleOutput[Variable_Name][combined_composante_name] = np.min(composantes_value, axis=1)
+
+                        elif "mean" == operation:
+                            combined_MuscleOutput[Variable_Name][combined_composante_name] = np.mean(composantes_value, axis=1)
+
+                    # for muscles with only one muscle part, doesn't do the calculations but copies the variables components to create the same structure as a muscle with multiple parts that was combined
+                    else:
+                        combined_MuscleOutput[Variable_Name][combined_composante_name] = composantes_value.flatten()
 
     MuscleOutput[MuscleName] = combined_MuscleOutput
 
@@ -858,6 +847,7 @@ def get_muscle_RefFrame_output(h5Data, Output, VariablePath, MusclePath, select_
             n_selected_RefFrames = via_points_counter
 
             if via_points_counter > 0:
+                # Position of the viapoints in the RefFrameArr
                 via_position_list = list(range(1, via_points_counter + 1))
 
                 RefFrameOutput = np.empty((via_points_counter, len(Output), len(Output[0][0])))
@@ -873,7 +863,8 @@ def get_muscle_RefFrame_output(h5Data, Output, VariablePath, MusclePath, select_
             surfaces_counter = len(Output[0]) - via_points_counter - 2
 
             if surfaces_counter > 0:
-                surfaces_position_list = list(range(surfaces_counter + 1, len(Output[0])))
+                # Position of the surfaces in the RefFrameArr vector depending on the number of via points
+                surfaces_position_list = list(range(via_points_counter + 2, len(Output[0])))
                 n_selected_RefFrames = surfaces_counter
 
                 RefFrameOutput = np.empty((surfaces_counter, len(Output), len(Output[0][0])))
