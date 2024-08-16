@@ -360,13 +360,18 @@ def AddVariableDictionaries(VariableDictionary_1, VariableDictionary_2):
     return Added_Dictionaries
 
 
-def CleanFailedSimulationSteps(Output, Failed):
+def CleanFailedSimulationSteps(Output, Failed=False):
     """
     From an array of data of any size, deletes the data that failed during an anybody simulation
 
     Failed : removes the values in the results in case the simulation failed after a certain time
     Failed : is the first step number that failed (if the step number goes from 0 to nstep)
     """
+
+    if Failed is False:
+        CleanOutput = Output
+        return CleanOutput
+
     # Shape of the Output
     shapeOutput = np.shape(Output)
 
