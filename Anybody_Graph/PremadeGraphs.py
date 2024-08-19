@@ -15,12 +15,19 @@ from Anybody_Package.Anybody_Graph.Tools import save_all_active_figures
 import numpy as np
 
 
-def graph_all_muscle_fibers(data, muscle_list, variable_x, variable_y, composante_y_muscle_part=["Total"], composante_y_muscle_combined=["Total"], cases_on=False, compare=False, **kwargs):
+def graph_all_muscle_fibers(data, muscle_list, variable_x, variable_y, combined_muscle_on=True, composante_y_muscle_part=["Total"], composante_y_muscle_combined=["Total"], cases_on=False, compare=False, **kwargs):
     """
     Trace tous les muscles parties par parties en les rassemblant par muscles
     adapte la taille du subplot en fonction nombre de parties (subplot [2, n])
     Le titre du graphique est le nom du muscle
     """
+
+    # Forbids the use of composante_y and muscle_part_on argument. They are defined by the function
+    if "muscle_part_on" in kwargs:
+        raise ValueError("For the function 'graph_all_muscle_fibers', delete the argument 'muscle_part_on' since the function will define it itself")
+
+    if "composante_y" in kwargs:
+        raise ValueError("For the function 'graph_all_muscle_fibers', delete the argument 'composante_y' since the function will define it itself.\nInstead use the arguments 'composante_y_muscle_combined' and 'composante_y_muscle_part' to select the variable_y component to plot.")
 
     # Get the muscle data depending on compare and caseson
     if compare is True:
@@ -46,11 +53,21 @@ def graph_all_muscle_fibers(data, muscle_list, variable_x, variable_y, composant
         # Gets the number of muscle parts (0 means there is only the total so 0 parts)
         number_of_parts = len(muscle_data[muscle_name]) - 1
 
-        # Combined muscle graph
-        muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=muscle_name, cases_on=cases_on, compare=compare, **kwargs)
+        # Combined muscle graph if activated
+        if combined_muscle_on:
+            if not composante_y_muscle_combined == "Total" and len(composante_y_muscle_combined) == 1:
+
+                figure_title = f"{muscle_name} {composante_y_muscle_combined[0]}"
+
+            muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=figure_title, cases_on=cases_on, compare=compare, **kwargs)
 
         # Trace toutes les parties de muscles sur un subplot [2, n] en calculant le nombre n adéquat pour avoir tout sur un graphique
         if number_of_parts > 0:
+
+            # Indicates the component name in the title if Total not entered
+            if not composante_y_muscle_part == "Total" and len(composante_y_muscle_part) == 1:
+
+                figure_title = f"{muscle_name} {composante_y_muscle_part[0]}"
 
             # Trouve la dimension en y la plus proche pour avoir un subplot 2xsubplot_Dimension_y (si number_of_parts est impair, le dernier graph sera vide)
             subplot_Dimension_y = int(np.ceil(number_of_parts / 2))
@@ -66,7 +83,7 @@ def graph_all_muscle_fibers(data, muscle_list, variable_x, variable_y, composant
                     last_subplot = True
 
                 # Graph du muscle part
-                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=muscle_name, cases_on=cases_on, compare=compare, subplot={"dimension": [2, subplot_Dimension_y], "number": subplotNumber, "last_subplot": last_subplot}, subplot_title=f"{muscle_name} {current_part_pumber}", muscle_part_on=[current_part_pumber], **kwargs)
+                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=figure_title, cases_on=cases_on, compare=compare, subplot={"dimension": [2, subplot_Dimension_y], "number": subplotNumber, "last_subplot": last_subplot}, subplot_title=f"{muscle_name} {current_part_pumber}", muscle_part_on=[current_part_pumber], **kwargs)
                 subplotNumber += 1
 
 
