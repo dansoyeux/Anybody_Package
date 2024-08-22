@@ -55,9 +55,12 @@ def graph_all_muscle_fibers(data, muscle_list, variable_x, variable_y, combined_
 
         # Combined muscle graph if activated
         if combined_muscle_on:
-            if not composante_y_muscle_combined == "Total" and len(composante_y_muscle_combined) == 1:
+            if not composante_y_muscle_combined == ["Total"] and len(composante_y_muscle_combined) == 1:
 
                 figure_title = f"{muscle_name} {composante_y_muscle_combined[0]}"
+
+            else:
+                figure_title = muscle_name
 
             muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=figure_title, cases_on=cases_on, compare=compare, **kwargs)
 
@@ -65,9 +68,12 @@ def graph_all_muscle_fibers(data, muscle_list, variable_x, variable_y, combined_
         if number_of_parts > 0:
 
             # Indicates the component name in the title if Total not entered
-            if not composante_y_muscle_part == "Total" and len(composante_y_muscle_part) == 1:
+            if not composante_y_muscle_part == ["Total"] and len(composante_y_muscle_part) == 1:
 
                 figure_title = f"{muscle_name} {composante_y_muscle_part[0]}"
+
+            else:
+                figure_title = muscle_name
 
             # Trouve la dimension en y la plus proche pour avoir un subplot 2xsubplot_Dimension_y (si number_of_parts est impair, le dernier graph sera vide)
             subplot_Dimension_y = int(np.ceil(number_of_parts / 2))
