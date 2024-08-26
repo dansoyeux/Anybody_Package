@@ -312,43 +312,56 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
                    Default value : lower center (below the figure)
                    WARNING : LOCATIONS IMPLEMENTED : lower center and center left, add more locations by adding an elif statement
     """
-    # list des localisation implémentées
-    location_list = ["lower center", "center left"]
 
-    # Default number of columns depending on the location name
-    legend_label_per_column_default = [5, 100]
+
+    def define_legend_properties(legend_position, legend_label_per_column=None):
+        # list des localisation implémentées
+        location_list = ["lower center", "center left"]
+
+        # Default number of columns depending on the location name
+        legend_label_per_column_default = [5, 100]
+
+        # locations implemented
+        if legend_position == 'lower center':
+            # Location of the origin point of the legend box
+            Anchor_loc = 'upper center'
+
+            # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
+            Loc_x = 0.5
+
+            # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
+            Loc_y = 0
+
+        elif legend_position == 'center left':
+            # Location of the origin point of the legend box
+            Anchor_loc = 'center right'
+
+            # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
+            Loc_x = 0
+
+            # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
+            Loc_y = 0.5
+
+            # Maximum number of labels per column in the legend
+            legend_label_per_column = 100
+
+        else:
+            raise ValueError(
+                f"La localisation legend_position={legend_position} n'est pas implémentée dans la fonction graph.legend_setup. \nLes localisations implémentées sont :\n{location_list}")
+            return
+
+        # Number of columns in the legend
+        # if not declared, takes the default values depending on the location
+        if not legend_label_per_column:
+            legend_label_per_column = legend_label_per_column_default[location_list.index(legend_position)]
+
+        return Anchor_loc, Loc_x, Loc_y, legend_label_per_column
+
+    # Places the legend
+    Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position, legend_label_per_column)
 
     # get the axes
     ax = fig.axes
-
-    # locations implemented
-    if legend_position == 'lower center':
-        # Location of the origin point of the legend box
-        Anchor_loc = 'upper center'
-
-        # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
-        Loc_x = 0.5
-
-        # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
-        Loc_y = 0
-
-    elif legend_position == 'center left':
-        # Location of the origin point of the legend box
-        Anchor_loc = 'center right'
-
-        # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
-        Loc_x = 0
-
-        # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
-        Loc_y = 0.5
-
-        # Maximum number of labels per column in the legend
-        legend_label_per_column = 100
-
-    else:
-        raise ValueError(
-            f"La localisation legend_position={legend_position} n'est pas implémentée dans la fonction graph.legend_setup. \nLes localisations implémentées sont :\n{location_list}")
-        return
 
     # If there is a graph annotation, place a texbox under the legend that says what the annotation correspond to
     if graph_annotation_on:
@@ -402,11 +415,6 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
 
         # removes duplicates labels
         lines, labels = clear_legend_duplicates(lines, labels)
-
-    # Number of columns in the legend
-    # if not declared, takes the default values depending on the location
-    if not legend_label_per_column:
-        legend_label_per_column = legend_label_per_column_default[location_list.index(legend_position)]
 
     # Only draws the legend if there are multiple labels in the figure
     if len(labels) > 1:
@@ -1776,13 +1784,123 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
 
             # shows the legend if activated
             if legend_on:
-
                 legend_setup(fig, graph_type, **kwargs)
 
             # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
             if hide_center_axis_labels:
                 hide_center_subplot_axis_labels(subplot)
 
+
+def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, **kwargs):
+    import pandas as pd
+
+    # First checks that the results data structure match the argument entered in the graph function
+    data_source = check_result_dictionary_data_structure(data, cases_on, compare=False)
+
+    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
+
+    # get the legend_on argument that controls if the legend is drawn or not (Default True)
+    legend_on = kwargs.get("legend_on", True)
+
+    # Gets the figure size
+    figsize = kwargs.get("figsize", None)
+
+    fig = subplot_setup(subplot, figsize, False)
+
+    ax = plt.gca()
+
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+
+
+
+
+    # Setups the grid and the axes ticks of the graph
+    graph_grid_setup(fig, **kwargs)
+
+    if cases_on == "all":
+        cases_on = list(data.keys())
+
+
+    values_col = []
+    cases_col = []
+    muscles_col = []
+    colors = []
+
+    description = data[cases_on[0]]["Muscles"][muscle_list[0]][muscle_list[0]][variable]["Description"]
+    abduction_datas = np.round(data[cases_on[0]]["Abduction"]["Total"])
+
+    for muscle in muscle_list:
+        for case in cases_on:
+            muscles_col.append(muscle)
+            values_col.append(data[case]["Muscles"][muscle][muscle][variable][composante][abduction_angle_index])
+            cases_col.append(case)
+
+    bar_data = {"values": values_col,
+                "cases": cases_col,
+                "muscles": muscles_col}
+
+    df = pd.DataFrame(bar_data)
+    pivot_df = df.pivot(index='muscles', columns='cases', values='values').fillna(0)
+    pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False)
+    plt.legend(cases_on)
+
+
+
+    # Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position, legend_label_per_column)
+
+
+
+    if subplot is None:
+        plt.title(figure_title)
+        plt.xlabel("")
+        if ylabel_on:
+            plt.ylabel(description)
+
+        # shows the legend if activated
+        if legend_on:
+            plt.legend(cases_on)
+
+        plt.xticks(rotation=45)
+        ax = plt.gca()
+        ax.tick_params(bottom=False, left=True)
+        plt.xticks(rotation=45)
+
+    else:
+        if subplot_title:
+            plt.title(subplot_title)
+
+        plt.xticks(rotation=45)
+
+        plt.xlabel("")
+        if ylabel_on:
+            plt.ylabel(description)
+
+        if "last_subplot" in subplot:
+            last_subplot = subplot["last_subplot"]
+
+        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
+            last_subplot = True
+        # Case where no legend and figure title will be drawn
+        else:
+            last_subplot = False
+
+        if last_subplot:
+
+            plt.suptitle(figure_title)
+
+            # shows the legend if activated
+            if legend_on:
+                plt.legend(cases_on)
+
+            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+            if hide_center_axis_labels:
+                hide_center_subplot_axis_labels(subplot)
+
+            # Ajuste les distances entre les subplots quand ils sont tous tracés
+            plt.tight_layout()
 
 # %% select data to plot
 
