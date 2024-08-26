@@ -1791,7 +1791,7 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
                 hide_center_subplot_axis_labels(subplot)
 
 
-def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, **kwargs):
+def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=False, **kwargs):
     import pandas as pd
 
     # First checks that the results data structure match the argument entered in the graph function
