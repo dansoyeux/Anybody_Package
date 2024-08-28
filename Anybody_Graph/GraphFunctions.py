@@ -275,13 +275,20 @@ def define_simulation_label(labels):
     return case_labels
 
 
-def clear_legend_duplicates(lines, labels):
+def clear_legend_duplicates(ax):
     """
     Searches the list of all labels in a figure and deletes duplicates in the label list and in the lines list
+
+    ax = fig.axes
     """
 
     labels_no_duplicates = []
     lines_no_duplicates = []
+
+    # Collects the labels and lines properties
+    lines_labels = [axe.get_legend_handles_labels() for axe in ax]
+    # reshaping so that the lists are two 1D lists
+    lines, labels = [sum(i, []) for i in zip(*lines_labels)]
 
     # Goes through the labels list from the end to the beginning
     for label_index, label in enumerate(labels):
@@ -292,6 +299,50 @@ def clear_legend_duplicates(lines, labels):
             lines_no_duplicates.append(lines[label_index])
 
     return lines_no_duplicates, labels_no_duplicates
+
+
+def define_legend_properties(legend_position, legend_label_per_column=None):
+    # list des localisation implémentées
+    location_list = ["lower center", "center left"]
+
+    # Default number of columns depending on the location name
+    legend_label_per_column_default = [5, 100]
+
+    # locations implemented
+    if legend_position == 'lower center':
+        # Location of the origin point of the legend box
+        Anchor_loc = 'upper center'
+
+        # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
+        Loc_x = 0.5
+
+        # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
+        Loc_y = 0
+
+    elif legend_position == 'center left':
+        # Location of the origin point of the legend box
+        Anchor_loc = 'center right'
+
+        # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
+        Loc_x = 0
+
+        # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
+        Loc_y = 0.5
+
+        # Maximum number of labels per column in the legend
+        legend_label_per_column = 100
+
+    else:
+        raise ValueError(
+            f"La localisation legend_position={legend_position} n'est pas implémentée dans la fonction graph.legend_setup. \nLes localisations implémentées sont :\n{location_list}")
+        return
+
+    # Number of columns in the legend
+    # if not declared, takes the default values depending on the location
+    if not legend_label_per_column:
+        legend_label_per_column = legend_label_per_column_default[location_list.index(legend_position)]
+
+    return Anchor_loc, Loc_x, Loc_y, legend_label_per_column
 
 
 def legend_setup(fig, graph_type, legend_position='lower center', graph_annotation_on=False, legend_label_per_column=None, **kwargs):
@@ -312,50 +363,6 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
                    Default value : lower center (below the figure)
                    WARNING : LOCATIONS IMPLEMENTED : lower center and center left, add more locations by adding an elif statement
     """
-
-
-    def define_legend_properties(legend_position, legend_label_per_column=None):
-        # list des localisation implémentées
-        location_list = ["lower center", "center left"]
-
-        # Default number of columns depending on the location name
-        legend_label_per_column_default = [5, 100]
-
-        # locations implemented
-        if legend_position == 'lower center':
-            # Location of the origin point of the legend box
-            Anchor_loc = 'upper center'
-
-            # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
-            Loc_x = 0.5
-
-            # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
-            Loc_y = 0
-
-        elif legend_position == 'center left':
-            # Location of the origin point of the legend box
-            Anchor_loc = 'center right'
-
-            # x coordinate of the legend in the figure (Loc_x = 0 means on the left, Loc_x = 1 means on the right, Loc_x = 0.5 means in the middle)
-            Loc_x = 0
-
-            # y coordinate of the legend in the figure (Loc_y = 0 means on the bottom, Loc_y = 1 means on the top, Loc_x = 0.5 means in the middle)
-            Loc_y = 0.5
-
-            # Maximum number of labels per column in the legend
-            legend_label_per_column = 100
-
-        else:
-            raise ValueError(
-                f"La localisation legend_position={legend_position} n'est pas implémentée dans la fonction graph.legend_setup. \nLes localisations implémentées sont :\n{location_list}")
-            return
-
-        # Number of columns in the legend
-        # if not declared, takes the default values depending on the location
-        if not legend_label_per_column:
-            legend_label_per_column = legend_label_per_column_default[location_list.index(legend_position)]
-
-        return Anchor_loc, Loc_x, Loc_y, legend_label_per_column
 
     # Places the legend
     Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position, legend_label_per_column)
@@ -395,8 +402,7 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
     if fig.legends:
         fig.legends.clear()
 
-    # maximumNumber of labels per columns in the legend
-
+    # Get the labels names and properties and clear duplicates
     # if the subplot dimensions are 1x1 (the ax list containing only 1 axis)
     if len(ax) == 1:
 
@@ -409,12 +415,12 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
     else:
 
         # Collects all the labels and lines of the figure
-        lines_labels = [axe.get_legend_handles_labels() for axe in ax]
-        # reshaping so that the lists are two 1D lists
-        lines, labels = [sum(i, []) for i in zip(*lines_labels)]
+        # lines_labels = [axe.get_legend_handles_labels() for axe in ax]
+        # # reshaping so that the lists are two 1D lists
+        # lines, labels = [sum(i, []) for i in zip(*lines_labels)]
 
         # removes duplicates labels
-        lines, labels = clear_legend_duplicates(lines, labels)
+        lines, labels = clear_legend_duplicates(ax)
 
     # Only draws the legend if there are multiple labels in the figure
     if len(labels) > 1:
@@ -472,7 +478,7 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
                      horizontalalignment='left', verticalalignment='bottom')
 
 
-def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=None, grid_y_step=None, same_lim=False, **kwargs):
+def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=None, grid_y_step=None, grid_visible=True, same_lim=False, **kwargs):
     """
     can overwrite the graph limits (x and y)
 
@@ -560,7 +566,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
     # It refreshes the grid if any of these parameters that can change the graduation were entered
     if not any([xlim, ylim, grid_x_step, grid_y_step, same_lim]):
-        plt.grid(visible=True)
+        plt.grid(visible=grid_visible)
         return
 
     # get the axis of the subplot
@@ -618,7 +624,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
         elif not same_lim:
             # if the limit is set only for the active axis
             axe = plt.gca()
-            plt.grid(visible=True)
+            plt.grid(visible=grid_visible)
 
             set_axis_properties(axe, xlim, ylim, grid_x_step, grid_y_step)
 
@@ -627,7 +633,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
         # gets the axis object
         axe = ax[0]
 
-        plt.grid(visible=True)
+        plt.grid(visible=grid_visible)
         set_axis_properties(axe, xlim, ylim, grid_x_step, grid_y_step)
 
 
@@ -1791,7 +1797,7 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
                 hide_center_subplot_axis_labels(subplot)
 
 
-def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=False, **kwargs):
+def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=False, grid_visible=False, legend_position="center left", **kwargs):
     import pandas as pd
 
     # First checks that the results data structure match the argument entered in the graph function
@@ -1810,11 +1816,8 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
     ax = plt.gca()
 
     # Arguments that controls if the axis labels are on or not
-    xlabel_on = kwargs.get("xlabel_on", True)
+    # xlabel_on = kwargs.get("xlabel_on", True)
     ylabel_on = kwargs.get("ylabel_on", True)
-
-
-
 
     # Setups the grid and the axes ticks of the graph
     graph_grid_setup(fig, **kwargs)
@@ -1826,7 +1829,7 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
     values_col = []
     cases_col = []
     muscles_col = []
-    colors = []
+    my_colors = []
 
     description = data[cases_on[0]]["Muscles"][muscle_list[0]][muscle_list[0]][variable]["Description"]
     abduction_datas = np.round(data[cases_on[0]]["Abduction"]["Total"])
@@ -1837,20 +1840,21 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
             values_col.append(data[case]["Muscles"][muscle][muscle][variable][composante][abduction_angle_index])
             cases_col.append(case)
 
+            # Gets the color of the case
+            simulation_line_style_dictionary = get_simulation_line_style(case)
+
+            if "color" in simulation_line_style_dictionary:
+                my_colors.append(simulation_line_style_dictionary["color"])
+            else:
+                my_colors.append(None)
+
     bar_data = {"values": values_col,
                 "cases": cases_col,
                 "muscles": muscles_col}
 
     df = pd.DataFrame(bar_data)
     pivot_df = df.pivot(index='muscles', columns='cases', values='values').fillna(0)
-    pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False)
-    plt.legend(cases_on)
-
-
-
-    # Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position, legend_label_per_column)
-
-
+    pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, color=my_colors)
 
     if subplot is None:
         plt.title(figure_title)
@@ -1860,7 +1864,9 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
 
         # shows the legend if activated
         if legend_on:
-            plt.legend(cases_on)
+            lines, labels = clear_legend_duplicates(fig.axes)
+            Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+            fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
 
         plt.xticks(rotation=45)
         ax = plt.gca()
@@ -1893,7 +1899,9 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
 
             # shows the legend if activated
             if legend_on:
-                plt.legend(cases_on)
+                lines, labels = clear_legend_duplicates(fig.axes)
+                Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+                fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
 
             # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
             if hide_center_axis_labels:
@@ -1903,7 +1911,7 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
             plt.tight_layout()
 
 
-def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, **kwargs):
+def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, legend_position='lower center', grid_visible=False, **kwargs):
     import pandas as pd
 
     variable = "ForceMeasure"
@@ -1927,19 +1935,15 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
     xlabel_on = kwargs.get("xlabel_on", True)
     ylabel_on = kwargs.get("ylabel_on", True)
 
-    # Setups the grid and the axes ticks of the graph
-    graph_grid_setup(fig, **kwargs)
-
     if cases_on == "all":
         cases_on = list(data.keys())
 
     values_col = []
     cases_col = []
     muscles_col = []
-    colors = []
+    my_colors = []
 
     description = data[cases_on[0]][f"{variable} {muscle_list[0]}"]["Description"]
-    abduction_datas = np.round(data[cases_on[0]]["Abduction"]["Total"])
 
     for muscle in muscle_list:
         for case in cases_on:
@@ -1947,20 +1951,21 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
             values_col.append(data[case][f"{variable} {muscle}"][composante][abduction_angle_index])
             cases_col.append(case)
 
+            # Gets the color of the case
+            simulation_line_style_dictionary = get_simulation_line_style(case)
+
+            if "color" in simulation_line_style_dictionary:
+                my_colors.append(simulation_line_style_dictionary["color"])
+            else:
+                my_colors.append(None)
+
     bar_data = {"values": values_col,
                 "cases": cases_col,
                 "muscles": muscles_col}
 
     df = pd.DataFrame(bar_data)
     pivot_df = df.pivot(index='muscles', columns='cases', values='values').fillna(0)
-    pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False)
-    plt.legend(cases_on)
-
-
-
-    # Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position, legend_label_per_column)
-
-
+    pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, color=my_colors)
 
     if subplot is None:
         plt.title(figure_title)
@@ -1968,9 +1973,14 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
         if ylabel_on:
             plt.ylabel(description)
 
+        # Setups the grid and the axes ticks of the graph
+        graph_grid_setup(fig, grid_visible=grid_visible, **kwargs)
+
         # shows the legend if activated
         if legend_on:
-            plt.legend(cases_on)
+            lines, labels = clear_legend_duplicates(fig.axes)
+            Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+            fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
 
         plt.xticks(rotation=45)
         ax = plt.gca()
@@ -1986,6 +1996,9 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
         plt.xlabel("")
         if ylabel_on:
             plt.ylabel(description)
+
+        # Setups the grid and the axes ticks of the graph
+        graph_grid_setup(fig, grid_visible=grid_visible, **kwargs)
 
         if "last_subplot" in subplot:
             last_subplot = subplot["last_subplot"]
@@ -2003,7 +2016,11 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
 
             # shows the legend if activated
             if legend_on:
-                plt.legend(cases_on)
+
+                lines, labels = clear_legend_duplicates(fig.axes)
+                Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+
+                fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
 
             # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
             if hide_center_axis_labels:
@@ -2011,6 +2028,11 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
 
             # Ajuste les distances entre les subplots quand ils sont tous tracés
             plt.tight_layout()
+            
+            
+            
+            
+            
 
 # %% select data to plot
 
