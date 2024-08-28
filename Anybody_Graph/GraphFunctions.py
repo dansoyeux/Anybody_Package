@@ -1902,6 +1902,116 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
             # Ajuste les distances entre les subplots quand ils sont tous tracés
             plt.tight_layout()
 
+
+def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, **kwargs):
+    import pandas as pd
+
+    variable = "ForceMeasure"
+
+    # First checks that the results data structure match the argument entered in the graph function
+    data_source = check_result_dictionary_data_structure(data, cases_on, compare=False)
+
+    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
+
+    # get the legend_on argument that controls if the legend is drawn or not (Default True)
+    legend_on = kwargs.get("legend_on", True)
+
+    # Gets the figure size
+    figsize = kwargs.get("figsize", None)
+
+    fig = subplot_setup(subplot, figsize, False)
+
+    ax = plt.gca()
+
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+
+    # Setups the grid and the axes ticks of the graph
+    graph_grid_setup(fig, **kwargs)
+
+    if cases_on == "all":
+        cases_on = list(data.keys())
+
+    values_col = []
+    cases_col = []
+    muscles_col = []
+    colors = []
+
+    description = data[cases_on[0]][f"{variable} {muscle_list[0]}"]["Description"]
+    abduction_datas = np.round(data[cases_on[0]]["Abduction"]["Total"])
+
+    for muscle in muscle_list:
+        for case in cases_on:
+            muscles_col.append(muscle)
+            values_col.append(data[case][f"{variable} {muscle_list[0]}"][composante][abduction_angle_index])
+            cases_col.append(case)
+
+    bar_data = {"values": values_col,
+                "cases": cases_col,
+                "muscles": muscles_col}
+
+    df = pd.DataFrame(bar_data)
+    pivot_df = df.pivot(index='muscles', columns='cases', values='values').fillna(0)
+    pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False)
+    plt.legend(cases_on)
+
+
+
+    # Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position, legend_label_per_column)
+
+
+
+    if subplot is None:
+        plt.title(figure_title)
+        plt.xlabel("")
+        if ylabel_on:
+            plt.ylabel(description)
+
+        # shows the legend if activated
+        if legend_on:
+            plt.legend(cases_on)
+
+        plt.xticks(rotation=45)
+        ax = plt.gca()
+        ax.tick_params(bottom=False, left=True)
+        plt.xticks(rotation=45)
+
+    else:
+        if subplot_title:
+            plt.title(subplot_title)
+
+        plt.xticks(rotation=45)
+
+        plt.xlabel("")
+        if ylabel_on:
+            plt.ylabel(description)
+
+        if "last_subplot" in subplot:
+            last_subplot = subplot["last_subplot"]
+
+        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
+            last_subplot = True
+        # Case where no legend and figure title will be drawn
+        else:
+            last_subplot = False
+
+        if last_subplot:
+
+            plt.suptitle(figure_title)
+
+            # shows the legend if activated
+            if legend_on:
+                plt.legend(cases_on)
+
+            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+            if hide_center_axis_labels:
+                hide_center_subplot_axis_labels(subplot)
+
+            # Ajuste les distances entre les subplots quand ils sont tous tracés
+            plt.tight_layout()
+
 # %% select data to plot
 
 # def get_result_dictionary_data_structure(data):
