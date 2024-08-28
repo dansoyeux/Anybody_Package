@@ -1944,7 +1944,7 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
     for muscle in muscle_list:
         for case in cases_on:
             muscles_col.append(muscle)
-            values_col.append(data[case][f"{variable} {muscle_list[0]}"][composante][abduction_angle_index])
+            values_col.append(data[case][f"{variable} {muscle}"][composante][abduction_angle_index])
             cases_col.append(case)
 
     bar_data = {"values": values_col,
