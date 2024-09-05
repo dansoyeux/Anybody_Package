@@ -2028,51 +2028,8 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
 
             # Ajuste les distances entre les subplots quand ils sont tous tracés
             plt.tight_layout()
-            
-            
-            
-            
-            
 
 # %% select data to plot
-
-# def get_result_dictionary_data_structure(data):
-#     """
-#     returns a deepnest counter that indicates the data structure of the result dictionary entered
-#     and indicates if the source of the data is Anybody or from the literature
-#     --------------------------------------------------------------------------
-#     return
-#     variables_deepness_counter : (int) counter that counts how deep the variables are stored which indicates the data structure
-#     0 : no simulation cases
-#     1 : simulation cases
-#     2 : compared simulation cases
-#     3+ : error
-
-#     data_source : (str) The data source ("Anybody" or "Literature")
-#     """
-
-#     # counter that counts how deep the variables are stored which indicates the data structure
-#     # 0 : no simulation cases
-#     # 1 : simulation cases
-#     # 2 : compared simulation cases
-#     # 3 : error
-#     variables_deepness_counter = 0
-
-#     # searches for the entry "Loaded Variables" to know the data structure
-#     while "Loaded Variables" not in list(data.keys()) and variables_deepness_counter < 3:
-#         # increases the ccuonter
-#         variables_deepness_counter += 1
-
-#         # goes one step deeper in the result dictionary
-#         data = data[list(data.keys())[0]]
-
-#     if variables_deepness_counter > 2:
-#         raise ValueError("The result dictionary used doesn't have a correct data structure. The variables are {variables_deepness_counter} levels deep while 2 is the maximum!")
-
-#     # Gets the source of the data (anybody or the literature)
-#     data_source = data["Loaded Variables"]["Data Source"]
-
-#     return variables_deepness_counter, data_source
 
 
 def check_result_dictionary_data_structure(data, cases_on, compare):
