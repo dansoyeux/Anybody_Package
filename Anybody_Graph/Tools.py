@@ -170,6 +170,10 @@ def unsuperpose_plot_annotations(annotation_offset=None, annotation_reference_of
 
     texts = ax.texts
 
+    # exit the unsuperpose function if no annotations were found
+    if len(texts) == 0:
+        return
+
     # Obtiens les positions des annotations
     x, y = get_text_position(texts)
 

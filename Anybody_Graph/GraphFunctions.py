@@ -262,8 +262,13 @@ def define_simulation_label(labels):
 
     """
 
+    # If no simulation descriptions were declared, don't change the labels
+    if "simulation_description" not in globals():
+        return labels
+
     case_labels = []
     # Parcours les label du graphique
+
     for label in labels:
         # Si ce label est dans la liste Simulation description, remplace ce label par sa description
         if label in simulation_description:
@@ -414,11 +419,6 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
 
     else:
 
-        # Collects all the labels and lines of the figure
-        # lines_labels = [axe.get_legend_handles_labels() for axe in ax]
-        # # reshaping so that the lists are two 1D lists
-        # lines, labels = [sum(i, []) for i in zip(*lines_labels)]
-
         # removes duplicates labels
         lines, labels = clear_legend_duplicates(ax)
 
@@ -430,15 +430,18 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
 
         # Changes the names of the case to their description if a simulation_description dictionary was defined
         # in case no simulation description were defined, the labels stay the same
-        if "simulation_description" in globals():
-            Simulationlabels = define_simulation_label(labels)
-        else:
-            Simulationlabels = labels
+        Simulationlabels = define_simulation_label(labels)
 
         # Places one legend for the whole subplot
         leg = fig.legend(lines, Simulationlabels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc, ncol=ncol)
 
         if graph_annotation_on:
+
+            # checks if there are any annotations drawn
+            ax = plt.gca()
+            if len(ax.texts) == 0:
+                return
+
             # Creates the legend of the annotation boxes under the legend of the graoh
             # Create offset from lower right corner of legend box,
             # (0.0,0.0) is the coordinates of the offset point in the legend coordinate system
@@ -465,13 +468,17 @@ def legend_setup(fig, graph_type, legend_position='lower center', graph_annotati
     # If no legend was created and there are graph annotations on the graph
     elif len(labels) == 1 and graph_annotation_on:
 
+        # checks if there are any annotations drawn
+        ax = plt.gca()
+        if len(ax.texts) == 0:
+            return
+
         graph_annotation_legend_box = plt.annotate("XX", xy=(0.5, 0),
                                                    xycoords='figure fraction',
                                                    horizontalalignment='left', verticalalignment='bottom',
                                                    bbox=props)
 
-        offset_legend_box = matplotlib.text.OffsetFrom(
-            graph_annotation_legend_box, (1.5, 0))
+        offset_legend_box = matplotlib.text.OffsetFrom(graph_annotation_legend_box, (1.5, 0))
 
         plt.annotate(legend_string, xy=(0, 0),
                      xycoords='figure fraction', xytext=(0, 0), textcoords=offset_legend_box,
@@ -581,23 +588,22 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
 
             # Collects all the axis limits and calculates the extremes
             # if one of the limits hasn't been set manually
-            if xlim is None or ylim is None:
 
-                min_xlim = []
-                max_xlim = []
-                min_ylim = []
-                max_ylim = []
+            min_xlim = []
+            max_xlim = []
+            min_ylim = []
+            max_ylim = []
 
-                # Goes through every subplot
-                for axe in ax:
+            # Goes through every subplot
+            for axe in ax:
 
-                    graph_xlim = axe.get_xlim()
-                    graph_ylim = axe.get_ylim()
+                graph_xlim = axe.get_xlim()
+                graph_ylim = axe.get_ylim()
 
-                    min_xlim.append(graph_xlim[0])
-                    max_xlim.append(graph_xlim[1])
-                    min_ylim.append(graph_ylim[0])
-                    max_ylim.append(graph_ylim[1])
+                min_xlim.append(graph_xlim[0])
+                max_xlim.append(graph_xlim[1])
+                min_ylim.append(graph_ylim[0])
+                max_ylim.append(graph_ylim[1])
 
             # Sets the graph limits
             for axe in ax:
@@ -607,6 +613,15 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                 # Select the limits to set (the xlim set manually or the extreme values)
                 if xlim:
                     graph_xlim = xlim
+
+                    # if None was entered for a limit, replace None with the extreme value of all subplots
+                    if xlim[0] is None:
+                        graph_xlim[0] = min(min_xlim)
+                    
+                    # if None was entered for a limit, replace None with the extreme value of all subplots
+                    if xlim[1] is None:
+                        graph_xlim[1] = max(max_xlim)
+
                 # sets the graph_xlim as the most extremes limits across all the subplots
                 else:
                     graph_xlim = [min(min_xlim), max(max_xlim)]
@@ -614,9 +629,23 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                 # Select the limits to set (the ylim set manually or the extreme values)
                 if ylim:
                     graph_ylim = ylim
+                    
+                    # if None was entered for a limit, replace None with the extreme value of all subplots
+                    if ylim[0] is None:
+                        graph_ylim[0] = min(min_ylim)
+                    
+                    # if None was entered for a limit, replace None with the extreme value of all subplots
+                    if ylim[1] is None:
+                        graph_ylim[1] = max(max_ylim)
+                    
+                    
+                    
                 # sets the graph_ylim as the most extremes limits across all the subplots
                 else:
                     graph_ylim = [min(min_ylim), max(max_ylim)]
+
+                
+
 
                 set_axis_properties(axe, graph_xlim, graph_ylim, grid_x_step, grid_y_step)
 
@@ -753,6 +782,10 @@ def draw_axes_informations(fig, graph_type, subplot, x_description, y_descriptio
 
                            Default value : lower center (below the figure)
     """
+    
+    # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
+    add_graph = kwargs.get("add_graph", False)
+    
     # get the legend_on argument that controls if the legend is drawn or not (Default True)
     legend_on = kwargs.get("legend_on", True)
 
@@ -799,9 +832,12 @@ def draw_axes_informations(fig, graph_type, subplot, x_description, y_descriptio
             # Calls the function that will move the annotations to avoid superposition
             unsuperpose_plot_annotations(**kwargs)
 
+        # Puts true if we add a graph
+        if add_graph:
+            last_subplot = True
         # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
         # This statement has the priority over the test on the number of dimension
-        if "last_subplot" in subplot:
+        elif "last_subplot" in subplot:
             last_subplot = subplot["last_subplot"]
 
         # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
@@ -1665,7 +1701,7 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
                           composante_y, compare, subplot, subplot_title, cases_on, muscle_part_information, fig=fig, compared_case=compared_case, **kwargs)
 
 
-def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composantes=["x", "y"], cases_on=False, subplot=None, compare=False, subplot_title=False, draw_COP_points_on=True, **kwargs):
+def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composantes=["x", "y"], cases_on=False, subplot=None, compare=False, subplot_title=False, draw_COP_points_on=True, legend_x=None, legend_y=None, **kwargs):
     """
     Fait le graphique de la position d'un centre de pression et trace un contour (contour d'un implant ou de la surface de contact par exemple)
     data doit avoir une variable appelée "COP"
@@ -1725,6 +1761,18 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
                 : To plot on a graph with 2 line and 3 columns on the graph in the center
                 subplot = {"dimension":[3,3],"number":5}
 
+    legend_x : list : [direction_1, direction_2]
+               The x axis contain the names of the positive and the negative direction of the x component of the selected variable
+               the xlabel is defined as "<-----direction_1        direction_2----->"
+               by default : direction_1 = Posterior
+                            direction_2 = Anterior
+
+    legend_y : list : [direction_1, direction_2]
+               The y axis contain the names of the positive and the negative direction of the y component of the selected variable
+               the ylabel is defined as "<-----direction_1        direction_2----->"
+               by default : direction_1 = Inferior
+                            direction_2 = Superior
+
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
              add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
@@ -1767,6 +1815,13 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # Stores the name of the x variable and y variable in the kwargs
     kwargs["variable_y"] = variable_y
     kwargs["variable_x"] = variable_x
+
+    # Names of the directions entered in the axis labels
+    if legend_x is None:
+        legend_x = ["^Posterior", "Anterior"]
+
+    if legend_y is None:
+        legend_y = ["Inferior", "Superior"]
 
     # Verifications for when simulationCases are used
     if cases_on:
@@ -1814,8 +1869,8 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)
 
     # Overwrites the labels
-    x_description = "<-----Posterior        Anterior----->"
-    y_description = "<----- Inferior        Superior----->"
+    x_description = f"<-----{legend_x[0]}        {legend_x[1]}----->"
+    y_description = f"<-----{legend_y[0]}        {legend_y[1]}----->"
 
     # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
     draw_axes_informations(fig, graph_type, subplot, x_description, y_description, figure_title, subplot_title, **kwargs)
@@ -1961,8 +2016,6 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, data_index, cases_on=
     data : le dictionnaire contenant les data à tracer
          : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
          : Soit un jeu de plusieurs datas (compare = True)
-
-    variable : le nom de la variable placée en y sur le graphique
 
     muscle_list : list : Liste des muscles à sélectionner
 
