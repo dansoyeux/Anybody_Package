@@ -136,28 +136,31 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
 
     if graph_type == "COP_graph":
 
-        draw_COP_points_on = kwargs.get("draw_COP_points_on", False)
-
-        # Defines the COP points function settings
-        COP_points_variable = kwargs.get("COP_points_variable", "Abduction")
-        COP_points_composante = kwargs.get("COP_points_composante", "Total")
+        # properties of the cross indicating the first point
         COP_first_point_size = kwargs.get("COP_first_point_size", 10)
         COP_first_point_mew = kwargs.get("COP_first_point_mew", 2.5)
-
-        # Step de déplacement angulaire où les points seront tracés par la fonction draw_COP_points
-        COP_points_step = kwargs.get("COP_points_step", 15)
-
-        # Liste des angles de déplacement
-        COP_points_coordinates = data[COP_points_variable][COP_points_composante]
 
         # Draws a cross as the first point
         CaseColor = plt.gca().lines[-1].get_color()
         plt.plot(x[0], y[0], '+', color=CaseColor, markersize=COP_first_point_size, mew=COP_first_point_mew)
 
         # Dessine le COP de début et d'autres points intermédiaires tous les x° d'angles de déplacement (COP_points_step)
+        draw_COP_points_on = kwargs.get("draw_COP_points_on", False)
+
         # Seulement si activé
         if draw_COP_points_on:
+
+            # Defines the COP points function settings
+            COP_points_variable = kwargs.get("COP_points_variable", "Abduction")
+            COP_points_composante = kwargs.get("COP_points_composante", "Total")
+
+            # Step de déplacement angulaire où les points seront tracés par la fonction draw_COP_points
+            COP_points_step = kwargs.get("COP_points_step", 15)
             COP_points_size = kwargs.get("COP_points_size", 8)
+    
+            # Liste des angles de déplacement
+            COP_points_coordinates = data[COP_points_variable][COP_points_composante]
+
             draw_COP_points(COP_points_coordinates, x, y, COP_points_step, CaseColor, COP_points_size)
 
     # Draws errorbar if activated
@@ -307,6 +310,20 @@ def clear_legend_duplicates(ax):
 
 
 def define_legend_properties(legend_position, legend_label_per_column=None):
+    """
+    defines the legend position and the number of labels per column
+
+    legend_label_per_column : (int) Maximum number of labels per column in the legend
+
+    legend_position = str, controls where the legend is drawn outside the figure
+
+                   location string of matplotlib 'upper right', 'center left'...
+                   default = 'lower center'
+
+                   Default value : lower center (below the figure)
+                   WARNING : LOCATIONS IMPLEMENTED : lower center and center left, add more locations by adding an elif statement
+
+    """
     # list des localisation implémentées
     location_list = ["lower center", "center left"]
 
@@ -617,7 +634,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                     # if None was entered for a limit, replace None with the extreme value of all subplots
                     if xlim[0] is None:
                         graph_xlim[0] = min(min_xlim)
-                    
+
                     # if None was entered for a limit, replace None with the extreme value of all subplots
                     if xlim[1] is None:
                         graph_xlim[1] = max(max_xlim)
@@ -629,23 +646,18 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
                 # Select the limits to set (the ylim set manually or the extreme values)
                 if ylim:
                     graph_ylim = ylim
-                    
+
                     # if None was entered for a limit, replace None with the extreme value of all subplots
                     if ylim[0] is None:
                         graph_ylim[0] = min(min_ylim)
-                    
+
                     # if None was entered for a limit, replace None with the extreme value of all subplots
                     if ylim[1] is None:
                         graph_ylim[1] = max(max_ylim)
-                    
-                    
-                    
+
                 # sets the graph_ylim as the most extremes limits across all the subplots
                 else:
                     graph_ylim = [min(min_ylim), max(max_ylim)]
-
-                
-
 
                 set_axis_properties(axe, graph_xlim, graph_ylim, grid_x_step, grid_y_step)
 
@@ -782,10 +794,10 @@ def draw_axes_informations(fig, graph_type, subplot, x_description, y_descriptio
 
                            Default value : lower center (below the figure)
     """
-    
+
     # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
-    
+
     # get the legend_on argument that controls if the legend is drawn or not (Default True)
     legend_on = kwargs.get("legend_on", True)
 
@@ -1060,9 +1072,6 @@ def draw_graph_annotation(annotation_values, x, y, **kwargs):
         annotation on the highest peak : "max_peak"
         annotation on the lowest peak : "min_peak"
 
-
-
-
         Par Défaut : "max"
 
     Par défaut : Max activé et les autres désactivés
@@ -1247,6 +1256,10 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     variable_x : Le nom de la variable placée en x sur le graphique
     variable_y : le nom de la variable placée en y sur le graphique
 
+    figure_title : str : title of the figure
+
+    cases_on : list : list of the simulation cases to plot
+
     composante_y :
                   : type : liste de chaines de charactère
                   : Liste contenant les nom des composantes de la variable à tracer
@@ -1380,13 +1393,16 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
 
     lastPart = statement pour dire qu'on dessine la dernière musclepart pour ne tracer la légende qu'à ce moment là
 
-
     data : le dictionnaire contenant les data à tracer
          : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
          : Soit un jeu de plusieurs datas (compare = True)
 
     variable_x : Le nom de la variable placée en x sur le graphique
     variable_y : le nom de la variable placée en y sur le graphique
+
+    figure_title : str : title of the figure
+
+    cases_on : list : list of the simulation cases to plot
 
     composante_y :
                   : type : liste de chaines de charactère
@@ -1501,6 +1517,10 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
 
     variable_x : Le nom de la variable placée en x sur le graphique
     variable_y : le nom de la variable placée en y sur le graphique
+
+    figure_title : str : title of the figure
+
+    cases_on : list : list of the simulation cases to plot
 
     composante_y :
                   : type : liste de chaines de charactère
@@ -1708,7 +1728,9 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     COP doit avoir la séquence : "SequenceComposantes": ["AP", "IS", "ML"]
     Trace la composante antéropostérieure (AP) en abscisse (Antérieur = positif) et inférosupérieure (IS) en ordonnée (Supérieur = Positif)
 
-    draw_GH_reactions_nodes= ARGUMENT PERSONNEL POUR TRACER EN PLUS DES POINT SUR LE CONTOUR, PEUT ÊTRE SUPPRIMÉ
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (compare = True)
 
     COP_contour : numpy.array contenant les coordonnées x, y du contour à tracer (Peut être créé par la fonction define_COP_contour si on veut lire un fichier contenant ces coordonnées)
                : Dimension (npoints,3 or 2)
@@ -1719,13 +1741,13 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     variable : string : The name of the variable to draw
     (Default "COP")
 
+    figure_title : str : title of the figure
+
     composantes : list : ["composante_x", "composante_y"]
                 : Composantes de la variable à tracer
                 (Default ["x", "y"])
 
-    data : le dictionnaire contenant les data à tracer
-         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
-         : Soit un jeu de plusieurs datas (compare = True)
+    cases_on : list : list of the simulation cases to plot
 
     graph_annotation_on : bool : Contrôle l'affichage ou non des angles de pic de COP (Vrai par défaut)
 
@@ -1818,7 +1840,7 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
 
     # Names of the directions entered in the axis labels
     if legend_x is None:
-        legend_x = ["^Posterior", "Anterior"]
+        legend_x = ["Posterior", "Anterior"]
 
     if legend_y is None:
         legend_y = ["Inferior", "Superior"]
@@ -1886,10 +1908,14 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, data_index, cases
 
     variable : le nom de la variable placée en y sur le graphique
 
+    figure_title : str : title of the figure
+
     muscle_list : list : Liste des muscles à sélectionner
 
     data_index : int : index of the data to select
                        Example : 0 to select the first value of the muscle variable selected
+
+    cases_on : list : list of the simulation cases to plot
 
     composante :
                   : type : liste de chaines de charactère
@@ -2017,10 +2043,14 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, data_index, cases_on=
          : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
          : Soit un jeu de plusieurs datas (compare = True)
 
+    figure_title : str : title of the figure
+
     muscle_list : list : Liste des muscles à sélectionner
 
     data_index : int : index of the data to select
                        Example : 0 to select the first value of the muscle variable selected
+
+    cases_on : list : list of the simulation cases to plot
 
     composante :
                   : type : liste de chaines de charactère
@@ -2137,6 +2167,12 @@ def check_result_dictionary_data_structure(data, cases_on, compare):
 
     it checks if cases_on is used when simulation cases exis
     it checks if compare=True is used when we compare simulation with simulation cases
+    
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (compare = True)
+
+    cases_on : list : list of the simulation cases to plot
     """
 
     variables_deepness_counter, data_source = get_result_dictionary_data_structure(data)
@@ -2170,13 +2206,6 @@ def graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compar
     returns
     x_description and y_description : str
     the descriptions of the x and y variables to be set as xlabel and ylabel in the graph function
-
-    """
-
-    """
-    AJOUTER UNE FONCTION QUI TEST LA STRUCTURE DES DICTIONAIRES ET FAIT ERREUR SELON LE CAS
-
-    def check_graphed_data_structure(data, cases_on, compare)
     """
 
     variable_x = kwargs.get("variable_x")
@@ -2366,13 +2395,6 @@ def graph_select_data_to_plot_literature(data, composante_x, composante_y, cases
     returns
     x_description and y_description : str
     the descriptions of the x and y variables to be set as xlabel and ylabel in the graph function
-
-    """
-
-    """
-    AJOUTER UNE FONCTION QUI TEST LA STRUCTURE DES DICTIONAIRES ET FAIT ERREUR SELON LE CAS
-
-    def check_graphed_data_structure(data, cases_on, compare)
     """
 
     variable_x = kwargs.get("variable_x")
@@ -2569,13 +2591,6 @@ def muscle_graph_select_data_to_plot(data, composante_x, composante_y, cases_on,
     returns
     x_description and y_description : str
     the descriptions of the x and y variables to be set as xlabel and ylabel in the graph function
-
-    """
-
-    """
-    AJOUTER UNE FONCTION QUI TEST LA STRUCTURE DES DICTIONAIRES ET FAIT ERREUR SELON LE CAS
-
-    def check_graphed_data_structure(data, cases_on, compare)
     """
 
     variable_x = kwargs.get("variable_x")
@@ -2785,13 +2800,6 @@ def muscle_graph_select_data_to_plot_literature(data, composante_x, composante_y
     returns
     x_description and y_description : str
     the descriptions of the x and y variables to be set as xlabel and ylabel in the graph function
-
-    """
-
-    """
-    AJOUTER UNE FONCTION QUI TEST LA STRUCTURE DES DICTIONAIRES ET FAIT ERREUR SELON LE CAS
-
-    def check_graphed_data_structure(data, cases_on, compare)
     """
 
     variable_x = kwargs.get("variable_x")

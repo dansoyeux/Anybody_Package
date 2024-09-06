@@ -255,12 +255,19 @@ def unsuperpose_plot_annotations(annotation_offset=None, annotation_reference_of
 
 
 def save_all_active_figures(save_folder_path, folder_name, file_name, save_format="png"):
-    """Function that saves all the active figuresand saves them in a subfolder"""
+    """Function that saves all the active figures and saves them in a subfolder
+
+    save_folder_path : str : relative path of the folder that will store the saved figures
+    folder_name : str : Name of the subfolder that will be created
+    file_name : str : name of the files (they will be followed by a number for each figure)
+    save_format : str : image format (png by default)
+    """
 
     import os
     import matplotlib.pyplot as plt
 
     subfolder_path = f"{save_folder_path}/{folder_name}"
+
     # Creates the category folder
     os.mkdir(subfolder_path)
 
