@@ -179,29 +179,28 @@ def subplot_setup(subplot, figsize=None, add_graph=False):
 
 
         subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
+        And defines the active axis as the subplot["number"]=number of the plot
 
 
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
 
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
 
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
 
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
 
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
+                  Number = 3 corresponds to subplot [1,0]
 
-              Number = 3 corresponds to subplot [1,0]
-
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
     """
 
     # default figure size
@@ -703,7 +702,57 @@ def get_simulation_line_style(label):
 
 
 def draw_axes_informations(fig, graph_type, subplot, x_description, y_description, figure_title, subplot_title, **kwargs):
+    """
+    Function that manages the figure axes names, titles, legend and annotations of graphs
 
+    fig : The matplotlib figure object
+    graph_type : str : the type of graph (graph, COP_graph, muscle_graph)
+
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+
+
+        subplot["dimension"] = [nrows, ncolumns]
+        And defines the active axis as the subplot["number"]=number of the plot
+
+
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
+
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
+
+                  Number = 3 corresponds to subplot [1,0]
+
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
+
+    x_description : str : The label of the x axis
+    y_description : str : The label of the y axis
+    figure_title : str : title of the figure
+    subplot_title : str : title of the subplot
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             legend_on : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+             legend_position : str, controls where the legend is drawn outside the figure
+
+                           location string of matplotlib 'upper right', 'center left'...
+
+                           Default value : lower center (below the figure)
+    """
     # get the legend_on argument that controls if the legend is drawn or not (Default True)
     legend_on = kwargs.get("legend_on", True)
 
@@ -788,14 +837,67 @@ def draw_axes_informations(fig, graph_type, subplot, x_description, y_descriptio
                 hide_center_subplot_axis_labels(subplot)
 
 
-def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplot_title, legend_position, **kwargs):
+def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplot_title, **kwargs):
+    """
+    Function that manages the figure axes names, titles, legend and annotations of graphs
+    Function made for barplots
 
+    fig : The matplotlib figure object
+    graph_type : str : the type of graph (graph, COP_graph, muscle_graph)
+
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+
+
+        subplot["dimension"] = [nrows, ncolumns]
+        And defines the active axis as the subplot["number"]=number of the plot
+
+
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
+
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
+
+                  Number = 3 corresponds to subplot [1,0]
+
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
+
+    y_description : str : The label of the y axis
+    figure_title : str : title of the figure
+    subplot_title : str : title of the subplot
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             legend_on : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+             legend_position : str, controls where the legend is drawn outside the figure
+
+                           location string of matplotlib 'upper right', 'center left'...
+
+                           Default value : lower center (below the figure)
+    """
     hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
 
     # get the legend_on argument that controls if the legend is drawn or not (Default True)
     legend_on = kwargs.get("legend_on", True)
 
     ylabel_on = kwargs.get("ylabel_on", True)
+
+    # Position of the legend
+    legend_position = kwargs.get("legend_position", "lower center")
 
     # Deletes the label on the x axis
     description_x = ""
@@ -1125,10 +1227,10 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
                 CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
                                            : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
 
-    Composantes_x : Le nom de la composante de la variable en abscisse
+    composante_x : Le nom de la composante de la variable en abscisse
                   : composante_x est une chaîne de charactère contenant le nom de la composante de la variable
                   : Par défaut : "Total"
-                  : Si on veut activer y entrer : Composantes_x = "y"
+                  : Si on veut activer y entrer : composante_x = "y"
 
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
@@ -1137,29 +1239,28 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
 
 
         subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
+        And defines the active axis as the subplot["number"]=number of the plot
 
 
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
 
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
 
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
 
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
 
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
+                  Number = 3 corresponds to subplot [1,0]
 
-              Number = 3 corresponds to subplot [1,0]
-
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
 
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
@@ -1168,7 +1269,7 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
              legend_on : bool : argument contrôlant l'affichage de la légende
                        : True (par défaut) la légende s'affiche
                        : False La légende ne s'affiche pas'
-             LegendLocation = dictionary, controls where the legend is drawn outside the figure
+             legend_position : str, controls where the legend is drawn outside the figure
 
                            location string of matplotlib 'upper right', 'center left'...
 
@@ -1266,10 +1367,10 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
                 CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
                                            : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
 
-    Composantes_x : Le nom de la composante de la variable en abscisse
+    composante_x : Le nom de la composante de la variable en abscisse
                   : composante_x est une chaîne de charactère contenant le nom de la composante de la variable
                   : Par défaut : "Total"
-                  : Si on veut activer y entrer : Composantes_x = "y"
+                  : Si on veut activer y entrer : composante_x = "y"
 
     muscle_part_on  : Liste contenant les numéros des parties à tracer
                   : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
@@ -1287,29 +1388,28 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
 
 
         subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
+        And defines the active axis as the subplot["number"]=number of the plot
 
 
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
 
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
 
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
 
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
 
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
+                  Number = 3 corresponds to subplot [1,0]
 
-              Number = 3 corresponds to subplot [1,0]
-
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
 
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
@@ -1318,7 +1418,7 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
              legend_on : bool : argument contrôlant l'affichage de la légende
                        : True (par défaut) la légende s'affiche
                        : False La légende ne s'affiche pas'
-            LegendLocation = dictionary, controls where the legend is drawn outside the figure
+            legend_position : str, controls where the legend is drawn outside the figure
 
                           location string of matplotlib 'upper right', 'center left'...
 
@@ -1382,10 +1482,10 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
                 CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
                                            : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
 
-    Composantes_x : Le nom de la composante de la variable en abscisse
+    composante_x : Le nom de la composante de la variable en abscisse
                   : composante_x est une chaîne de charactère contenant le nom de la composante de la variable
                   : Par défaut : "Total"
-                  : Si on veut activer y entrer : Composantes_x = "y"
+                  : Si on veut activer y entrer : composante_x = "y"
 
     muscle_part_on  : Liste contenant les numéros des parties à tracer
                   : active ou non de graph la variable totale du muscle ou la variable d'une des parties du muscle
@@ -1401,31 +1501,30 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
 
     subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
 
-
         subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
+        And defines the active axis as the subplot["number"]=number of the plot
 
 
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
 
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
 
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
 
 
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
 
-              Number = 3 corresponds to subplot [1,0]
+                  Number = 3 corresponds to subplot [1,0]
 
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
 
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
@@ -1434,7 +1533,7 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
              legend_on : bool : argument contrôlant l'affichage de la légende
                        : True (par défaut) la légende s'affiche
                        : False La légende ne s'affiche pas'
-             LegendLocation = dictionary, controls where the legend is drawn outside the figure
+             legend_position : str, controls where the legend is drawn outside the figure
 
                            location string of matplotlib 'upper right', 'center left'...
 
@@ -1603,29 +1702,28 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
 
 
         subplot["dimension"] = [nrows, ncolumns]
-    And defines the active axis as the subplot["number"]=number of the plot
+        And defines the active axis as the subplot["number"]=number of the plot
 
 
-    subplot["figsize"] : Optional argument to set the size of the figure
-                         subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
 
-    subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-    They are not taken in account otherwise
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
 
-    subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                        : It's automatically set to True if we reach the maximum subplot Number
-                        : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
 
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
 
-    Example : Dimension = [2,2]
-              the grah numbers are 1 2
-                                   3 4
+                  Number = 3 corresponds to subplot [1,0]
 
-              Number = 3 corresponds to subplot [1,0]
-
-            : To plot on a graph with 2 line and 3 columns on the graph in the center
-            subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
 
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
@@ -1635,7 +1733,7 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
                        : True (par défaut) la légende s'affiche
                        : False La légende ne s'affiche pas'
                        : Argument utile seulement si on trace dans la dernière case d'un subplot ou dans un subplot 1x1 (il n'a pas d'effet autrement)
-             LegendLocation = dictionary, controls where the legend is drawn outside the figure
+             legend_position : str, controls where the legend is drawn outside the figure
 
                            location string of matplotlib 'upper right', 'center left'...
 
@@ -1723,7 +1821,89 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     draw_axes_informations(fig, graph_type, subplot, x_description, y_description, figure_title, subplot_title, **kwargs)
 
 
-def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=False, grid_visible=False, legend_position="center left", **kwargs):
+def muscle_bar_plot(data, variable, figure_title, muscle_list, data_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=False, grid_visible=False, **kwargs):
+    """
+    Function that creates a barplot on a specific index of a muscle variable
+
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (compare = True)
+
+    variable : le nom de la variable placée en y sur le graphique
+
+    muscle_list : list : Liste des muscles à sélectionner
+
+    data_index : int : index of the data to select
+                       Example : 0 to select the first value of the muscle variable selected
+
+    composante :
+                  : type : liste de chaines de charactère
+                  : Liste contenant les nom des composantes de la variable à tracer
+                  : Par défaut : On trace la composante "Total" donc composante_y = ["Total"]
+
+                : Activer plusieurs composantes :
+                Exemple : composante_y = ["composante 1","composante 2","composante 3","Total"....]
+                          Si on veut activer x et y entrer : composante_y = ["x","y"]
+
+                : Activer une seule composante :
+                Exemple : Si on veut activer y entrer : composante_y = ["y"]
+
+
+                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
+                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
+
+
+    compare : = True si on veut comparer plusieurs données
+              Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
+
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+
+        subplot["dimension"] = [nrows, ncolumns]
+        And defines the active axis as the subplot["number"]=number of the plot
+
+
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
+
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
+
+                  Number = 3 corresponds to subplot [1,0]
+
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
+
+    subplot_title : str : title of the subplot
+
+    stacked : bool : False = each bar are next to each other (Default)
+                     True = stacks the bars on top of eachothers
+
+    grid_visible : bool : False = The grid is deactivated
+
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             legend_on : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+             legend_position : str, controls where the legend is drawn outside the figure
+
+                           location string of matplotlib 'upper right', 'center left'...
+
+                           Default value : lower center (below the figure)
+    """
+
     import pandas as pd
 
     # First checks that the results data structure match the argument entered in the graph function
@@ -1735,13 +1915,6 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
     fig = subplot_setup(subplot, figsize, False)
 
     ax = plt.gca()
-
-    # Arguments that controls if the axis labels are on or not
-    # xlabel_on = kwargs.get("xlabel_on", True)
-    # ylabel_on = kwargs.get("ylabel_on", True)
-
-    # # Setups the grid and the axes ticks of the graph
-    # graph_grid_setup(fig, **kwargs)
 
     if cases_on == "all":
         cases_on = list(data.keys())
@@ -1756,7 +1929,7 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
     for muscle in muscle_list:
         for case in cases_on:
             muscles_col.append(muscle)
-            values_col.append(data[case]["Muscles"][muscle][muscle][variable][composante][abduction_angle_index])
+            values_col.append(data[case]["Muscles"][muscle][muscle][variable][composante][data_index])
             cases_col.append(case)
 
             # Gets the color of the case
@@ -1776,79 +1949,88 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
     pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, color=my_colors)
 
     # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
-    draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, legend_position, **kwargs)
-    # hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
-
-    # # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    # legend_on = kwargs.get("legend_on", True)
-
-    # if subplot is None:
-    #     plt.title(figure_title)
-    #     plt.xlabel("")
-    #     if ylabel_on:
-    #         plt.ylabel(description)
-
-    #     # shows the legend if activated
-    #     if legend_on:
-    #         lines, labels = clear_legend_duplicates(fig.axes)
-    #         Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
-    #         fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
-
-    #     plt.xticks(rotation=45)
-    #     ax = plt.gca()
-    #     ax.tick_params(bottom=False, left=True)
-    #     plt.xticks(rotation=45)
-
-    # else:
-    #     if subplot_title:
-    #         plt.title(subplot_title)
-
-    #     plt.xticks(rotation=45)
-
-    #     plt.xlabel("")
-    #     if ylabel_on:
-    #         plt.ylabel(description)
-
-    #     if "last_subplot" in subplot:
-    #         last_subplot = subplot["last_subplot"]
-
-    #     # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-    #     elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-    #         last_subplot = True
-    #     # Case where no legend and figure title will be drawn
-    #     else:
-    #         last_subplot = False
-
-    #     if last_subplot:
-
-    #         plt.suptitle(figure_title)
-
-    #         # shows the legend if activated
-    #         if legend_on:
-    #             lines, labels = clear_legend_duplicates(fig.axes)
-    #             Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
-    #             fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
-
-    #         # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
-    #         if hide_center_axis_labels:
-    #             hide_center_subplot_axis_labels(subplot)
-
-    #         # Ajuste les distances entre les subplots quand ils sont tous tracés
-    #         plt.tight_layout()
+    draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, **kwargs)
 
 
-def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, legend_position='lower center', grid_visible=False, **kwargs):
+def ForceMeasure_bar_plot(data, figure_title, muscle_list, data_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, grid_visible=False, **kwargs):
+    """
+    Function that creates a barplot on a specific index of a variable named ForceMeasure followed by the name of the muscle
+
+    Exemple : 'ForceMeasure Deltoid lateral', 'ForceMeasure Supraspinatus'...
+
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (compare = True)
+
+    variable : le nom de la variable placée en y sur le graphique
+
+    muscle_list : list : Liste des muscles à sélectionner
+
+    data_index : int : index of the data to select
+                       Example : 0 to select the first value of the muscle variable selected
+
+    composante :
+                  : type : liste de chaines de charactère
+                  : Liste contenant les nom des composantes de la variable à tracer
+                  : Par défaut : On trace la composante "Total" donc composante_y = ["Total"]
+
+                : Activer plusieurs composantes :
+                Exemple : composante_y = ["composante 1","composante 2","composante 3","Total"....]
+                          Si on veut activer x et y entrer : composante_y = ["x","y"]
+
+                : Activer une seule composante :
+                Exemple : Si on veut activer y entrer : composante_y = ["y"]
+
+
+                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
+                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
+
+
+    compare : = True si on veut comparer plusieurs données
+              Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
+
+    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+
+        subplot["dimension"] = [nrows, ncolumns]
+        And defines the active axis as the subplot["number"]=number of the plot
+
+
+        subplot["figsize"] : Optional argument to set the size of the figure
+                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
+                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
+        They are not taken in account otherwise
+
+        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
+                            : It's automatically set to True if we reach the maximum subplot Number
+                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+
+        Example : Dimension = [2,2]
+                  the grah numbers are 1 2
+                                       3 4
+
+                  Number = 3 corresponds to subplot [1,0]
+
+                : To plot on a graph with 2 line and 3 columns on the graph in the center
+                subplot = {"dimension":[3,3],"number":5}
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             legend_on : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+             legend_position : str, controls where the legend is drawn outside the figure
+
+                           location string of matplotlib 'upper right', 'center left'...
+
+                           Default value : lower center (below the figure)
+    """
     import pandas as pd
 
     variable = "ForceMeasure"
-
-    # First checks that the results data structure match the argument entered in the graph function
-    data_source = check_result_dictionary_data_structure(data, cases_on, compare=False)
-
-    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
-
-    # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    legend_on = kwargs.get("legend_on", True)
 
     # Gets the figure size
     figsize = kwargs.get("figsize", None)
@@ -1856,10 +2038,6 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
     fig = subplot_setup(subplot, figsize, False)
 
     ax = plt.gca()
-
-    # Arguments that controls if the axis labels are on or not
-    # xlabel_on = kwargs.get("xlabel_on", True)
-    ylabel_on = kwargs.get("ylabel_on", True)
 
     if cases_on == "all":
         cases_on = list(data.keys())
@@ -1874,7 +2052,7 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
     for muscle in muscle_list:
         for case in cases_on:
             muscles_col.append(muscle)
-            values_col.append(data[case][f"{variable} {muscle}"][composante][abduction_angle_index])
+            values_col.append(data[case][f"{variable} {muscle}"][composante][data_index])
             cases_col.append(case)
 
             # Gets the color of the case
@@ -1894,70 +2072,8 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
     pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, color=my_colors)
 
     # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
-    draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, legend_position, **kwargs)
+    draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, **kwargs)
 
-
-    # if subplot is None:
-    #     plt.title(figure_title)
-    #     plt.xlabel("")
-    #     if ylabel_on:
-    #         plt.ylabel(description)
-
-    #     # Setups the grid and the axes ticks of the graph
-    #     graph_grid_setup(fig, grid_visible=grid_visible, **kwargs)
-
-    #     # shows the legend if activated
-    #     if legend_on:
-    #         lines, labels = clear_legend_duplicates(fig.axes)
-    #         Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
-    #         fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
-
-    #     plt.xticks(rotation=45)
-    #     ax = plt.gca()
-    #     ax.tick_params(bottom=False, left=True)
-    #     plt.xticks(rotation=45)
-
-    # else:
-    #     if subplot_title:
-    #         plt.title(subplot_title)
-
-    #     plt.xticks(rotation=45)
-
-    #     plt.xlabel("")
-    #     if ylabel_on:
-    #         plt.ylabel(description)
-
-    #     # Setups the grid and the axes ticks of the graph
-    #     graph_grid_setup(fig, grid_visible=grid_visible, **kwargs)
-
-    #     if "last_subplot" in subplot:
-    #         last_subplot = subplot["last_subplot"]
-
-    #     # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-    #     elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-    #         last_subplot = True
-    #     # Case where no legend and figure title will be drawn
-    #     else:
-    #         last_subplot = False
-
-    #     if last_subplot:
-
-    #         plt.suptitle(figure_title)
-
-    #         # shows the legend if activated
-    #         if legend_on:
-
-    #             lines, labels = clear_legend_duplicates(fig.axes)
-    #             Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
-
-    #             fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
-
-    #         # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
-    #         if hide_center_axis_labels:
-    #             hide_center_subplot_axis_labels(subplot)
-
-    #         # Ajuste les distances entre les subplots quand ils sont tous tracés
-    #         plt.tight_layout()
 
 # %% select data to plot
 
