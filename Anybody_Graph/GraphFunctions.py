@@ -19,6 +19,7 @@ from Anybody_Package.Anybody_LoadOutput.Tools import get_result_dictionary_data_
 
 # %% Plot Variables setup
 
+
 def define_simulations_line_style(SimulationsLineStyleDictionary):
     """
     Fonction qui crée la variable globale simulations_line_style qui sera utilisée par la fonction get_simulation_line_style
@@ -701,6 +702,170 @@ def get_simulation_line_style(label):
     return simulation_line_style_dictionary
 
 
+def draw_axes_informations(fig, graph_type, subplot, x_description, y_description, figure_title, subplot_title, **kwargs):
+
+    # get the legend_on argument that controls if the legend is drawn or not (Default True)
+    legend_on = kwargs.get("legend_on", True)
+
+    # Arguments that controls if the axis labels are on or not
+    xlabel_on = kwargs.get("xlabel_on", True)
+    ylabel_on = kwargs.get("ylabel_on", True)
+
+    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
+
+    graph_annotation_on = kwargs.get("graph_annotation_on", False)
+
+    if subplot is None:
+        plt.title(figure_title)
+
+        # unsuperpose the annotations if activated
+        if graph_annotation_on:
+
+            # Calls the function that will move the annotations to avoid superposition
+            unsuperpose_plot_annotations(**kwargs)
+
+        # shows the legend if activated
+        if legend_on:
+            legend_setup(fig, graph_type, **kwargs)
+
+        # Traces the axis labels
+        if xlabel_on:
+            plt.xlabel(x_description)
+        if ylabel_on:
+            plt.ylabel(y_description)
+
+        # Setups the grid and the axes ticks of the graph
+        graph_grid_setup(fig, **kwargs)
+
+    # Dans le cas d'un subplot
+    else:
+
+        # If a subplot title is entered, draws it (subplot_title isn't a bool)
+        if subplot_title:
+            plt.title(subplot_title)
+
+        # unsuperpose the annotations if activated
+        if graph_annotation_on:
+
+            # Calls the function that will move the annotations to avoid superposition
+            unsuperpose_plot_annotations(**kwargs)
+
+        # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
+        # This statement has the priority over the test on the number of dimension
+        if "last_subplot" in subplot:
+            last_subplot = subplot["last_subplot"]
+
+        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
+            last_subplot = True
+        # Case where no legend and figure title will be drawn
+        else:
+            last_subplot = False
+
+        # Setups the grid and the axes ticks of the graph
+        graph_grid_setup(fig, last_subplot, **kwargs)
+
+        if xlabel_on:
+            plt.xlabel(x_description)
+        if ylabel_on:
+            plt.ylabel(y_description)
+
+        # Displays the legend and figure title only if it's the last subplot drawn
+        if last_subplot:
+
+            # Trace le titre de la figure
+            plt.suptitle(figure_title)
+
+            # Ajuste les distances entre les subplots quand ils sont tous tracés
+            plt.tight_layout()
+
+            # shows the legend if activated
+            if legend_on:
+                legend_setup(fig, graph_type, **kwargs)
+
+            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+            if hide_center_axis_labels:
+                hide_center_subplot_axis_labels(subplot)
+
+
+def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplot_title, legend_position, **kwargs):
+
+    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
+
+    # get the legend_on argument that controls if the legend is drawn or not (Default True)
+    legend_on = kwargs.get("legend_on", True)
+
+    ylabel_on = kwargs.get("ylabel_on", True)
+
+    # Deletes the label on the x axis
+    description_x = ""
+
+    # Setups the grid and the axes ticks of the graph
+    graph_grid_setup(fig, **kwargs)
+
+    if subplot is None:
+        plt.title(figure_title)
+        plt.xlabel(description_x)
+        if ylabel_on:
+            plt.ylabel(description_y)
+
+        # shows the legend if activated
+        if legend_on:
+            lines, labels = clear_legend_duplicates(fig.axes)
+
+            # Overwrites the cases descriptions if a description was defined
+            labels = define_simulation_label(labels)
+
+            Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+            fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+
+        plt.xticks(rotation=45)
+        ax = plt.gca()
+        ax.tick_params(bottom=False, left=True)
+        plt.xticks(rotation=45)
+
+    else:
+        if subplot_title:
+            plt.title(subplot_title)
+
+        plt.xticks(rotation=45)
+
+        plt.xlabel(description_x)
+        if ylabel_on:
+            plt.ylabel(description_y)
+
+        if "last_subplot" in subplot:
+            last_subplot = subplot["last_subplot"]
+
+        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
+            last_subplot = True
+        # Case where no legend and figure title will be drawn
+        else:
+            last_subplot = False
+
+        if last_subplot:
+
+            plt.suptitle(figure_title)
+
+            # shows the legend if activated
+            if legend_on:
+                lines, labels = clear_legend_duplicates(fig.axes)
+
+                # Overwrites the cases descriptions if a description was defined
+                labels = define_simulation_label(labels)
+
+                Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+                fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+
+            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+            if hide_center_axis_labels:
+                hide_center_subplot_axis_labels(subplot)
+
+            # Ajuste les distances entre les subplots quand ils sont tous tracés
+            plt.tight_layout()
+
+
 # %% Graph visual functions setup
 
 def define_COP_contour(COP_contourInputFileName, InputFileType):
@@ -1015,20 +1180,9 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     # Get the add_graph variable. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
 
-    # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    legend_on = kwargs.get("legend_on", True)
-
     # Stores the name of the x variable and y variable in the kwargs
     kwargs["variable_y"] = variable_y
     kwargs["variable_x"] = variable_x
-
-    # Arguments that controls if the axis labels are on or not
-    xlabel_on = kwargs.get("xlabel_on", True)
-    ylabel_on = kwargs.get("ylabel_on", True)
-
-    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
-
-    graph_annotation_on = kwargs.get("graph_annotation_on", False)
 
     graph_type = "graph"
 
@@ -1079,77 +1233,8 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     elif data_source == "Literature":
         x_description, y_description = graph_select_data_to_plot_literature(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)
 
-    if subplot is None:
-        plt.title(figure_title)
-
-        # unsuperpose the annotations if activated
-        if graph_annotation_on:
-
-            # Calls the function that will move the annotations to avoid superposition
-            unsuperpose_plot_annotations(**kwargs)
-
-        # shows the legend if activated
-        if legend_on:
-            legend_setup(fig, graph_type, **kwargs)
-
-        # Traces the axis labels
-        if xlabel_on:
-            plt.xlabel(x_description)
-        if ylabel_on:
-            plt.ylabel(y_description)
-
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, **kwargs)
-
-    # Dans le cas d'un subplot
-    else:
-
-        # If a subplot title is entered, draws it (subplot_title isn't a bool)
-        if subplot_title:
-            plt.title(subplot_title)
-
-        # unsuperpose the annotations if activated
-        if graph_annotation_on:
-
-            # Calls the function that will move the annotations to avoid superposition
-            unsuperpose_plot_annotations(**kwargs)
-
-        # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
-        # This statement has the priority over the test on the number of dimension
-        if "last_subplot" in subplot:
-            last_subplot = subplot["last_subplot"]
-
-        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-            last_subplot = True
-        # Case where no legend and figure title will be drawn
-        else:
-            last_subplot = False
-
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, last_subplot, **kwargs)
-
-        if xlabel_on:
-            plt.xlabel(x_description)
-        if ylabel_on:
-            plt.ylabel(y_description)
-
-        # Displays the legend and figure title only if it's the last subplot drawn
-        if last_subplot:
-
-            # Trace le titre de la figure
-            plt.suptitle(figure_title)
-
-            # Ajuste les distances entre les subplots quand ils sont tous tracés
-            plt.tight_layout()
-
-            # shows the legend if activated
-            if legend_on:
-                legend_setup(fig, graph_type, **kwargs)
-
-            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
-            if hide_center_axis_labels:
-                hide_center_subplot_axis_labels(subplot)
+    # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
+    draw_axes_informations(fig, graph_type, subplot, x_description, y_description, figure_title, subplot_title, **kwargs)
 
 
 def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, figure_title="", composante_x="Total", composante_y=["Total"], compare=False, subplot=None, subplot_title=False, cases_on=False, muscle_part_information=False, fig=None, compared_case="", **kwargs):
@@ -1240,22 +1325,11 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
                           Default value : lower center (below the figure
     """
 
-    # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    legend_on = kwargs.get("legend_on", True)
-
     graph_type = "muscle_graph"
 
     # Stores the name of the x variable and y variable in the kwargs
     kwargs["variable_y"] = variable_y
     kwargs["variable_x"] = variable_x
-
-    graph_annotation_on = kwargs.get("graph_annotation_on", False)
-
-    # Arguments that controls if the axis labels are on or not
-    xlabel_on = kwargs.get("xlabel_on", True)
-    ylabel_on = kwargs.get("ylabel_on", True)
-
-    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
 
     # Name of the dictionnary key where the muscles are stored
     MuscleFolder = "Muscles"
@@ -1276,81 +1350,8 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
     # Si on trace la dernière muscle part, trace les axes, la légende, les titres etc...
     if muscle_part_information["LastPart"]:
 
-        if subplot is None:
-            plt.title(figure_title)
-
-            # unsuperpose the annotations if activated
-            if graph_annotation_on:
-
-                # Calls the function that will move the annotations to avoid superposition
-                unsuperpose_plot_annotations(**kwargs)
-
-            # shows the legend if activated
-            if legend_on:
-                legend_setup(fig, graph_type, **kwargs)
-
-            # Traces the axis labels
-            if xlabel_on:
-                plt.xlabel(x_description)
-            if ylabel_on:
-                plt.ylabel(y_description)
-
-            # Setups the grid and the axes ticks of the graph
-            graph_grid_setup(fig, **kwargs)
-
-        # Dans le cas d'un subplot
-        else:
-
-            # If a subplot title is entered, draws it (subplot_title isn't a bool)
-            if not type(subplot_title) is bool:
-                plt.title(subplot_title)
-
-            # If a subplot title is entered, draws it (subplot_title isn't a bool)
-            if not type(subplot_title) is bool:
-                plt.title(subplot_title)
-
-            # unsuperpose the annotations if activated
-            if graph_annotation_on:
-
-                # Calls the function that will move the annotations to avoid superposition
-                unsuperpose_plot_annotations(**kwargs)
-
-            # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
-            # This statement has the priority over the test on the number of dimension
-            if "last_subplot" in subplot:
-                last_subplot = subplot["last_subplot"]
-            # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-            elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-                last_subplot = True
-            # Case where no legend and figure title will be drawn
-            else:
-                last_subplot = False
-
-            # Setups the grid and the axes ticks of the graph
-            graph_grid_setup(fig, last_subplot, **kwargs)
-
-            # Traces the axis labels
-            if xlabel_on:
-                plt.xlabel(x_description)
-            if ylabel_on:
-                plt.ylabel(y_description)
-
-            # Displays the legend and figure title only if it's the last subplot drawn
-            if last_subplot:
-                # Trace le titre de la figure
-                plt.suptitle(figure_title)
-
-                # Ajuste les distances entre les subplots quand ils sont tous tracés
-                plt.tight_layout()
-
-                # shows the legend if activated
-                if legend_on:
-
-                    legend_setup(fig, graph_type, **kwargs)
-
-                # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
-                if hide_center_axis_labels:
-                    hide_center_subplot_axis_labels(subplot)
+        # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
+        draw_axes_informations(fig, graph_type, subplot, x_description, y_description, figure_title, subplot_title, **kwargs)
 
 
 def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cases_on=False, compare=False, composante_x="Total", composante_y=["Total"], muscle_part_on=False, subplot=None, subplot_title=False, **kwargs):
@@ -1651,19 +1652,13 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # Get add_graph function. Puts it to false by default if it's not declared in the kwargs
     add_graph = kwargs.get("add_graph", False)
 
-    # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    legend_on = kwargs.get("legend_on", True)
-
-    # Arguments that controls if the axis labels are on or not
-    xlabel_on = kwargs.get("xlabel_on", True)
-    ylabel_on = kwargs.get("ylabel_on", True)
-
-    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
-
     graph_type = "COP_graph"
 
     # Adds this special argument to the kwargs so that it is taken in account in other functions
     kwargs["draw_COP_points_on"] = draw_COP_points_on
+
+    # Activates the graph annotations by default
+    kwargs["graph_annotation_on"] = kwargs.get("graph_annotation_on", True)
 
     # Takes the components of the variable and the name of the variable
     composante_x = composantes[0]
@@ -1674,11 +1669,6 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # Stores the name of the x variable and y variable in the kwargs
     kwargs["variable_y"] = variable_y
     kwargs["variable_x"] = variable_x
-
-    graph_annotation_on = kwargs.get("graph_annotation_on", True)
-    # Overwrites the old value in case it was set to True by default
-    # Because here value by default is true not false like other graph functions
-    kwargs["graph_annotation_on"] = graph_annotation_on
 
     # Verifications for when simulationCases are used
     if cases_on:
@@ -1725,76 +1715,12 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     # Selects the data to graph
     x_description, y_description = graph_select_data_to_plot(data, composante_x, composante_y, cases_on, compare, compared_case, graph_type, **kwargs)
 
-    if subplot is None:
-        plt.title(figure_title)
+    # Overwrites the labels
+    x_description = "<-----Posterior        Anterior----->"
+    y_description = "<----- Inferior        Superior----->"
 
-        # unsuperpose the annotations if activated
-        if graph_annotation_on:
-
-            # Calls the function that will move the annotations to avoid superposition
-            unsuperpose_plot_annotations(**kwargs)
-
-        # shows the legend if activated
-        if legend_on:
-            legend_setup(fig, graph_type, **kwargs)
-
-        # traces the axis labels
-        if xlabel_on:
-            plt.xlabel("<-----Posterior        Anterior----->")
-        if ylabel_on:
-            plt.ylabel("<----- Inferior        Superior----->")
-
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, **kwargs)
-
-    # Dans le cas d'un subplot
-    else:
-
-        # If a subplot title is entered, draws it
-        if subplot_title:
-            plt.title(subplot_title)
-
-        # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
-        # This statement has the priority over the test on the number of dimension
-        if "last_subplot" in subplot:
-            last_subplot = subplot["last_subplot"]
-
-        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-            last_subplot = True
-        # Case where no legend and figure title will be drawn
-        else:
-            last_subplot = False
-
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, last_subplot, **kwargs)
-
-        if xlabel_on:
-            plt.xlabel("<-----Posterior        Anterior----->")
-        if ylabel_on:
-            plt.ylabel("<----- Inferior        Superior----->")
-
-        # unsuperpose the annotations if activated
-        if graph_annotation_on:
-
-            # Calls the function that will move the annotations to avoid superposition
-            unsuperpose_plot_annotations(**kwargs)
-        # Displays the legend and figure title only if it's the last subplot drawn
-        if last_subplot:
-
-            # Trace le titre de la figure
-            plt.suptitle(figure_title)
-
-            # Ajuste les distances entre les subplots quand ils sont tous tracés
-            plt.tight_layout()
-
-            # shows the legend if activated
-            if legend_on:
-                legend_setup(fig, graph_type, **kwargs)
-
-            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
-            if hide_center_axis_labels:
-                hide_center_subplot_axis_labels(subplot)
+    # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
+    draw_axes_informations(fig, graph_type, subplot, x_description, y_description, figure_title, subplot_title, **kwargs)
 
 
 def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=False, grid_visible=False, legend_position="center left", **kwargs):
@@ -1802,11 +1728,6 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
 
     # First checks that the results data structure match the argument entered in the graph function
     data_source = check_result_dictionary_data_structure(data, cases_on, compare=False)
-
-    hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
-
-    # get the legend_on argument that controls if the legend is drawn or not (Default True)
-    legend_on = kwargs.get("legend_on", True)
 
     # Gets the figure size
     figsize = kwargs.get("figsize", None)
@@ -1817,14 +1738,13 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
 
     # Arguments that controls if the axis labels are on or not
     # xlabel_on = kwargs.get("xlabel_on", True)
-    ylabel_on = kwargs.get("ylabel_on", True)
+    # ylabel_on = kwargs.get("ylabel_on", True)
 
-    # Setups the grid and the axes ticks of the graph
-    graph_grid_setup(fig, **kwargs)
+    # # Setups the grid and the axes ticks of the graph
+    # graph_grid_setup(fig, **kwargs)
 
     if cases_on == "all":
         cases_on = list(data.keys())
-
 
     values_col = []
     cases_col = []
@@ -1832,7 +1752,6 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
     my_colors = []
 
     description = data[cases_on[0]]["Muscles"][muscle_list[0]][muscle_list[0]][variable]["Description"]
-    abduction_datas = np.round(data[cases_on[0]]["Abduction"]["Total"])
 
     for muscle in muscle_list:
         for case in cases_on:
@@ -1856,59 +1775,66 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, abduction_angle_i
     pivot_df = df.pivot(index='muscles', columns='cases', values='values').fillna(0)
     pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, color=my_colors)
 
-    if subplot is None:
-        plt.title(figure_title)
-        plt.xlabel("")
-        if ylabel_on:
-            plt.ylabel(description)
+    # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
+    draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, legend_position, **kwargs)
+    # hide_center_axis_labels = kwargs.get("hide_center_axis_labels", False)
 
-        # shows the legend if activated
-        if legend_on:
-            lines, labels = clear_legend_duplicates(fig.axes)
-            Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
-            fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+    # # get the legend_on argument that controls if the legend is drawn or not (Default True)
+    # legend_on = kwargs.get("legend_on", True)
 
-        plt.xticks(rotation=45)
-        ax = plt.gca()
-        ax.tick_params(bottom=False, left=True)
-        plt.xticks(rotation=45)
+    # if subplot is None:
+    #     plt.title(figure_title)
+    #     plt.xlabel("")
+    #     if ylabel_on:
+    #         plt.ylabel(description)
 
-    else:
-        if subplot_title:
-            plt.title(subplot_title)
+    #     # shows the legend if activated
+    #     if legend_on:
+    #         lines, labels = clear_legend_duplicates(fig.axes)
+    #         Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+    #         fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
 
-        plt.xticks(rotation=45)
+    #     plt.xticks(rotation=45)
+    #     ax = plt.gca()
+    #     ax.tick_params(bottom=False, left=True)
+    #     plt.xticks(rotation=45)
 
-        plt.xlabel("")
-        if ylabel_on:
-            plt.ylabel(description)
+    # else:
+    #     if subplot_title:
+    #         plt.title(subplot_title)
 
-        if "last_subplot" in subplot:
-            last_subplot = subplot["last_subplot"]
+    #     plt.xticks(rotation=45)
 
-        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-            last_subplot = True
-        # Case where no legend and figure title will be drawn
-        else:
-            last_subplot = False
+    #     plt.xlabel("")
+    #     if ylabel_on:
+    #         plt.ylabel(description)
 
-        if last_subplot:
+    #     if "last_subplot" in subplot:
+    #         last_subplot = subplot["last_subplot"]
 
-            plt.suptitle(figure_title)
+    #     # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+    #     elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
+    #         last_subplot = True
+    #     # Case where no legend and figure title will be drawn
+    #     else:
+    #         last_subplot = False
 
-            # shows the legend if activated
-            if legend_on:
-                lines, labels = clear_legend_duplicates(fig.axes)
-                Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
-                fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+    #     if last_subplot:
 
-            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
-            if hide_center_axis_labels:
-                hide_center_subplot_axis_labels(subplot)
+    #         plt.suptitle(figure_title)
 
-            # Ajuste les distances entre les subplots quand ils sont tous tracés
-            plt.tight_layout()
+    #         # shows the legend if activated
+    #         if legend_on:
+    #             lines, labels = clear_legend_duplicates(fig.axes)
+    #             Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+    #             fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+
+    #         # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+    #         if hide_center_axis_labels:
+    #             hide_center_subplot_axis_labels(subplot)
+
+    #         # Ajuste les distances entre les subplots quand ils sont tous tracés
+    #         plt.tight_layout()
 
 
 def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, legend_position='lower center', grid_visible=False, **kwargs):
@@ -1932,7 +1858,7 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
     ax = plt.gca()
 
     # Arguments that controls if the axis labels are on or not
-    xlabel_on = kwargs.get("xlabel_on", True)
+    # xlabel_on = kwargs.get("xlabel_on", True)
     ylabel_on = kwargs.get("ylabel_on", True)
 
     if cases_on == "all":
@@ -1967,67 +1893,71 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, abduction_angle_index
     pivot_df = df.pivot(index='muscles', columns='cases', values='values').fillna(0)
     pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, color=my_colors)
 
-    if subplot is None:
-        plt.title(figure_title)
-        plt.xlabel("")
-        if ylabel_on:
-            plt.ylabel(description)
+    # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
+    draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, legend_position, **kwargs)
 
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, grid_visible=grid_visible, **kwargs)
 
-        # shows the legend if activated
-        if legend_on:
-            lines, labels = clear_legend_duplicates(fig.axes)
-            Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
-            fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+    # if subplot is None:
+    #     plt.title(figure_title)
+    #     plt.xlabel("")
+    #     if ylabel_on:
+    #         plt.ylabel(description)
 
-        plt.xticks(rotation=45)
-        ax = plt.gca()
-        ax.tick_params(bottom=False, left=True)
-        plt.xticks(rotation=45)
+    #     # Setups the grid and the axes ticks of the graph
+    #     graph_grid_setup(fig, grid_visible=grid_visible, **kwargs)
 
-    else:
-        if subplot_title:
-            plt.title(subplot_title)
+    #     # shows the legend if activated
+    #     if legend_on:
+    #         lines, labels = clear_legend_duplicates(fig.axes)
+    #         Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+    #         fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
 
-        plt.xticks(rotation=45)
+    #     plt.xticks(rotation=45)
+    #     ax = plt.gca()
+    #     ax.tick_params(bottom=False, left=True)
+    #     plt.xticks(rotation=45)
 
-        plt.xlabel("")
-        if ylabel_on:
-            plt.ylabel(description)
+    # else:
+    #     if subplot_title:
+    #         plt.title(subplot_title)
 
-        # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, grid_visible=grid_visible, **kwargs)
+    #     plt.xticks(rotation=45)
 
-        if "last_subplot" in subplot:
-            last_subplot = subplot["last_subplot"]
+    #     plt.xlabel("")
+    #     if ylabel_on:
+    #         plt.ylabel(description)
 
-        # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
-            last_subplot = True
-        # Case where no legend and figure title will be drawn
-        else:
-            last_subplot = False
+    #     # Setups the grid and the axes ticks of the graph
+    #     graph_grid_setup(fig, grid_visible=grid_visible, **kwargs)
 
-        if last_subplot:
+    #     if "last_subplot" in subplot:
+    #         last_subplot = subplot["last_subplot"]
 
-            plt.suptitle(figure_title)
+    #     # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
+    #     elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
+    #         last_subplot = True
+    #     # Case where no legend and figure title will be drawn
+    #     else:
+    #         last_subplot = False
 
-            # shows the legend if activated
-            if legend_on:
+    #     if last_subplot:
 
-                lines, labels = clear_legend_duplicates(fig.axes)
-                Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
+    #         plt.suptitle(figure_title)
 
-                fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+    #         # shows the legend if activated
+    #         if legend_on:
 
-            # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
-            if hide_center_axis_labels:
-                hide_center_subplot_axis_labels(subplot)
+    #             lines, labels = clear_legend_duplicates(fig.axes)
+    #             Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
 
-            # Ajuste les distances entre les subplots quand ils sont tous tracés
-            plt.tight_layout()
+    #             fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+
+    #         # If activated, hides the axis labels of the suplots that are not on the left or bottom edge
+    #         if hide_center_axis_labels:
+    #             hide_center_subplot_axis_labels(subplot)
+
+    #         # Ajuste les distances entre les subplots quand ils sont tous tracés
+    #         plt.tight_layout()
 
 # %% select data to plot
 

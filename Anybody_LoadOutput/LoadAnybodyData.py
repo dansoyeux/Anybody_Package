@@ -262,7 +262,7 @@ def LoadAnyVariable(h5File, VariableName="", VariablePath="", MusclePath="", Out
     # Si la variable n'existe pas, ne la cherche pas, met un message d'erreur et remplit la variable avec des 0
     else:
         print(f"La variable : {VariablePath} \nn'existe pas dans le fichier h5 : {FilePath}")
-        Output = np.zeros(len(h5Data["Output.Abscissa.t"]))
+        VariableOutput = np.zeros(len(h5Data["Output.Abscissa.t"]))
 
     return VariableOutput
 
