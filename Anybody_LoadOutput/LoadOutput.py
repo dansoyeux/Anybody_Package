@@ -456,7 +456,7 @@ def combine_simulation_cases(result_dictionary, combine_cases, operation="mean")
     return combined_results
 
 
-def sum_result_variables(data, summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add=[], muscle_variables_to_add=[]):
+def sum_result_variables(data, summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add=[], muscle_variables_to_add=[], muscles_to_add=[]):
     """
     function that sums multiple variables for all the data in the result dictionary
     It works for all data structures
@@ -468,14 +468,16 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
     summed_variable_name : (str) the name of the variable that will store the summed variables
     combined_variable_sequence : (list) sequence of the of the variable that will store the summed variables
 
-    variables_to_add : (dict) dictionary containing the names of the variables to sum and the order of the component to sum
-                      variables_to_add = {"variable_1": component_sum_order_1,
-                                          "variable_2": component_sum_order_2}
+    variables_to_add : (dict) dictionary containing a list containing the names of the variables to sum and the order of the component to sum
+                      variables_to_add = {"variable_1": [component_1, component_2, component_3],
+                                          "variable_2": [component_1, component_2, component_3]}
+
     muscle_variables_to_add : (list) dictionary containing the names of the muscle variables to sum, the order of the component to sum and the name of the muscles to sum
                          for the first variable, only a list of muscles are summed, and vor the variable 2 all existing muscles are summed
-                         muscle_variables_to_add = {"muscle_variable_1": {"component_sum_order": component_sum_order_1,
-                                                                          "muscles_to_add": muscles_to_add}
-                                                    }
+                         muscle_variables_to_add = {"muscle_variable_1": [component_1, component_2, component_3]
+                                                    "muscle_variable_2": [component_1, component_2, component_3]}
+
+    muscles_to_add : (list) list of muscles to add
 
     -------------------------------------
     return
@@ -488,7 +490,7 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
     # gets the data structure
     data_structure_counter, data_source = get_result_dictionary_data_structure(data)
 
-    def sum_variables(data, summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add=[], muscle_variables_to_add=[], case_name_error=""):
+    def sum_variables(data, summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add=[], muscle_variables_to_add=[], muscles_to_add=[], case_name_error=""):
         """
         function that sums multiple variables for a single variable dictionary (only one simulation case)
         It works for all data structures
@@ -503,14 +505,15 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
         summed_variable_name : (str) the name of the variable that will store the summed variables
         combined_variable_sequence : (list) sequence of the of the variable that will store the summed variables
 
-        variables_to_add : (dict) dictionary containing the names of the variables to sum and the order of the component to sum
-                          variables_to_add = {"variable_1": component_sum_order_1,
-                                              "variable_2": component_sum_order_2}
+        variables_to_add : (dict) dictionary containing a list containing the names of the variables to sum and the order of the component to sum
+                          variables_to_add = {"variable_1": [component_1, component_2, component_3],
+                                              "variable_2": [component_1, component_2, component_3]}
+
         muscle_variables_to_add : (list) dictionary containing the names of the muscle variables to sum, the order of the component to sum and the name of the muscles to sum
                              for the first variable, only a list of muscles are summed, and vor the variable 2 all existing muscles are summed
-                             muscle_variables_to_add = {"muscle_variable_1": {"component_sum_order": component_sum_order_1,
-                                                                              "muscles_to_add": muscles_to_add}
-                                                        }
+                             muscle_variables_to_add = {"muscle_variable_1": [component_1, component_2, component_3]
+                                                        "muscle_variable_2": [component_1, component_2, component_3]}
+        muscles_to_add : (list) list of muscles to add
 
         case_name_error : str string to add the name of the simulation case in the error message
 
@@ -535,17 +538,17 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
         # Sums the normal variables
         if variables_to_add:
             # goes through each variable
-            for variable_name, component_sum_order in variables_to_add.items():
+            for variable_name, component_variable in variables_to_add.items():
 
                 # Checks that the number of components to sum match between the variable and the output variable
-                if not len(component_sum_order) == number_component:
-                    raise ValueError(f"The number of components to add for the variable '{variable_name}' is not the same than the summed_variable_sequence\n ({len(component_sum_order)} > {number_component})")
+                if not len(component_variable) == number_component:
+                    raise ValueError(f"The number of components to add for the variable '{variable_name}' is not the same than the summed_variable_sequence\n ({len(component_variable)} > {number_component})")
                 # Checks that the variable exists
                 if variable_name not in data:
                     raise ValueError(f"The variable '{variable_name}' doesn't exist in the entered result dictionary{case_name_error}")
 
                 # goes through every component to add
-                for component_index, component_name in enumerate(component_sum_order):
+                for component_index, component_name in enumerate(component_variable):
                     # Checks that the component exists
                     if component_name not in data[variable_name]:
                         raise ValueError(f"The component '{component_name}' of the variable '{variable_name}' doesn't exist in the entered result dictionary{case_name_error}")
@@ -560,15 +563,14 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
         if muscle_variables_to_add:
 
             # Goes through each variable
-            for variable_name, variable_to_add_informations in muscle_variables_to_add.items():
+            for variable_name, component_variable in muscle_variables_to_add.items():
 
-                # Gets the informations of the current summed variable
-                component_sum_order = variable_to_add_informations["component_sum_order"]
-                muscles_to_add = variable_to_add_informations["muscles_to_add"]
+                # # Gets the informations of the current summed variable
+                # component_variable = variable_to_add_informations["component_variable"]
 
                 # Checks that the number of components to sum match between the variable and the output variable
-                if not len(component_sum_order) == number_component:
-                    raise ValueError(f"The number of components to add for the variable '{variable_name}' is not the same than the summed_variable_sequence\n ({len(component_sum_order)} > {number_component})")
+                if not len(component_variable) == number_component:
+                    raise ValueError(f"The number of components to add for the variable '{variable_name}' is not the same than the summed_variable_sequence\n ({len(component_variable)} > {number_component})")
 
                 # Select all muscles to add if "all" was entered
                 if muscles_to_add == "all":
@@ -585,7 +587,7 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
                         raise ValueError(f"For the muscle '{muscle_name}', the muscle variable '{variable_name}' doesn't exist in the entered result dictionary{case_name_error}")
 
                     # goes through every component to add
-                    for component_index, component_name in enumerate(component_sum_order):
+                    for component_index, component_name in enumerate(component_variable):
                         # Checks that the component exists
                         if component_name not in data["Muscles"][muscle_name][muscle_name][variable_name]:
                             raise ValueError(f"For the muscle '{muscle_name}', the component '{component_name}' of the variable '{variable_name}' doesn't exist in the entered result dictionary{case_name_error}")
@@ -600,13 +602,13 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
 
     # for a ResultDictionary without any simulation case
     if data_structure_counter == 0:
-        data = sum_variables(data, summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add, muscle_variables_to_add)
+        data = sum_variables(data, summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add, muscle_variables_to_add, muscles_to_add)
 
     # For a result dictionary with simulation cases
     elif data_structure_counter == 1:
         # sums the cases variables one by one
         for case_name, case_data in data.items():
-            data[case_name] = sum_variables(data[case_name], summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add, muscle_variables_to_add, case_name_error=f" '{case_name}'")
+            data[case_name] = sum_variables(data[case_name], summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add, muscle_variables_to_add, muscles_to_add, case_name_error=f" '{case_name}'")
 
     # for compared simulation cases
     else:
@@ -614,6 +616,6 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
         for simulation_name, simulation_data in data.items():
 
             for case_name, case_data in simulation_data.items():
-                data[simulation_name][case_name] = sum_variables(data[simulation_name][case_name], summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add, muscle_variables_to_add, case_name_error=f" '{simulation_name}/{case_name}'")
+                data[simulation_name][case_name] = sum_variables(data[simulation_name][case_name], summed_variable_name, summed_variable_sequence, summed_variable_description, variables_to_add, muscle_variables_to_add, muscles_to_add, case_name_error=f" '{simulation_name}/{case_name}'")
 
     return data
