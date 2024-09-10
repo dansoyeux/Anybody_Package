@@ -565,9 +565,6 @@ def sum_result_variables(data, summed_variable_name, summed_variable_sequence, s
             # Goes through each variable
             for variable_name, component_variable in muscle_variables_to_add.items():
 
-                # # Gets the informations of the current summed variable
-                # component_variable = variable_to_add_informations["component_variable"]
-
                 # Checks that the number of components to sum match between the variable and the output variable
                 if not len(component_variable) == number_component:
                     raise ValueError(f"The number of components to add for the variable '{variable_name}' is not the same than the summed_variable_sequence\n ({len(component_variable)} > {number_component})")

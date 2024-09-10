@@ -2,8 +2,8 @@
 # import Anybody_Tools as LoadOutputTools
 
 from Anybody_Package.Anybody_LoadOutput.LoadOutput import define_variables_to_load
-from Anybody_Package.Anybody_LoadOutput.LoadOutput import load_simulation_cases
 from Anybody_Package.Anybody_LoadOutput.LoadOutput import load_simulation
+from Anybody_Package.Anybody_LoadOutput.LoadOutput import load_simulation_cases
 from Anybody_Package.Anybody_LoadOutput.LoadOutput import create_compared_simulations
 
 from Anybody_Package.Anybody_LoadOutput.Tools import save_results_to_file
@@ -11,6 +11,7 @@ from Anybody_Package.Anybody_LoadOutput.Tools import array_to_dictionary
 
 from Anybody_Package.Anybody_LoadOutput.LoadLiterature import load_literature_data
 from Anybody_Package.Anybody_LoadOutput.LoadOutput import combine_simulation_cases
+from Anybody_Package.Anybody_LoadOutput.LoadOutput import sum_result_variables
 
 import numpy as np
 

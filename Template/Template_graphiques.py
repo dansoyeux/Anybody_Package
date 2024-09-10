@@ -5,6 +5,9 @@ from Anybody_Package.Anybody_LoadOutput.Tools import load_results_from_file
 from Anybody_Package.Anybody_Graph.GraphFunctions import graph
 from Anybody_Package.Anybody_Graph.GraphFunctions import COP_graph
 from Anybody_Package.Anybody_Graph.GraphFunctions import muscle_graph
+from Anybody_Package.Anybody_Graph.GraphFunctions import muscle_bar_plot
+from Anybody_Package.Anybody_Graph.GraphFunctions import ForceMeasure_bar_plot
+
 from Anybody_Package.Anybody_Graph.GraphFunctions import define_simulations_line_style
 from Anybody_Package.Anybody_Graph.GraphFunctions import define_simulation_description
 from Anybody_Package.Anybody_Graph.GraphFunctions import define_COP_contour
