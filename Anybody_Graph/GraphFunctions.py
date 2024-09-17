@@ -950,9 +950,6 @@ def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplo
     # Deletes the label on the x axis
     description_x = ""
 
-    # Setups the grid and the axes ticks of the graph
-    graph_grid_setup(fig, **kwargs)
-
     if subplot is None:
         plt.title(figure_title)
         plt.xlabel(description_x)
@@ -968,6 +965,9 @@ def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplo
 
             Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
             fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
+    
+        # Setups the grid and the axes ticks of the graph
+        graph_grid_setup(fig, **kwargs)
 
         plt.xticks(rotation=45)
         ax = plt.gca()
@@ -993,6 +993,9 @@ def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplo
         # Case where no legend and figure title will be drawn
         else:
             last_subplot = False
+
+        # Setups the grid and the axes ticks of the graph
+        graph_grid_setup(fig, last_subplot, **kwargs)
 
         if last_subplot:
 

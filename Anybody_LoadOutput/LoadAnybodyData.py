@@ -104,16 +104,8 @@ def LoadAnyFileOut(FileOutPath, ConstantsDictionary, FileType="txt", LoadConstan
 
     FileOut = {}
 
-    """
-    # The variables are loaded only if LoadConstantsOnly is False
-    # if LoadConstantsOnly == False:
-    À FAIRE CE SCRIPT POUR LOAD UNE SÉRIE DE VARIABLE OU TOUTES LES VARIABLES DEPUIS ANYFILEOUT
-    ET POUVOIR CHOISIR CONSTANTES, CONSTANTES + VARIABLE, VARIABLE
-    """
-
     # Loads the constants
-    constantsdata = LoadAnyFileOutVariable(
-        FileOutPath, FileType, LoadConstantsOnly=True)
+    constantsdata = LoadAnyFileOutVariable(FileOutPath, FileType, LoadConstantsOnly=True)
 
     # All the constants names in the .txt file
     ConstantsNames = list(dict.keys(constantsdata))
