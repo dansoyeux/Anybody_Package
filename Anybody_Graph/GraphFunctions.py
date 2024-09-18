@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Wed Sep 18 15:25:20 2024
+
+@author: Dan
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Jul 20 09:53:59 2023
 Functions to make graph from EpauleFDK .h5 and AnyFileOut
 Makes variable graps, muscle graphs and COP_graph
@@ -157,7 +164,7 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
             # Step de déplacement angulaire où les points seront tracés par la fonction draw_COP_points
             COP_points_step = kwargs.get("COP_points_step", 15)
             COP_points_size = kwargs.get("COP_points_size", 8)
-    
+
             # Liste des angles de déplacement
             COP_points_coordinates = data[COP_points_variable][COP_points_composante]
 
@@ -625,7 +632,7 @@ def graph_grid_setup(fig, last_subplot=False, xlim=None, ylim=None, grid_x_step=
             # Sets the graph limits
             for axe in ax:
 
-                axe.grid(visible=True)
+                axe.grid(visible=grid_visible)
 
                 # Select the limits to set (the xlim set manually or the extreme values)
                 if xlim:
@@ -2055,22 +2062,9 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, data_index, cases_on=
 
     cases_on : list : list of the simulation cases to plot
 
-    composante :
-                  : type : liste de chaines de charactère
-                  : Liste contenant les nom des composantes de la variable à tracer
-                  : Par défaut : On trace la composante "Total" donc composante_y = ["Total"]
+    stacked : bool : stacks the bars on top of eachother
 
-                : Activer plusieurs composantes :
-                Exemple : composante_y = ["composante 1","composante 2","composante 3","Total"....]
-                          Si on veut activer x et y entrer : composante_y = ["x","y"]
-
-                : Activer une seule composante :
-                Exemple : Si on veut activer y entrer : composante_y = ["y"]
-
-
-                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
-                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
-
+    composante : str : nom de la composante à tracer
 
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
@@ -2159,6 +2153,135 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, data_index, cases_on=
 
     # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
     draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, **kwargs)
+
+
+def ForceMeasure_bar_plot_direction(data, figure_title, muscle_list, data_index, cases_on=False, composantes=["AP", "IS", "ML"], subplot_title=False, label_threshold=40, same_lim=True, bar_width=1, **kwargs):
+    """
+    Function that creates a barplot on a specific index of a variable named ForceMeasure followed by the name of the muscle
+    Creates one subplot per composante and traces each muscle of the list for each case selected
+
+    Exemple : 'ForceMeasure Deltoid lateral', 'ForceMeasure Supraspinatus'...
+
+    data : le dictionnaire contenant les data à tracer
+         : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
+         : Soit un jeu de plusieurs datas (compare = True)
+
+    figure_title : str : title of the figure
+
+    muscle_list : list : Liste des muscles à sélectionner
+
+    data_index : int : index of the data to select
+                       Example : 0 to select the first value of the muscle variable selected
+
+    cases_on : list : list of the simulation cases to plot
+
+    stacked : bool : stacks the bars on top of eachother
+
+    composantes :
+                  : type : liste de chaines de charactère
+                  : Liste contenant les nom des composantes de la variable à tracer
+                  : Par défaut : On trace la composante "Total" donc composante_y = ["Total"]
+
+                : Activer plusieurs composantes :
+                Exemple : composantes = ["composante 1","composante 2","composante 3","Total"....]
+                          Si on veut activer x et y entrer : composantes = ["x","y"]
+
+                : Activer une seule composante :
+                Exemple : Si on veut activer y entrer : composantes = ["y"]
+
+
+                CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
+                                           : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
+
+    label_threshold : int : Threshold used to hide the name of a muscle when the height of the bar is to low.
+                          : Increase the threshold to increase the height of under which the bar won't have a name written in it
+
+    bar_width : int : width of the bars (Default : 1 to make the bars touch eachother)
+
+    **kwargs : contient d'autres paramètres comme
+             label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
+             add_graph = True : Si jamais on veut ajouter un autre graphique sur le dernier graphique tracé
+                               : False par défaut, les nouvelles données seront tracées en effaçant les anciennes sur le subplot en cours
+             legend_on : bool : argument contrôlant l'affichage de la légende
+                       : True (par défaut) la légende s'affiche
+                       : False La légende ne s'affiche pas'
+             legend_position : str, controls where the legend is drawn outside the figure
+
+                           location string of matplotlib 'upper right', 'center left'...
+
+                           Default value : lower center (below the figure)
+    """
+
+    import pandas as pd
+
+    kwargs["grid_visible"] = kwargs.get("grid_visible", False)
+    kwargs["figsize"] = kwargs.get("figsize", [25, 10])
+
+    stacked = True
+
+    bar_plot = [None] * len(composantes)
+
+    for comp_index, composante in enumerate(composantes):
+
+        subplot = {"dimension": [1, len(composantes)], "number": comp_index + 1}
+        subplot_title = composante
+
+        variable = "ForceMeasure"
+
+        # Gets the figure size
+        figsize = kwargs.get("figsize", None)
+
+        fig = subplot_setup(subplot, figsize, False)
+
+        ax = plt.gca()
+
+        if cases_on == "all":
+            cases_on = list(data.keys())
+
+        values_col = []
+        cases_col = []
+        muscles_col = []
+        my_colors = {}
+
+        description = data[cases_on[0]][f"{variable} {muscle_list[0]}"]["Description"]
+
+        for case in cases_on:
+            for muscle in muscle_list:
+                muscles_col.append(muscle)
+                values_col.append(data[case][f"{variable} {muscle}"][composante][data_index])
+                cases_col.append(case)
+
+                # Gets the color of the muscle
+                simulation_line_style_dictionary = get_simulation_line_style(muscle)
+
+                if "color" in simulation_line_style_dictionary:
+                    my_colors[muscle] = simulation_line_style_dictionary["color"]
+                else:
+                    my_colors[muscle] = None
+
+            bar_data = {"values": values_col,
+                        "cases": cases_col,
+                        "muscles": muscles_col}
+
+        df = pd.DataFrame(bar_data)
+        pivot_df = df.pivot(index='cases', columns='muscles', values='values').fillna(0)
+        bar_plot[comp_index] = pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, width=bar_width, sharey=True, edgecolor="k", color=my_colors)
+
+        # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
+        draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, **kwargs)
+
+    # Add muscle names in bars
+    for subplot_index, bars in enumerate(bar_plot):
+
+        for index, c in enumerate(bars.containers):
+
+            labels = [""] * len(cases_on)
+
+            for case_index in range(len(cases_on)):
+                if abs(c[case_index]._height) > label_threshold:
+                    labels[case_index] = muscle_list[index]
+
+            bars.bar_label(c, labels=labels, label_type='center')
 
 
 # %% select data to plot
