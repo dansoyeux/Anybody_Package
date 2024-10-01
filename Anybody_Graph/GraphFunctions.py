@@ -2043,19 +2043,22 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, data_index, cases
     draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, **kwargs)
 
 
-def ForceMeasure_bar_plot(data, figure_title, muscle_list, data_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, grid_visible=False, **kwargs):
+def ForceMeasure_bar_plot(data, variable, figure_title, muscle_list, data_index, cases_on=False, composante="Total", subplot=None, subplot_title=False, stacked=True, grid_visible=False, **kwargs):
     """
-    Function that creates a barplot on a specific index of a variable named ForceMeasure followed by the name of the muscle
+    Function that creates a barplot on a specific index of a variable named 'variable' followed by the name of the muscle
 
-    Exemple : 'ForceMeasure Deltoid lateral', 'ForceMeasure Supraspinatus'...
+    Exemple : variable = "ForceMeasure"
+              the variable ploted will be 'ForceMeasure Deltoid lateral', 'ForceMeasure Supraspinatus'...
 
     data : le dictionnaire contenant les data à tracer
          : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
          : Soit un jeu de plusieurs datas (compare = True)
 
+    variable : str : string of the variable before the muscle name
+
     figure_title : str : title of the figure
 
-    muscle_list : list : Liste des muscles à sélectionner
+    muscle_list : list : List of  selected muscles
 
     data_index : int : index of the data to select
                        Example : 0 to select the first value of the muscle variable selected
@@ -2110,8 +2113,6 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, data_index, cases_on=
     """
     import pandas as pd
 
-    variable = "ForceMeasure"
-
     # Gets the figure size
     figsize = kwargs.get("figsize", None)
 
@@ -2155,20 +2156,23 @@ def ForceMeasure_bar_plot(data, figure_title, muscle_list, data_index, cases_on=
     draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, **kwargs)
 
 
-def ForceMeasure_bar_plot_direction(data, figure_title, muscle_list, data_index, cases_on=False, composantes=["AP", "IS", "ML"], subplot_title=False, label_threshold=40, same_lim=True, bar_width=1, **kwargs):
+def ForceMeasure_bar_plot_direction(data, variable, figure_title, muscle_list, data_index, cases_on=False, composantes=["AP", "IS", "ML"], subplot_title=False, label_threshold=40, same_lim=True, bar_width=1, **kwargs):
     """
-    Function that creates a barplot on a specific index of a variable named ForceMeasure followed by the name of the muscle
+    Function that creates a barplot on a specific index of a variable named 'variable' followed by the name of the muscle
     Creates one subplot per composante and traces each muscle of the list for each case selected
 
-    Exemple : 'ForceMeasure Deltoid lateral', 'ForceMeasure Supraspinatus'...
+    Exemple : variable = "ForceMeasure"
+              'ForceMeasure Deltoid lateral', 'ForceMeasure Supraspinatus'...
 
     data : le dictionnaire contenant les data à tracer
          : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
          : Soit un jeu de plusieurs datas (compare = True)
 
+    variable : str : string of the variable before the muscle name
+
     figure_title : str : title of the figure
 
-    muscle_list : list : Liste des muscles à sélectionner
+    muscle_list : list : List of  selected muscles
 
     data_index : int : index of the data to select
                        Example : 0 to select the first value of the muscle variable selected
@@ -2225,8 +2229,6 @@ def ForceMeasure_bar_plot_direction(data, figure_title, muscle_list, data_index,
 
         subplot = {"dimension": [1, len(composantes)], "number": comp_index + 1}
         subplot_title = composante
-
-        variable = "ForceMeasure"
 
         # Gets the figure size
         figsize = kwargs.get("figsize", None)
