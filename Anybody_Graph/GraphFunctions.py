@@ -972,7 +972,7 @@ def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplo
 
             Anchor_loc, Loc_x, Loc_y, legend_label_per_column = define_legend_properties(legend_position)
             fig.legend(lines, labels, bbox_to_anchor=(Loc_x, Loc_y), loc=Anchor_loc)
-    
+
         # Setups the grid and the axes ticks of the graph
         graph_grid_setup(fig, **kwargs)
 
@@ -2156,7 +2156,7 @@ def ForceMeasure_bar_plot(data, variable, figure_title, muscle_list, data_index,
     draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, **kwargs)
 
 
-def ForceMeasure_bar_plot_direction(data, variable, figure_title, muscle_list, data_index, cases_on=False, composantes=["AP", "IS", "ML"], subplot_title=False, label_threshold=40, same_lim=True, bar_width=1, **kwargs):
+def ForceMeasure_bar_plot_direction(data, variable, figure_title, muscle_list, data_index, cases_on=False, composantes=["AP", "IS", "ML"], subplot_title=False, bar_label=True, label_threshold=10, bar_width=1, **kwargs):
     """
     Function that creates a barplot on a specific index of a variable named 'variable' followed by the name of the muscle
     Creates one subplot per composante and traces each muscle of the list for each case selected
@@ -2196,6 +2196,8 @@ def ForceMeasure_bar_plot_direction(data, variable, figure_title, muscle_list, d
 
                 CAS PARTICULIER COMPOSANTES: Si on compare, on ne peut activer qu'une seule composante
                                            : Si on active plusieurs composantes, on doit comparer la même donnée (un seul cas de simulation)
+
+    bar_label : bool : activates or not the display of the name of the muscle in the bar
 
     label_threshold : int : Threshold used to hide the name of a muscle when the height of the bar is to low.
                           : Increase the threshold to increase the height of under which the bar won't have a name written in it
@@ -2267,23 +2269,44 @@ def ForceMeasure_bar_plot_direction(data, variable, figure_title, muscle_list, d
 
         df = pd.DataFrame(bar_data)
         pivot_df = df.pivot(index='cases', columns='muscles', values='values').fillna(0)
-        bar_plot[comp_index] = pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, width=bar_width, sharey=True, edgecolor="k", color=my_colors)
+        bar_plot[comp_index] = pivot_df.plot(kind='bar', stacked=stacked, ax=ax, legend=False, width=bar_width, edgecolor="k", color=my_colors, label=muscle_list)
 
         # Draws the legend, the axes descriptions and titles, the annotations and setups the grid
         draw_bar_axes_informations(fig, subplot, description, figure_title, subplot_title, **kwargs)
 
     # Add muscle names in bars
-    for subplot_index, bars in enumerate(bar_plot):
+    if bar_label:
+        # labels in the legend
+        handles, legend_muscles_labels = ax.get_legend_handles_labels()
 
-        for index, c in enumerate(bars.containers):
+        # list of colors in the legend
+        legend_color_list = []
+        legend_rectangles = fig.legends[0].legendHandles
+        for rectangle in legend_rectangles:
+            legend_color_list.append(rectangle._facecolor)
 
-            labels = [""] * len(cases_on)
+        # uses labels and colors in the legend to put the correct muscle name depending on the color of the bar
+        # Goes through each bar plot in the figure
+        for subplot_index, bars in enumerate(bar_plot):
 
-            for case_index in range(len(cases_on)):
-                if abs(c[case_index]._height) > label_threshold:
-                    labels[case_index] = muscle_list[index]
+            # goes through each row of the current barplot
+            for index, c in enumerate(bars.containers):
 
-            bars.bar_label(c, labels=labels, label_type='center')
+                # Labels of the current line
+                labels = [""] * len(c)
+
+                # gets the rectangle object of each bar
+                for case_index, rectangle in enumerate(c):
+
+                    # if the rectangle is high enough, put its name on the bar
+                    if abs(rectangle._height) > label_threshold:
+                        rectangle_color = rectangle._facecolor
+
+                        # select the correct muscle name corresponding to the current rectangle color
+                        color_index = legend_color_list.index(rectangle_color)
+                        labels[case_index] = legend_muscles_labels[color_index]
+
+                bars.bar_label(c, labels=labels, label_type='center')
 
 
 # %% select data to plot
@@ -2295,7 +2318,7 @@ def check_result_dictionary_data_structure(data, cases_on, compare):
 
     it checks if cases_on is used when simulation cases exis
     it checks if compare=True is used when we compare simulation with simulation cases
-    
+
     data : le dictionnaire contenant les data à tracer
          : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
          : Soit un jeu de plusieurs datas (compare = True)
