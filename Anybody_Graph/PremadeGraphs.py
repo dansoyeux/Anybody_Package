@@ -223,7 +223,7 @@ def muscle_graph_from_list(data, muscle_list, subplot_dimension, variable_x, var
         muscle_graph(data, muscle_name, variable_x, variable_y, figure_title, composante_y=composante_y, compare=compare, cases_on=cases_on, subplot_title=muscle_name, subplot={"dimension": subplot_dimension, "number": index + 1, "last_subplot": last_subplot}, **kwargs)
 
 
-def COP_graph_by_case_categories(data, case_categories, COP_contour=None, variable="COP", figure_title="", composantes=["x", "y"], DrawCOPPointsOn=True, **kwargs):
+def COP_graph_by_case_categories(data, case_categories, COP_contour=None, variable="COP", figure_title="", composantes=["x", "y"], **kwargs):
     """
     crée un subplot où dans chaque case on ne trace qu'une liste de cas
 
@@ -332,8 +332,7 @@ def COP_graph_by_case_categories(data, case_categories, COP_contour=None, variab
             if subplot_Number == last_subplot_Number:
                 last_subplot = True
 
-            COP_graph(data, COP_contour, variable=variable, figure_title=figure_title, composantes=composantes, cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot},
-                      DrawCOPPointsOn=DrawCOPPointsOn, subplot_title=Categorie_Name, **kwargs)
+            COP_graph(data, COP_contour, variable=variable, figure_title=figure_title, composantes=composantes, cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
 
             # Incrémente le numéro de subplot
             subplot_Number += 1
