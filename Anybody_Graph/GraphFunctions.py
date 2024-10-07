@@ -240,6 +240,9 @@ def subplot_setup(subplot, figsize=None, add_graph=False):
             dimension_x = subplot["dimension"][0]
             dimension_y = subplot["dimension"][1]
 
+        else:
+            raise ValueError("The 'dimension' of the subplot must be specified")
+
         # If it's the first subplot then it initializes the figure
         if subplot_number == 1 and not add_graph:
 
