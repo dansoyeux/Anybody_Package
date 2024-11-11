@@ -88,8 +88,7 @@ VariableDictionary = {"Abduction": {"VariablePath": "Output.rotD", "VariableDesc
 
 # Constantes (si un fichier AnyFileOut contenant des constantes est créé en même temps que le fichier h5)
 # Constantes
-ConstantsDictionary = {"AnybodyFileOutPath": "Main.Study.FileOut",  # CHEMIN D'ACCÈS ANYBODY DE L'OBJET AnyFileOut
-                       "Paramètres de simulation": ["Case", "MuscleRecruitment", "nStep", "tEnd", "GHReactions", "Movement"],
+ConstantsDictionary = {"Paramètres de simulation": ["Case", "MuscleRecruitment", "nStep", "tEnd", "GHReactions", "Movement"],
                        "Mannequin": ["GlenohumeralFlexion", "GlenohumeralAbduction", "GlenohumeralExternalRotation"]
                        }
 
