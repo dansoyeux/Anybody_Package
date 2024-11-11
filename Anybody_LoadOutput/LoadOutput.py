@@ -361,10 +361,6 @@ def define_variables_to_load(VariableDictionary=None, MuscleDictionary=None, Mus
         VariablesToLoad["MuscleVariables"] = MuscleVariableDictionary
 
     if ConstantsDictionary:
-        # Vérifie que le chemin d'accès de l'objet AnyFileOut est bien spécifié
-        if "AnybodyFileOutPath" not in ConstantsDictionary:
-            raise ValueError("Définir le chemin anybody de l'objet AnyFileOut")
-            return
 
         VariablesToLoad["Constantes"] = ConstantsDictionary
 

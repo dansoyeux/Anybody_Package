@@ -60,9 +60,6 @@ def LoadAnyFileOutVariable(FileOutPath, FileType, VariablePath=str, LoadConstant
         DataDictionary = {}
         for index, Variable in enumerate(dataheader):
 
-            # Deletes the anybody path of the variable name to only keep the variable name
-            Variable = Variable.replace("Main.Study.FileOut.", "")
-
             DataDictionary[Variable] = data[:, index]
 
         # adds the variable to DataDictionary
@@ -108,34 +105,34 @@ def LoadAnyFileOut(FileOutPath, ConstantsDictionary, FileType="txt", LoadConstan
     constantsdata = LoadAnyFileOutVariable(FileOutPath, FileType, LoadConstantsOnly=True)
 
     # All the constants names in the .txt file
-    ConstantsNames = list(dict.keys(constantsdata))
+    # ConstantsNames = list(dict.keys(constantsdata))
 
-    # Extracts the AnyOutputFile object file in ConstantsDictionary
-    AnybodyFileOutPath = ConstantsDictionary["AnybodyFileOutPath"]
+    # # Extracts the AnyOutputFile object file in ConstantsDictionary
+    # AnybodyFileOutPath = ConstantsDictionary["AnybodyFileOutPath"]
 
     # Makes a copy of ConstantsDictionary to modify it without changing the original dictionnary
-    ConstantsDictionary_Copy = ConstantsDictionary.copy()
+    # ConstantsDictionary_Copy = ConstantsDictionary.copy()
     # Deletes the AnyOutputFile path from the dictionary
-    del ConstantsDictionary_Copy["AnybodyFileOutPath"]
+    # del ConstantsDictionary_Copy["AnybodyFileOutPath"]
 
-    for Constantindex, ConstantName in enumerate(ConstantsNames):
-        ConstantsNames[Constantindex] = ConstantName.replace(f"{AnybodyFileOutPath}.", "")
+    constdata_shortNames = {}
 
-    # Goes through every constants categories defined in ConstantsDictionary_Copy (the dictionnary containing the variables without the AnybodyFileOutPath)
-    for CategoryName, CategoryConstants in ConstantsDictionary_Copy.items():
+    for ConstantName in constantsdata:
+
+        # Replace the constant names full path by only the name of the constant
+        ConstantName_short = ConstantName.split(".")[-1]
+        constdata_shortNames[ConstantName_short] = constantsdata[ConstantName]
+
+    for CategoryName, CategoryConstants in ConstantsDictionary.items():
         FileOut[CategoryName] = {}
 
         # Goes through all the constants in this category an places it in FileOut[CategoryName]
         for Constant in CategoryConstants:
 
             # Only loads the constant if it exists
-            if Constant in ConstantsNames:
-                # Loads the Constant value (the key is AnybodyFileOutPath.Constant)
-                FileOut[CategoryName][Constant] = constantsdata[f"{AnybodyFileOutPath}.{Constant}"]
-
-        # Deletes the category if it is an empty dictionary (no constants of this category were found)
-        if FileOut[CategoryName] == {}:
-            del FileOut[CategoryName]
+            if Constant in constdata_shortNames:
+                # Loads the Constant value
+                FileOut[CategoryName][Constant] = constdata_shortNames[Constant]
 
     return FileOut
 
