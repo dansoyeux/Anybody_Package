@@ -183,34 +183,26 @@ def plot_graph_functions(data, x_data, y_data, graph_type, label=None, custom_la
 
 def subplot_setup(subplot, figsize=None, add_graph=False):
     """
+    Setups the dimension of the subplot and the active subplot
 
-    Setup a subplot of dimension :
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
+         nrows : number of rows in the subplot
+         ncolumns : number of columns in the subplot
+         Number_of_the_subplot_selected : Select the active subplot
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
+         Example : subplot = (2, 2, 3)
+                   the grah numbers are 1 2
+                                        3 4
 
+                   The selected subplot will be the subplot on line 2 and column 1
 
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+                 : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                 subplot = (3, 3, 5)
 
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-        Example : Dimension = [2,2]
-                  the grah numbers are 1 2
-                                       3 4
-
-                  Number = 3 corresponds to subplot [1,0]
-
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+        figsize : Optional argument to set the size of the figure
+                          figsize = [horizontal_size_inches, vertical_size_inches]
+                          : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
     """
 
     # default figure size
@@ -232,16 +224,17 @@ def subplot_setup(subplot, figsize=None, add_graph=False):
 
     # Si l'argument subplot a été déclaré le subplot est en 2D
     elif subplot is not None:
+        if not len(subplot) == 3:
+            raise ValueError("subplot must be a tuple of dimension 3 containing )(dimension_x, dimension_y, subplot_number)")
+
+        dimension_x = subplot[0]
+        dimension_y = subplot[1]
+
         # Number of the subplot to graph
-        subplot_number = subplot["number"]
+        subplot_number = subplot[2]
 
-        # Dimensions du subplot et tailles de figures
-        if "dimension" in subplot:
-            dimension_x = subplot["dimension"][0]
-            dimension_y = subplot["dimension"][1]
-
-        else:
-            raise ValueError("The 'dimension' of the subplot must be specified")
+        if subplot_number > dimension_x * dimension_y:
+            raise ValueError(f"The number of the entered current subplot to graph ({subplot_number}) is out of range (max = {dimension_x} * {dimension_y} = {dimension_x * dimension_y})")
 
         # If it's the first subplot then it initializes the figure
         if subplot_number == 1 and not add_graph:
@@ -250,6 +243,7 @@ def subplot_setup(subplot, figsize=None, add_graph=False):
             # Sets the figure size
             fig, ax = plt.subplots(dimension_x, dimension_y, figsize=figsize)
             axes = fig.axes
+
         else:
             # Gets the current figure and axes if the plot wasn't created on this iteration
             fig = plt.gcf()
@@ -694,8 +688,8 @@ def hide_center_subplot_axis_labels(subplot):
     subplot = {"dimension: [nrows, ncolumns]", :"number": Number_of_the_subplot_selected}
     """
 
-    nlin = subplot["dimension"][0]
-    ncol = subplot["dimension"][1]
+    nlin = subplot[0]
+    ncol = subplot[1]
     n_subplot = nlin * ncol
 
     subplot_left_edge_index = np.arange(1, n_subplot + 1, ncol).tolist()
@@ -759,32 +753,25 @@ def draw_axes_informations(fig, graph_type, subplot, x_description, y_descriptio
     fig : The matplotlib figure object
     graph_type : str : the type of graph (graph, COP_graph, muscle_graph)
 
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    figsize : Optional argument to set the size of the figure
+                         figsize = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
+        nrows : number of rows in the subplot
+        ncolumns : number of columns in the subplot
+        Number_of_the_subplot_selected : Select the active subplot
 
-
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-        Example : Dimension = [2,2]
+        Example : subplot = (2, 2, 3)
                   the grah numbers are 1 2
                                        3 4
 
-                  Number = 3 corresponds to subplot [1,0]
+                  The selected subplot will be the subplot on line 2 and column 1
 
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                subplot = (3, 3, 5)
 
     x_description : str : The label of the x axis
     y_description : str : The label of the y axis
@@ -857,20 +844,24 @@ def draw_axes_informations(fig, graph_type, subplot, x_description, y_descriptio
         # Puts true if we add a graph
         if add_graph:
             last_subplot = True
-        # last_subplot can be entered in the subplot dictionary to oblige the legend to draw even if a subplot is empty
-        # This statement has the priority over the test on the number of dimension
-        elif "last_subplot" in subplot:
-            last_subplot = subplot["last_subplot"]
 
         # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
+        elif subplot[2] == subplot[0] * subplot[1]:
             last_subplot = True
+
+        # last_subplot can be entered
+        # This statement has the priority over the test on the number of dimension
+        elif "last_subplot" in kwargs:
+            last_subplot = kwargs["last_subplot"]
+
         # Case where no legend and figure title will be drawn
         else:
             last_subplot = False
 
+        kwargs["last_subplot"] = last_subplot
+
         # Setups the grid and the axes ticks of the graph
-        graph_grid_setup(fig, last_subplot, **kwargs)
+        graph_grid_setup(fig, **kwargs)
 
         if xlabel_on:
             plt.xlabel(x_description)
@@ -903,32 +894,25 @@ def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplo
     fig : The matplotlib figure object
     graph_type : str : the type of graph (graph, COP_graph, muscle_graph)
 
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    figsize : Optional argument to set the size of the figure
+                         figsize = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
+        nrows : number of rows in the subplot
+        ncolumns : number of columns in the subplot
+        Number_of_the_subplot_selected : Select the active subplot
 
-
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-        Example : Dimension = [2,2]
+        Example : subplot = (2, 2, 3)
                   the grah numbers are 1 2
                                        3 4
 
-                  Number = 3 corresponds to subplot [1,0]
+                  The selected subplot will be the subplot on line 2 and column 1
 
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                subplot = (3, 3, 5)
 
     y_description : str : The label of the y axis
     figure_title : str : title of the figure
@@ -994,11 +978,11 @@ def draw_bar_axes_informations(fig, subplot, description_y, figure_title, subplo
         if ylabel_on:
             plt.ylabel(description_y)
 
-        if "last_subplot" in subplot:
-            last_subplot = subplot["last_subplot"]
+        if "last_subplot" in kwargs:
+            last_subplot = kwargs["last_subplot"]
 
         # Tests if the number of subplot corresponds to the last subplot number to control if the legend and title are drawn or not
-        elif subplot["number"] == subplot["dimension"][0] * subplot["dimension"][1]:
+        elif subplot[2] == subplot[0] * subplot[1]:
             last_subplot = True
         # Case where no legend and figure title will be drawn
         else:
@@ -1297,32 +1281,25 @@ def graph(data, variable_x, variable_y, figure_title="", cases_on=False, compare
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    figsize : Optional argument to set the size of the figure
+                         figsize = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
+        nrows : number of rows in the subplot
+        ncolumns : number of columns in the subplot
+        Number_of_the_subplot_selected : Select the active subplot
 
-
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-        Example : Dimension = [2,2]
+        Example : subplot = (2, 2, 3)
                   the grah numbers are 1 2
                                        3 4
 
-                  Number = 3 corresponds to subplot [1,0]
+                  The selected subplot will be the subplot on line 2 and column 1
 
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                subplot = (3, 3, 5)
 
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
@@ -1404,8 +1381,6 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
     """
     Fonction qui gère trace la variable d'une seule fibre musculaire
 
-    lastPart = statement pour dire qu'on dessine la dernière musclepart pour ne tracer la légende qu'à ce moment là
-
     data : le dictionnaire contenant les data à tracer
          : Par défaut : Un dictionnaire ne contenant qu'une seule simulation
          : Soit un jeu de plusieurs datas (compare = True)
@@ -1449,32 +1424,25 @@ def muscle_part_graph(data, muscle_name, muscle_part, variable_x, variable_y, fi
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    figsize : Optional argument to set the size of the figure
+                         figsize = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
+        nrows : number of rows in the subplot
+        ncolumns : number of columns in the subplot
+        Number_of_the_subplot_selected : Select the active subplot
 
-
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-        Example : Dimension = [2,2]
+        Example : subplot = (2, 2, 3)
                   the grah numbers are 1 2
                                        3 4
 
-                  Number = 3 corresponds to subplot [1,0]
+                  The selected subplot will be the subplot on line 2 and column 1
 
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                subplot = (3, 3, 5)
 
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
@@ -1568,32 +1536,25 @@ def muscle_graph(data, muscle_name, variable_x, variable_y, figure_title="", cas
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    figsize : Optional argument to set the size of the figure
+                         figsize = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
-
-
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
 
-        Example : Dimension = [2,2]
+        nrows : number of rows in the subplot
+        ncolumns : number of columns in the subplot
+        Number_of_the_subplot_selected : Select the active subplot
+
+        Example : subplot = (2, 2, 3)
                   the grah numbers are 1 2
                                        3 4
 
-                  Number = 3 corresponds to subplot [1,0]
+                  The selected subplot will be the subplot on line 2 and column 1
 
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                subplot = (3, 3, 5)
 
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre
@@ -1769,32 +1730,25 @@ def COP_graph(data, COP_contour=None, variable="COP", figure_title="", composant
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    figsize : Optional argument to set the size of the figure
+                         figsize = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
+        nrows : number of rows in the subplot
+        ncolumns : number of columns in the subplot
+        Number_of_the_subplot_selected : Select the active subplot
 
-
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
-
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-        Example : Dimension = [2,2]
+        Example : subplot = (2, 2, 3)
                   the grah numbers are 1 2
                                        3 4
 
-                  Number = 3 corresponds to subplot [1,0]
+                  The selected subplot will be the subplot on line 2 and column 1
 
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                subplot = (3, 3, 5)
 
     legend_x : list : [direction_1, direction_2]
                The x axis contain the names of the positive and the negative direction of the x component of the selected variable
@@ -1950,31 +1904,25 @@ def muscle_bar_plot(data, variable, figure_title, muscle_list, data_index, cases
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    figsize : Optional argument to set the size of the figure
+                         figsize = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
 
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+        nrows : number of rows in the subplot
+        ncolumns : number of columns in the subplot
+        Number_of_the_subplot_selected : Select the active subplot
 
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-        Example : Dimension = [2,2]
+        Example : subplot = (2, 2, 3)
                   the grah numbers are 1 2
                                        3 4
 
-                  Number = 3 corresponds to subplot [1,0]
+                  The selected subplot will be the subplot on line 2 and column 1
 
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                subplot = (3, 3, 5)
 
     subplot_title : str : title of the subplot
 
@@ -2075,31 +2023,25 @@ def ForceMeasure_bar_plot(data, variable, figure_title, muscle_list, data_index,
     compare : = True si on veut comparer plusieurs données
               Ne rien mettre (compare = False par défaut) : on veut tracer qu'une seule donnée
 
-    subplot = {"dimension"": [nrows, ncolumns], :"number": Number_of_the_subplot_selected, "figsize": [horizontal_size_inches, vertical_size_inches], "last_subplot": True}
+    figsize : Optional argument to set the size of the figure
+                         figsize = [horizontal_size_inches, vertical_size_inches]
+                         : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
 
-        subplot["dimension"] = [nrows, ncolumns]
-        And defines the active axis as the subplot["number"]=number of the plot
+    subplot : tuple : (nrows, ncolumns, Number_of_the_subplot_selected)
 
 
-        subplot["figsize"] : Optional argument to set the size of the figure
-                             subplot["figsize"] = [horizontal_size_inches, vertical_size_inches]
-                             : default : [14, 10] inches for 2D ; [7, 5] for [1,1] subplot
+        nrows : number of rows in the subplot
+        ncolumns : number of columns in the subplot
+        Number_of_the_subplot_selected : Select the active subplot
 
-        subplot["dimension"] and figsize : are only to be set for subplot["number"] = 1
-        They are not taken in account otherwise
-
-        subplot["LastPart"] : bool = Optional argument : Controls if the legend and figure title are drawn
-                            : It's automatically set to True if we reach the maximum subplot Number
-                            : But it can be overwritten so that the legend is drawn even if one of the subplot is empty
-
-        Example : Dimension = [2,2]
+        Example : subplot = (2, 2, 3)
                   the grah numbers are 1 2
                                        3 4
 
-                  Number = 3 corresponds to subplot [1,0]
+                  The selected subplot will be the subplot on line 2 and column 1
 
-                : To plot on a graph with 2 line and 3 columns on the graph in the center
-                subplot = {"dimension":[3,3],"number":5}
+                : To plot on a graph with 3 lines and 3 columns on the graph in the center
+                subplot = (3, 3, 5)
 
     **kwargs : contient d'autres paramètres comme
              label : si jamais on veut ajouter un label à une donnée d'un graphique qui n'en aurait ou qui en aurait un autre

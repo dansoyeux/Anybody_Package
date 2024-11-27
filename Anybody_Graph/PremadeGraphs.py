@@ -145,7 +145,7 @@ def graph_all_muscle_fibers(data, muscle_list, variable_x, variable_y, combined_
                     last_subplot = True
 
                 # Graph du muscle part
-                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=figure_title, cases_on=cases_on, compare=compare, subplot={"dimension": [2, subplot_Dimension_y], "number": subplotNumber, "last_subplot": last_subplot}, subplot_title=f"{muscle_name} {current_part_pumber}", muscle_part_on=[current_part_pumber], **kwargs)
+                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=figure_title, cases_on=cases_on, compare=compare, subplot=(2, subplot_Dimension_y, subplotNumber), last_subplot=last_subplot, subplot_title=f"{muscle_name} {current_part_pumber}", muscle_part_on=[current_part_pumber], **kwargs)
                 subplotNumber += 1
 
 
@@ -220,7 +220,7 @@ def muscle_graph_from_list(data, muscle_list, subplot_dimension, variable_x, var
         if muscle_name == muscle_list[-1]:
             last_subplot = True
 
-        muscle_graph(data, muscle_name, variable_x, variable_y, figure_title, composante_y=composante_y, compare=compare, cases_on=cases_on, subplot_title=muscle_name, subplot={"dimension": subplot_dimension, "number": index + 1, "last_subplot": last_subplot}, **kwargs)
+        muscle_graph(data, muscle_name, variable_x, variable_y, figure_title, composante_y=composante_y, compare=compare, cases_on=cases_on, subplot_title=muscle_name, subplot=(subplot_dimension[0], subplot_dimension[1], index + 1), last_subplot=last_subplot, **kwargs)
 
 
 def COP_graph_by_case_categories(data, case_categories, COP_contour=None, variable="COP", figure_title="", composantes=["x", "y"], **kwargs):
@@ -332,7 +332,7 @@ def COP_graph_by_case_categories(data, case_categories, COP_contour=None, variab
             if subplot_Number == last_subplot_Number:
                 last_subplot = True
 
-            COP_graph(data, COP_contour, variable=variable, figure_title=figure_title, composantes=composantes, cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
+            COP_graph(data, COP_contour, variable=variable, figure_title=figure_title, composantes=composantes, cases_on=Categories_Cases, subplot=(n_subplot_lines, n_subplot_columns, subplot_Number), last_subplot=last_subplot, subplot_title=Categorie_Name, **kwargs)
 
             # Incrémente le numéro de subplot
             subplot_Number += 1
@@ -436,7 +436,7 @@ def graph_by_case_categories(data, case_categories, variable_x, variable_y, figu
             if subplot_Number == last_subplot_Number:
                 last_subplot = True
 
-            graph(data, variable_x, variable_y, figure_title, composante_y=composante_y, cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
+            graph(data, variable_x, variable_y, figure_title, composante_y=composante_y, cases_on=Categories_Cases, subplot=(n_subplot_lines, n_subplot_columns, subplot_Number), last_subplot=last_subplot, subplot_title=Categorie_Name, **kwargs)
 
             # Incrémente le numéro de subplot
             subplot_Number += 1
@@ -569,7 +569,7 @@ def muscle_graph_by_case_categories(data, case_categories, muscle_list, variable
                     last_subplot = True
 
                 # Graph of the combined muscle
-                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=f"{muscle_name} : {variable_y} {composante_y_muscle_combined[0]}", cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, **kwargs)
+                muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_combined, figure_title=f"{muscle_name} : {variable_y} {composante_y_muscle_combined[0]}", cases_on=Categories_Cases, subplot=(n_subplot_lines, n_subplot_columns, subplot_Number), last_subplot=last_subplot, subplot_title=Categorie_Name, **kwargs)
 
                 # Incrémente le numéro de subplot
                 subplot_Number += 1
@@ -595,7 +595,7 @@ def muscle_graph_by_case_categories(data, case_categories, muscle_list, variable
                         # Parcours les catégories de la variable (1 catégorie par colomne)
                         for Categorie_Name, Categories_Cases in case_categories[Category].items():
 
-                            muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=f"{muscle_name} {current_part_pumber} : {variable_y} {composante_y_muscle_part[0]}", cases_on=Categories_Cases, subplot={"dimension": [n_subplot_lines, n_subplot_columns], "number": subplot_Number, "last_subplot": last_subplot}, subplot_title=Categorie_Name, muscle_part_on=[current_part_pumber], **kwargs)
+                            muscle_graph(data, muscle_name, variable_x, variable_y, composante_y=composante_y_muscle_part, figure_title=f"{muscle_name} {current_part_pumber} : {variable_y} {composante_y_muscle_part[0]}", cases_on=Categories_Cases, subplot=(n_subplot_lines, n_subplot_columns, subplot_Number), last_subplot=last_subplot, subplot_title=Categorie_Name, muscle_part_on=[current_part_pumber], **kwargs)
 
                             # Incrémente le numéro de subplot
                             subplot_Number += 1
