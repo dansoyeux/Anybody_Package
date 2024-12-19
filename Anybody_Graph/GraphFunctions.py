@@ -225,7 +225,7 @@ def subplot_setup(subplot, figsize=None, add_graph=False):
     # Si l'argument subplot a été déclaré le subplot est en 2D
     elif subplot is not None:
         if not len(subplot) == 3:
-            raise ValueError("subplot must be a tuple of dimension 3 containing )(dimension_x, dimension_y, subplot_number)")
+            raise ValueError("subplot must be a tuple of dimension 3 containing : (dimension_x, dimension_y, subplot_number)")
 
         dimension_x = subplot[0]
         dimension_y = subplot[1]
@@ -736,12 +736,14 @@ def get_simulation_line_style(label):
 
     simulation_line_style_dictionary = {}
 
-    # Only select a custom color if there is a label
-    if label is not None:
-        # Selects the color from the colormap if the graph_label is in SimulationColors
-        if label in simulations_line_style:
+    if "simulations_line_style" in globals():
 
-            simulation_line_style_dictionary = simulations_line_style[label]
+        # Only select a custom color if there is a label
+        if label is not None:
+            # Selects the color from the colormap if the graph_label is in SimulationColors
+            if label in simulations_line_style:
+
+                simulation_line_style_dictionary = simulations_line_style[label]
 
     return simulation_line_style_dictionary
 
@@ -2058,6 +2060,9 @@ def ForceMeasure_bar_plot(data, variable, figure_title, muscle_list, data_index,
     """
     import pandas as pd
 
+    # First checks that the results data structure match the argument entered in the graph function
+    data_source = check_result_dictionary_data_structure(data, cases_on, False)
+
     # Gets the figure size
     figsize = kwargs.get("figsize", None)
 
@@ -2163,6 +2168,9 @@ def ForceMeasure_bar_plot_direction(data, variable, figure_title, muscle_list, d
                            Default value : lower center (below the figure)
     """
 
+    # First checks that the results data structure match the argument entered in the graph function
+    data_source = check_result_dictionary_data_structure(data, cases_on, False)
+
     import pandas as pd
 
     kwargs["grid_visible"] = kwargs.get("grid_visible", False)
@@ -2174,7 +2182,7 @@ def ForceMeasure_bar_plot_direction(data, variable, figure_title, muscle_list, d
 
     for comp_index, composante in enumerate(composantes):
 
-        subplot = {"dimension": [1, len(composantes)], "number": comp_index + 1}
+        subplot = (1, len(composantes), comp_index + 1)
         subplot_title = composante
 
         # Gets the figure size
